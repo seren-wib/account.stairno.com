@@ -170,7 +170,8 @@ export const ko: Dictionary = {
   },
   consent: {
     heading: '연결 허용',
-    intro: '{site}에서 Stairno 계정으로 로그인하려고 합니다. 허용하면 그 사이트가 다음을 쓸 수 있습니다.',
+    intro:
+      '{site}에서 Stairno 계정으로 로그인하려고 합니다. 허용하면 그 사이트가 다음을 쓸 수 있습니다.',
     scopes: {
       openid: 'Stairno 계정으로 로그인',
       profile: '이름과 언어',

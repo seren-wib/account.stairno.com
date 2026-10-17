@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { sql, type SQL } from 'drizzle-orm';
 import { createAuth, type Auth } from './auth';
 import { createDb } from './db/client';
+import { createMailer } from './mail';
 import type { Env } from './env';
 
 export interface Deps {
@@ -41,6 +42,7 @@ function workerDeps(env: Env): Promise<Deps> {
       accountUrl: env.ACCOUNT_URL,
       cookieDomain: env.COOKIE_DOMAIN,
       secret: env.BETTER_AUTH_SECRET,
+      mailer: createMailer({ apiKey: env.RESEND_API_KEY }),
     });
     await auth.$context;
     return { db, auth };

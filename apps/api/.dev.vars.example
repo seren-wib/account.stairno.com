@@ -5,3 +5,5 @@ BETTER_AUTH_SECRET=replace-with-openssl-rand-base64-32
 API_URL=http://localhost:8787
 ACCOUNT_URL=http://localhost:4321
 COOKIE_DOMAIN=
+# Leave empty to skip mail locally. Resend test keys only; never a live key in this file.
+RESEND_API_KEY=

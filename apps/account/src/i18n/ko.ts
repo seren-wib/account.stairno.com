@@ -108,6 +108,27 @@ export const ko: Dictionary = {
       unavailable: '지금은 바꿀 수 없습니다. 잠시 뒤에 다시 해 주세요.',
     },
   },
+  profile: {
+    heading: '프로필',
+    name: '이름',
+    language: '언어',
+    languages: { ko: '한국어', en: 'English' },
+    save: '저장',
+    saved: '저장했습니다.',
+    emailHeading: '이메일',
+    currentEmail: '지금 이메일',
+    newEmail: '새 이메일',
+    changeEmail: '확인 메일 보내기',
+    emailPending:
+      '새 주소로 확인 메일을 보냅니다. 메일의 링크를 누르기 전까지는 지금 이메일이 그대로입니다.',
+    emailSent: '새 주소로 확인 메일을 보냈습니다.',
+    errors: {
+      name: '이름을 입력해 주세요.',
+      email: '이메일 주소를 확인해 주세요.',
+      unavailable: '지금은 저장할 수 없습니다. 잠시 뒤에 다시 해 주세요.',
+      tooMany: '시도가 너무 많습니다. 1분 뒤에 다시 해 주세요.',
+    },
+  },
   verifyEmail: {
     heading: '이메일 확인',
     done: '이메일을 확인했습니다',

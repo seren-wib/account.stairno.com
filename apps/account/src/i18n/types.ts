@@ -102,6 +102,21 @@ export type Dictionary = {
       unavailable: string;
     };
   };
+  profile: {
+    heading: string;
+    name: string;
+    language: string;
+    languages: { ko: string; en: string };
+    save: string;
+    saved: string;
+    emailHeading: string;
+    currentEmail: string;
+    newEmail: string;
+    changeEmail: string;
+    emailPending: string;
+    emailSent: string;
+    errors: { name: string; email: string; unavailable: string; tooMany: string };
+  };
   verifyEmail: {
     heading: string;
     done: string;

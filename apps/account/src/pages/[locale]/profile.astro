@@ -1,0 +1,170 @@
+---
+import Account from '../../layouts/Account.astro';
+import { isLocale, locales, t } from '../../i18n';
+
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale).profile;
+const user = Astro.locals.user;
+const api = Astro.locals.apiUrl;
+const messages = JSON.stringify({ saved: dict.saved, emailSent: dict.emailSent, ...dict.errors });
+---
+
+<Account locale={locale} page="profile" heading={dict.heading}>
+  <form class="form" data-profile data-api={api} data-messages={messages} novalidate>
+    <label class="field">
+      <span>{dict.name}</span>
+      <input
+        name="name"
+        autocomplete="name"
+        value={user?.name}
+        required
+        aria-describedby="name-error"
+      />
+      <span class="field-error" id="name-error" data-error-for="name" hidden></span>
+    </label>
+    <label class="field">
+      <span>{dict.language}</span>
+      <select name="locale">
+        {locales.map((option) => (
+          <option value={option} selected={user?.locale === option}>
+            {dict.languages[option]}
+          </option>
+        ))}
+      </select>
+    </label>
+    <p class="form-note" role="status" data-result></p>
+    <button class="button form-submit" type="submit">
+      {dict.save}
+    </button>
+  </form>
+
+  <h2 class="section-title">{dict.emailHeading}</h2>
+  <form class="form" data-change-email data-api={api} data-messages={messages} novalidate>
+    <dl class="detail-list">
+      <div>
+        <dt>{dict.currentEmail}</dt>
+        <dd>{user?.email}</dd>
+      </div>
+    </dl>
+    <label class="field">
+      <span>{dict.newEmail}</span>
+      <input
+        type="email"
+        name="newEmail"
+        autocomplete="email"
+        required
+        aria-describedby="newEmail-hint newEmail-error"
+      />
+      <span class="field-hint" id="newEmail-hint">
+        {dict.emailPending}
+      </span>
+      <span class="field-error" id="newEmail-error" data-error-for="newEmail" hidden></span>
+    </label>
+    <p class="form-note" role="status" data-result></p>
+    <button class="button form-submit" type="submit">
+      {dict.changeEmail}
+    </button>
+  </form>
+</Account>
+
+<script>
+  import { profileUpdateSchema } from '@stairno-account/contract';
+
+  type Messages = Record<
+    'saved' | 'emailSent' | 'name' | 'email' | 'unavailable' | 'tooMany',
+    string
+  >;
+
+  function parts(form: HTMLFormElement) {
+    const { api = '', messages = '{}' } = form.dataset;
+    return {
+      api,
+      text: JSON.parse(messages) as Messages,
+      result: form.querySelector<HTMLElement>('[data-result]'),
+      button: form.querySelector<HTMLButtonElement>('button[type="submit"]'),
+    };
+  }
+
+  // NFR-17: one message next to the field, or none.
+  function fieldError(form: HTMLFormElement, field: string, message: string | null) {
+    const slot = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+    const input = form.querySelector<HTMLElement>(`[name="${field}"]`);
+    if (slot) {
+      slot.textContent = message ?? '';
+      slot.hidden = !message;
+    }
+    input?.setAttribute('aria-invalid', message ? 'true' : 'false');
+    if (message) input?.focus();
+  }
+
+  async function post(api: string, path: string, body: unknown) {
+    return fetch(`${api}/auth/${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
+  // FR-6: name and language. A new language reloads the page in that language.
+  const profile = document.querySelector<HTMLFormElement>('[data-profile]');
+  profile?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const { api, text, result, button } = parts(profile);
+    const data = new FormData(profile);
+    const parsed = profileUpdateSchema.safeParse({
+      name: data.get('name'),
+      locale: data.get('locale'),
+    });
+    fieldError(profile, 'name', parsed.success ? null : text.name);
+    if (!parsed.success) return;
+
+    if (button) button.disabled = true;
+    let message = text.unavailable;
+    try {
+      const res = await post(api, 'update-user', parsed.data);
+      if (res.ok) {
+        const current = window.location.pathname.split('/')[1];
+        if (current !== parsed.data.locale) {
+          window.location.assign(`/${parsed.data.locale}/profile/`);
+          return;
+        }
+        message = text.saved;
+      } else if (res.status === 429) {
+        message = text.tooMany;
+      }
+    } catch {
+      // The API is unreachable.
+    }
+    if (result) result.textContent = message;
+    if (button) button.disabled = false;
+  });
+
+  // FR-6: the new address is confirmed first; the current one stays until then.
+  const changeEmail = document.querySelector<HTMLFormElement>('[data-change-email]');
+  changeEmail?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const { api, text, result, button } = parts(changeEmail);
+    const newEmail = String(new FormData(changeEmail).get('newEmail') ?? '').trim();
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail);
+    fieldError(changeEmail, 'newEmail', valid ? null : text.email);
+    if (!valid) return;
+
+    if (button) button.disabled = true;
+    let message = text.unavailable;
+    try {
+      const res = await post(api, 'change-email', { newEmail });
+      if (res.ok) message = text.emailSent;
+      else if (res.status === 429) message = text.tooMany;
+      else if (res.status === 400) {
+        fieldError(changeEmail, 'newEmail', text.email);
+        message = '';
+      }
+    } catch {
+      // The API is unreachable.
+    }
+    if (result) result.textContent = message;
+    if (button) button.disabled = false;
+  });
+</script>

@@ -110,6 +110,27 @@ export const en: Dictionary = {
       unavailable: 'This is not possible right now. Please try again shortly.',
     },
   },
+  profile: {
+    heading: 'Profile',
+    name: 'Name',
+    language: 'Language',
+    languages: { ko: '한국어', en: 'English' },
+    save: 'Save',
+    saved: 'Saved.',
+    emailHeading: 'Email',
+    currentEmail: 'Current email',
+    newEmail: 'New email',
+    changeEmail: 'Send confirmation',
+    emailPending:
+      'We send a confirmation to the new address. Your current email stays until you open the link in that mail.',
+    emailSent: 'We sent a confirmation to the new address.',
+    errors: {
+      name: 'Please enter your name.',
+      email: 'Please check the email address.',
+      unavailable: 'This could not be saved right now. Please try again shortly.',
+      tooMany: 'Too many tries. Please try again in a minute.',
+    },
+  },
   verifyEmail: {
     heading: 'Confirm email',
     done: 'Email confirmed',

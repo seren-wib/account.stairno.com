@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import { jwt } from 'better-auth/plugins/jwt';
 import { oauthProvider } from '@better-auth/oauth-provider';
 import * as schema from './db/schema';
@@ -49,6 +50,9 @@ export function createAuth(config: AuthConfig) {
     },
     trustedOrigins: [config.accountUrl],
     plugins: [
+      // FR-1: rejects breached passwords on sign-up, change and reset. Sends only the first
+      // five hex characters of the SHA-1 hash to api.pwnedpasswords.com.
+      haveIBeenPwned(),
       jwt({ jwks: { keyPairConfig: { alg: 'EdDSA' } } }),
       oauthProvider({
         loginPage: `${config.accountUrl}/sign-in`,

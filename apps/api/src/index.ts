@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { secureHeaders } from 'hono/secure-headers';
 import { sql } from 'drizzle-orm';
 import { createAuth } from './auth';
 import { createDb } from './db/client';
@@ -16,6 +17,16 @@ export type { Deps } from './deps';
 
 export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   const app = new Hono<AppEnv>();
+
+  // NFR-7 (SDD §9). CORP stays off: sites and the account center read this API across origins.
+  app.use(
+    '*',
+    secureHeaders({
+      strictTransportSecurity: 'max-age=31536000; includeSubDomains',
+      referrerPolicy: 'strict-origin-when-cross-origin',
+      crossOriginResourcePolicy: false,
+    }),
+  );
 
   // FR-26: before everything else, so preflights are answered without a session.
   const corsFor = createCors(getDeps);

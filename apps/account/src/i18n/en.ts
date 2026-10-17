@@ -152,6 +152,24 @@ export const en: Dictionary = {
     empty: 'No site is connected.',
     unavailable: 'The site list could not be loaded. Please try again shortly.',
   },
+  deleteAccount: {
+    heading: 'Delete account',
+    warning:
+      'Deleting the account removes your sign-in details, the sign-ins on every device and the connected sites at once. This cannot be undone. You can sign up again with the same email, but it will be a new account.',
+    password: 'Password',
+    confirm: 'I understand this cannot be undone',
+    submit: 'Delete account',
+    done: 'Account deleted',
+    doneBody: 'Thank you for using a Stairno account.',
+    hub: 'Go to stairno.com',
+    errors: {
+      passwordMissing: 'Please enter your password.',
+      password: 'The password is not right.',
+      confirm: 'Tick the box to confirm.',
+      tooMany: 'Too many tries. Please try again in a minute.',
+      unavailable: 'The account could not be deleted right now. Please try again shortly.',
+    },
+  },
   verifyEmail: {
     heading: 'Confirm email',
     done: 'Email confirmed',

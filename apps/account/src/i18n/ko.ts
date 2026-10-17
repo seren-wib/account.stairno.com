@@ -150,6 +150,24 @@ export const ko: Dictionary = {
     empty: '연결된 사이트가 없습니다.',
     unavailable: '사이트 목록을 불러올 수 없습니다. 잠시 뒤에 다시 해 주세요.',
   },
+  deleteAccount: {
+    heading: '계정 삭제',
+    warning:
+      '계정을 삭제하면 로그인 정보, 모든 기기의 로그인, 연결된 사이트가 바로 지워지고 되돌릴 수 없습니다. 같은 이메일로 다시 가입할 수는 있지만 새 계정이 됩니다.',
+    password: '비밀번호',
+    confirm: '되돌릴 수 없다는 것을 이해했습니다',
+    submit: '계정 삭제',
+    done: '계정을 삭제했습니다',
+    doneBody: '그동안 Stairno 계정을 써 주셔서 고맙습니다.',
+    hub: 'stairno.com으로',
+    errors: {
+      passwordMissing: '비밀번호를 입력해 주세요.',
+      password: '비밀번호가 맞지 않습니다.',
+      confirm: '삭제하려면 확인란에 표시해 주세요.',
+      tooMany: '시도가 너무 많습니다. 1분 뒤에 다시 해 주세요.',
+      unavailable: '지금은 삭제할 수 없습니다. 잠시 뒤에 다시 해 주세요.',
+    },
+  },
   verifyEmail: {
     heading: '이메일 확인',
     done: '이메일을 확인했습니다',

@@ -1,0 +1,11 @@
+{
+  "name": "stairno-account",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // Custom domain once stairno.com DNS is on Cloudflare (test and deploy document §8.1).
+  // "routes": [{ "pattern": "account.stairno.com", "custom_domain": true }],
+  "vars": {
+    "PUBLIC_API_URL": "https://api.stairno.com",
+  },
+  "observability": { "enabled": true },
+}

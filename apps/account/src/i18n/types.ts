@@ -8,7 +8,28 @@ export type Dictionary = {
     theme: { light: string; dark: string; toggle: string };
   };
   footer: { heading: string; hub: string; source: string };
-  overview: { heading: string };
+  account: {
+    menuLabel: string;
+    menu: {
+      overview: string;
+      profile: string;
+      devices: string;
+      connections: string;
+      delete: string;
+    };
+    signOut: string;
+  };
+  overview: {
+    heading: string;
+    email: string;
+    verified: string;
+    unverified: string;
+    resend: string;
+    resent: string;
+    tooMany: string;
+    unavailable: string;
+    shortcuts: string;
+  };
   signIn: {
     heading: string;
     email: string;

@@ -5,7 +5,9 @@ describe('route table', () => {
   it('FR-25 keeps every route under /v1/, /auth/, /webhooks/ or at /health', async () => {
     const { app } = await createTestApp();
 
-    const paths = [...new Set(app.routes.map((r) => r.path))];
+    // Global middleware (security headers) is registered as `ALL /*` and serves no path itself.
+    const routes = app.routes.filter((r) => !(r.method === 'ALL' && r.path === '/*'));
+    const paths = [...new Set(routes.map((r) => r.path))];
 
     expect(paths.length).toBeGreaterThan(0);
     for (const path of paths) {

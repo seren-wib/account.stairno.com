@@ -1,0 +1,10 @@
+name = "stairno-api"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Custom domain once stairno.com DNS is on Cloudflare (test and deploy document §8.1).
+# routes = [{ pattern = "api.stairno.com", custom_domain = true }]
+
+[observability]
+enabled = true

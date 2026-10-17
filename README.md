@@ -8,16 +8,17 @@ Stairno 계정 센터(account.stairno.com)와 공용 API(api.stairno.com). Stair
 
 이 레포는 설계 문서를 따라 짠다. 문서와 코드가 어긋나면 둘 중 하나를 같은 PR에서 고친다.
 
-| 문서                  | 원본                 | 공유본                                                                                              |
-| --------------------- | -------------------- | --------------------------------------------------------------------------------------------------- |
-| 프로젝트 계획서       | `docs/specs/plan.md` | [Google Docs](https://docs.google.com/document/d/1i9pkvCHo0XkBrcU8o8s-5u_3zz8CpeKMzTJ01olrLi8/edit) |
-| 요구사항 명세서 (SRS) | `docs/specs/srs.md`  | [Google Docs](https://docs.google.com/document/d/1-NKMcjcKf-ESB95-M6DhpTrbwxn0qYVAJy9A-q1d0N8/edit) |
-| 설계 명세서 (SDD)     | `docs/specs/sdd.md`  | [Google Docs](https://docs.google.com/document/d/1tEYwmJwJ6aDq26tzZ781eF_1wd9-DxVf9Smeh1Px8cY/edit) |
+| 문서                  | 원본                        | 공유본                                                                                              |
+| --------------------- | --------------------------- | --------------------------------------------------------------------------------------------------- |
+| 프로젝트 계획서       | `docs/specs/plan.md`        | [Google Docs](https://docs.google.com/document/d/1i9pkvCHo0XkBrcU8o8s-5u_3zz8CpeKMzTJ01olrLi8/edit) |
+| 요구사항 명세서 (SRS) | `docs/specs/srs.md`         | [Google Docs](https://docs.google.com/document/d/1-NKMcjcKf-ESB95-M6DhpTrbwxn0qYVAJy9A-q1d0N8/edit) |
+| 설계 명세서 (SDD)     | `docs/specs/sdd.md`         | [Google Docs](https://docs.google.com/document/d/1tEYwmJwJ6aDq26tzZ781eF_1wd9-DxVf9Smeh1Px8cY/edit) |
+| 테스트와 배포         | `docs/specs/test-deploy.md` | [Google Docs](https://docs.google.com/document/d/1izJ7KAlia6LIA5oOHP8XjUKz_uZWJFR5q9Utyfg_1ZY/edit) |
 
 - `docs/specs/`는 git에서 제외된다. 로컬에 없으면 Google Docs를 읽는다. Drive 폴더는 `Stairno/account.stairno.com`
 - 문서를 고치면 마크다운 원본을 고치고 Google Docs에 다시 올린다. Google Docs만 고치지 않는다
 - 요구사항 ID(`FR-n`, `NFR-n`, `DR-n`)는 SRS에 있다. 테스트 이름과 PR 본문에서 이 ID를 인용한다
-- 테스트와 배포 문서, CLAUDE.md는 1차 구현 전에 쓴다
+- 작업 규칙의 요약은 [CLAUDE.md](CLAUDE.md), 테스트 계층과 배포 절차는 테스트와 배포 문서
 
 ## 교차 도메인 로그인 실험
 

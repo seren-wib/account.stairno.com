@@ -9,4 +9,6 @@ export interface Env {
   // secrets
   DATABASE_URL: string;
   BETTER_AUTH_SECRET: string;
+  // Unset locally and until the stairno.com domain is verified in Resend: mail is skipped.
+  RESEND_API_KEY?: string;
 }

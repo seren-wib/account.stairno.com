@@ -4,6 +4,7 @@ import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import { jwt } from 'better-auth/plugins/jwt';
 import { oauthProvider } from '@better-auth/oauth-provider';
 import * as schema from './db/schema';
+import { renderMail, resolveLocale, type Mailer } from './mail';
 
 export interface AuthConfig {
   // Drizzle database (neon-http in Workers, PGlite in tests). Typed loosely so both fit.
@@ -12,6 +13,7 @@ export interface AuthConfig {
   accountUrl: string;
   cookieDomain: string;
   secret: string;
+  mailer: Mailer;
 }
 
 // SDD §4. One factory so the Worker, the tests and the schema generator build the same instance.
@@ -28,6 +30,19 @@ export function createAuth(config: AuthConfig) {
       maxPasswordLength: 128,
       requireEmailVerification: false,
       revokeSessionsOnPasswordReset: true,
+    },
+    emailVerification: {
+      // FR-2: unverified users can sign in; orders and cards check emailVerified instead.
+      sendOnSignUp: true,
+      async sendVerificationEmail({ user, token }) {
+        const locale = resolveLocale((user as { locale?: string }).locale);
+        // The account center page hands the token to GET /auth/verify-email (SDD §7.3).
+        const url = `${config.accountUrl}/${locale}/verify-email?token=${encodeURIComponent(token)}`;
+        await config.mailer.send({
+          to: user.email,
+          ...renderMail('verifyEmail', locale, { name: user.name, url }),
+        });
+      },
     },
     session: {
       expiresIn: 60 * 60 * 24 * 30,

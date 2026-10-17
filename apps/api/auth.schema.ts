@@ -3,6 +3,7 @@
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import { createAuth } from './src/auth';
+import { createMailer } from './src/mail';
 
 export const auth = createAuth({
   db: drizzle(neon('postgres://schema:schema@localhost/schema')),
@@ -10,4 +11,5 @@ export const auth = createAuth({
   accountUrl: 'https://account.stairno.com',
   cookieDomain: 'stairno.com',
   secret: 'schema-generation-only-secret-0123456789abcdef',
+  mailer: createMailer({ apiKey: undefined }),
 });

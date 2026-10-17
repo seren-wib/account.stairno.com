@@ -12,6 +12,7 @@
     "apps/*"
   ],
   "scripts": {
+    "dev": "npm run dev --workspace apps/api",
     "build": "npm run build --workspaces --if-present",
     "check": "npm run check --workspaces --if-present && tsc --noEmit -p e2e",
     "test": "npm run test --workspaces --if-present",

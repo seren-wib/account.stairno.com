@@ -11,8 +11,8 @@ export interface MailMessage {
 // The one thing the auth flows depend on. Production sends through Resend; tests pass a memory
 // mailbox, so no test reaches the network.
 export interface Mailer {
-  // Resolves with the provider's message id when there is one.
-  send(message: MailMessage): Promise<{ id?: string } | void>;
+  // Resolves with the provider's message id when there is one, or `skipped` when nothing was sent.
+  send(message: MailMessage): Promise<{ id?: string; skipped?: boolean } | void>;
 }
 
 type Fetch = (input: string, init: RequestInit) => Promise<Response>;
@@ -51,6 +51,7 @@ export function createMailer(options: { apiKey: string | undefined; fetch?: Fetc
   return {
     async send() {
       console.warn('mail skipped: RESEND_API_KEY is not set');
+      return { skipped: true };
     },
   };
 }

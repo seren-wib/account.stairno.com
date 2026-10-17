@@ -71,7 +71,11 @@ export function createAuth(config: AuthConfig) {
         to: user.email,
         ...renderMail(template, locale, { name: user.name, url }),
       });
-      await config.db.insert(mailLog).values({ ...entry, status: 'sent', providerId: sent?.id });
+      await config.db.insert(mailLog).values({
+        ...entry,
+        status: sent?.skipped ? 'skipped' : 'sent',
+        providerId: sent?.id,
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error('mail failed', { template, error: message });

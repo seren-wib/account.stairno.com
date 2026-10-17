@@ -13,7 +13,7 @@ afterEach(() => {
 
 const fromIp = (ip: string) => ({ 'cf-connecting-ip': ip });
 
-async function statuses(times: number, send: () => Promise<Response>) {
+async function statuses(times: number, send: () => Response | Promise<Response>) {
   const out: number[] = [];
   for (let i = 0; i < times; i++) out.push((await send()).status);
   return out;

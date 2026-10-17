@@ -47,14 +47,21 @@ export function get(app: App, path: string, cookie?: string) {
 export async function signUp(
   app: App,
   { email = newEmail(), password = PASSWORD, ...extra }: Record<string, unknown> = {},
+  headers: Record<string, string> = {},
 ) {
-  const res = await post(app, '/auth/sign-up/email', {
-    name: 'Test User',
-    email,
-    password,
-    termsVersion,
-    ...extra,
-  });
+  const res = await post(
+    app,
+    '/auth/sign-up/email',
+    {
+      name: 'Test User',
+      email,
+      password,
+      termsVersion,
+      ...extra,
+    },
+    undefined,
+    headers,
+  );
   return { res, email: email as string, password: password as string, cookie: cookieFrom(res) };
 }
 

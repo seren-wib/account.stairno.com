@@ -57,5 +57,37 @@ export const en: Dictionary = {
       unavailable: 'Signing up is not possible right now. Please try again shortly.',
     },
   },
+  forgotPassword: {
+    heading: 'Reset password',
+    intro: 'Enter the email you signed up with and we will send a link to choose a new password.',
+    email: 'Email',
+    submit: 'Send link',
+    sent: 'Check your mail',
+    sentBody:
+      'If this address has an account, we sent a reset link. The link works once and for one hour.',
+    backToSignIn: 'Back to sign in',
+    tooMany: 'Too many requests. Please try again in a minute.',
+    unavailable: 'This is not possible right now. Please try again shortly.',
+    noscript: 'Turn on JavaScript to get a reset link.',
+  },
+  resetPassword: {
+    heading: 'New password',
+    password: 'New password',
+    passwordHint: '8 to 128 characters',
+    submit: 'Change password',
+    done: 'Password changed',
+    doneBody:
+      'To keep the account safe, every device has been signed out. Sign in again with the new password.',
+    signIn: 'Sign in',
+    requestAgain: 'Get a new link',
+    noscript: 'Turn on JavaScript to change the password.',
+    errors: {
+      expired: 'This link has expired or was already used. Please get a new one.',
+      passwordLength: 'Choose a password of 8 to 128 characters.',
+      passwordBreached: 'This password has appeared in a data breach. Please choose another.',
+      tooMany: 'Too many tries. Please try again in a minute.',
+      unavailable: 'This is not possible right now. Please try again shortly.',
+    },
+  },
   notFound: { heading: 'Page not found', home: 'Back to the overview' },
 };

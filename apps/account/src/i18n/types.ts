@@ -51,5 +51,35 @@ export type Dictionary = {
       unavailable: string;
     };
   };
+  forgotPassword: {
+    heading: string;
+    intro: string;
+    email: string;
+    submit: string;
+    sent: string;
+    sentBody: string;
+    backToSignIn: string;
+    tooMany: string;
+    unavailable: string;
+    noscript: string;
+  };
+  resetPassword: {
+    heading: string;
+    password: string;
+    passwordHint: string;
+    submit: string;
+    done: string;
+    doneBody: string;
+    signIn: string;
+    requestAgain: string;
+    noscript: string;
+    errors: {
+      expired: string;
+      passwordLength: string;
+      passwordBreached: string;
+      tooMany: string;
+      unavailable: string;
+    };
+  };
   notFound: { heading: string; home: string };
 };

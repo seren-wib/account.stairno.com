@@ -6,6 +6,7 @@ import ThemeInit from '@stairno/ui/components/ThemeInit.astro';
 import '@stairno/ui/base.css';
 import '../styles/account.css';
 import { t, type Locale } from '../i18n';
+import { connectSrc } from '../lib/security-headers';
 
 interface Props {
   locale: Locale;
@@ -17,6 +18,8 @@ interface Props {
 
 const { locale, path = '', heading } = Astro.props;
 const dict = t(locale);
+// NFR-7: browser code on these pages calls the API and nothing else.
+Astro.csp?.insertDirective(connectSrc(Astro.locals.apiUrl));
 const title = heading === dict.meta.title ? heading : `${heading} · ${dict.meta.title}`;
 ---
 

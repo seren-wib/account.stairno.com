@@ -9,6 +9,21 @@ export default defineConfig({
   session: false,
   adapter: cloudflare({ imageService: 'passthrough' }),
   trailingSlash: 'ignore',
+  // NFR-7 (SDD §9): hashes for the scripts and styles Astro emits, the theme script included.
+  // connect-src is added per request by the middleware, since the API host is a runtime value.
+  security: {
+    csp: {
+      directives: [
+        "default-src 'self'",
+        'font-src https://cdn.jsdelivr.net',
+        "img-src 'self' data:",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+      ],
+      styleDirective: { resources: ["'self'", 'https://cdn.jsdelivr.net'] },
+    },
+  },
   i18n: {
     defaultLocale: 'ko',
     locales: ['ko', 'en'],

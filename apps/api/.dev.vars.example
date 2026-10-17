@@ -1,0 +1,3 @@
+# Copy to .dev.vars for `npm run dev`. .dev.vars is gitignored; never commit real values.
+# Local database: `docker compose -f ../../e2e/compose.yml up -d`, then `npm run db:migrate`.
+DATABASE_URL=postgres://postgres:postgres@db.localtest.me:5432/main

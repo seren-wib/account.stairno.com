@@ -9,5 +9,18 @@ export type Dictionary = {
   };
   footer: { heading: string; hub: string; source: string };
   overview: { heading: string };
+  signIn: {
+    heading: string;
+    email: string;
+    password: string;
+    submit: string;
+    forgot: string;
+    noAccount: string;
+    signUp: string;
+    failed: string;
+    tooMany: string;
+    unavailable: string;
+    noscript: string;
+  };
   notFound: { heading: string; home: string };
 };

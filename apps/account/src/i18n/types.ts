@@ -128,6 +128,15 @@ export type Dictionary = {
     signOutOthers: string;
     unavailable: string;
   };
+  connections: {
+    heading: string;
+    intro: string;
+    connected: string;
+    lastUsed: string;
+    disconnect: string;
+    empty: string;
+    unavailable: string;
+  };
   verifyEmail: {
     heading: string;
     done: string;

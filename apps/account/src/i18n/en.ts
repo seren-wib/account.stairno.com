@@ -142,6 +142,16 @@ export const en: Dictionary = {
     signOutOthers: 'Sign out on all other devices',
     unavailable: 'The device list could not be loaded. Please try again shortly.',
   },
+  connections: {
+    heading: 'Connected sites',
+    intro:
+      'Sites you signed in to with your Stairno account. Disconnect one and it asks you to sign in again next time.',
+    connected: 'Connected',
+    lastUsed: 'last sign-in',
+    disconnect: 'Disconnect',
+    empty: 'No site is connected.',
+    unavailable: 'The site list could not be loaded. Please try again shortly.',
+  },
   verifyEmail: {
     heading: 'Confirm email',
     done: 'Email confirmed',

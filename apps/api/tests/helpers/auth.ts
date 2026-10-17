@@ -20,13 +20,20 @@ export function cookieFrom(res: Response): string {
 }
 
 // POST to a Better Auth endpoint from the account center, optionally with a session cookie.
-export function post(app: App, path: string, body: unknown = {}, cookie?: string) {
+export function post(
+  app: App,
+  path: string,
+  body: unknown = {},
+  cookie?: string,
+  headers: Record<string, string> = {},
+) {
   return app.request(path, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       origin: ACCOUNT_URL,
       ...(cookie ? { cookie } : {}),
+      ...headers,
     },
     body: JSON.stringify(body),
   });
@@ -49,8 +56,13 @@ export async function signUp(
   return { res, email: email as string, password: password as string, cookie: cookieFrom(res) };
 }
 
-export async function signIn(app: App, email: string, password = PASSWORD) {
-  const res = await post(app, '/auth/sign-in/email', { email, password });
+export async function signIn(
+  app: App,
+  email: string,
+  password = PASSWORD,
+  headers: Record<string, string> = {},
+) {
+  const res = await post(app, '/auth/sign-in/email', { email, password }, undefined, headers);
   return { res, cookie: cookieFrom(res) };
 }
 

@@ -117,6 +117,17 @@ export type Dictionary = {
     emailSent: string;
     errors: { name: string; email: string; unavailable: string; tooMany: string };
   };
+  devices: {
+    heading: string;
+    current: string;
+    signedIn: string;
+    lastUsed: string;
+    end: string;
+    unknown: string;
+    othersBody: string;
+    signOutOthers: string;
+    unavailable: string;
+  };
   verifyEmail: {
     heading: string;
     done: string;

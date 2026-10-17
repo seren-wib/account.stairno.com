@@ -131,6 +131,17 @@ export const en: Dictionary = {
       tooMany: 'Too many tries. Please try again in a minute.',
     },
   },
+  devices: {
+    heading: 'Signed-in devices',
+    current: 'This device',
+    signedIn: 'Signed in',
+    lastUsed: 'last used',
+    end: 'Sign out',
+    unknown: 'Unknown device',
+    othersBody: 'If you see a device you do not know, sign out everywhere except here.',
+    signOutOthers: 'Sign out on all other devices',
+    unavailable: 'The device list could not be loaded. Please try again shortly.',
+  },
   verifyEmail: {
     heading: 'Confirm email',
     done: 'Email confirmed',

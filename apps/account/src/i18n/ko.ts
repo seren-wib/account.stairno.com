@@ -129,6 +129,17 @@ export const ko: Dictionary = {
       tooMany: '시도가 너무 많습니다. 1분 뒤에 다시 해 주세요.',
     },
   },
+  devices: {
+    heading: '로그인 기기',
+    current: '이 기기',
+    signedIn: '로그인',
+    lastUsed: '마지막 사용',
+    end: '로그아웃',
+    unknown: '알 수 없는 기기',
+    othersBody: '모르는 기기가 있으면 이 기기를 뺀 모든 기기에서 로그아웃하세요.',
+    signOutOthers: '다른 모든 기기에서 로그아웃',
+    unavailable: '기기 목록을 불러올 수 없습니다. 잠시 뒤에 다시 해 주세요.',
+  },
   verifyEmail: {
     heading: '이메일 확인',
     done: '이메일을 확인했습니다',

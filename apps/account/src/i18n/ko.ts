@@ -168,6 +168,19 @@ export const ko: Dictionary = {
       unavailable: '지금은 삭제할 수 없습니다. 잠시 뒤에 다시 해 주세요.',
     },
   },
+  consent: {
+    heading: '연결 허용',
+    intro: '{site}에서 Stairno 계정으로 로그인하려고 합니다. 허용하면 그 사이트가 다음을 쓸 수 있습니다.',
+    scopes: {
+      openid: 'Stairno 계정으로 로그인',
+      profile: '이름과 언어',
+      email: '이메일 주소와 확인 여부',
+      offline_access: '로그아웃하기 전까지 로그인 유지',
+    },
+    allow: '허용',
+    deny: '거부',
+    unavailable: '지금은 처리할 수 없습니다. 잠시 뒤에 다시 해 주세요.',
+  },
   verifyEmail: {
     heading: '이메일 확인',
     done: '이메일을 확인했습니다',

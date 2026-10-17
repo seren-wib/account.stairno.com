@@ -289,3 +289,10 @@
   font-weight: 600;
   vertical-align: middle;
 }
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}

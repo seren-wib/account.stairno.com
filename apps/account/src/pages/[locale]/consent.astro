@@ -1,0 +1,83 @@
+---
+// FR-28: registered Stairno sites skip consent (FR-16). The OIDC provider still needs this page
+// for a client that does not, so it exists: the site's name, the scopes in words, allow or deny.
+import Base from '../../layouts/Base.astro';
+import { isLocale, t } from '../../i18n';
+import { apiGet } from '../../lib/api';
+
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale).consent;
+
+const params = Astro.url.searchParams;
+const clientId = params.get('client_id') ?? '';
+const client = clientId
+  ? await apiGet<{ client_name?: string }>(
+      Astro.locals,
+      Astro.request,
+      `/auth/oauth2/public-client?client_id=${encodeURIComponent(clientId)}`,
+    )
+  : null;
+const siteName = client?.client_name ?? clientId;
+const known = Object.keys(dict.scopes) as (keyof typeof dict.scopes)[];
+const scopes = (params.get('scope') ?? '')
+  .split(' ')
+  .filter((scope): scope is keyof typeof dict.scopes => known.includes(scope as never));
+---
+
+<Base locale={locale} path="consent" heading={dict.heading}>
+  <div
+    class="form"
+    data-consent
+    data-api={Astro.locals.apiUrl}
+    data-oauth={params.toString()}
+    data-unavailable={dict.unavailable}
+  >
+    <p>{dict.intro.replace('{site}', siteName)}</p>
+    <ul class="shortcut-list">
+      {scopes.map((scope) => (
+        <li>{dict.scopes[scope]}</li>
+      ))}
+    </ul>
+    <p class="form-error" role="alert" data-error hidden></p>
+    <div class="button-row">
+      <button class="button form-submit" type="button" data-accept="true">
+        {dict.allow}
+      </button>
+      <button class="item-action" type="button" data-accept="false">
+        {dict.deny}
+      </button>
+    </div>
+  </div>
+</Base>
+
+<script>
+  const box = document.querySelector<HTMLElement>('[data-consent]');
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-accept]')) {
+    button.addEventListener('click', async () => {
+      const { api = '', oauth = '', unavailable = '' } = box?.dataset ?? {};
+      button.disabled = true;
+      try {
+        const res = await fetch(`${api}/auth/oauth2/consent`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ accept: button.dataset.accept === 'true', oauth_query: oauth }),
+        });
+        const body = (await res.json().catch(() => null)) as { redirect_uri?: string } | null;
+        if (res.ok && body?.redirect_uri) {
+          window.location.assign(body.redirect_uri);
+          return;
+        }
+      } catch {
+        // The API is unreachable.
+      }
+      const error = box?.querySelector<HTMLElement>('[data-error]');
+      if (error) {
+        error.textContent = unavailable;
+        error.hidden = false;
+      }
+      button.disabled = false;
+    });
+  }
+</script>

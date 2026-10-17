@@ -170,6 +170,19 @@ export const en: Dictionary = {
       unavailable: 'The account could not be deleted right now. Please try again shortly.',
     },
   },
+  consent: {
+    heading: 'Allow access',
+    intro: '{site} wants to sign you in with your Stairno account. If you allow it, it can use:',
+    scopes: {
+      openid: 'Signing in with your Stairno account',
+      profile: 'Your name and language',
+      email: 'Your email address and whether it is confirmed',
+      offline_access: 'Staying signed in until you sign out',
+    },
+    allow: 'Allow',
+    deny: 'Deny',
+    unavailable: 'This is not possible right now. Please try again shortly.',
+  },
   verifyEmail: {
     heading: 'Confirm email',
     done: 'Email confirmed',

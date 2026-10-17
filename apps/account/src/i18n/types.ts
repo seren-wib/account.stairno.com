@@ -154,6 +154,15 @@ export type Dictionary = {
       unavailable: string;
     };
   };
+  consent: {
+    heading: string;
+    // {site} is the site name.
+    intro: string;
+    scopes: { openid: string; profile: string; email: string; offline_access: string };
+    allow: string;
+    deny: string;
+    unavailable: string;
+  };
   verifyEmail: {
     heading: string;
     done: string;

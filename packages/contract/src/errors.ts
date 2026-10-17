@@ -11,6 +11,8 @@ export const errorCodes = [
   'invalid_transition',
   'amount_mismatch',
   'provider_error',
+  // Anything unexpected; the message never carries the cause (NFR-21).
+  'internal_error',
 ] as const;
 
 export type ErrorCode = (typeof errorCodes)[number];

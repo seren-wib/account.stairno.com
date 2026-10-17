@@ -5,6 +5,7 @@ import { createDb } from './db/client';
 import { createMailer } from './mail';
 import type { AppEnv, Deps } from './deps';
 import type { Env } from './env';
+import { apiError } from './http/errors';
 import { requireUser } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
 import { meRoutes } from './routes/me';
@@ -35,6 +36,19 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   app.route('/v1/connections', connectionRoutes);
   app.route('/v1/me', meRoutes);
   app.route('/v1/sessions', sessionRoutes);
+
+  app.notFound((c) => apiError(c, 404, 'not_found', 'Nothing here.'));
+
+  // FR-24: anything unexpected is a 500 in the same format. The log has the path and the error,
+  // never the request headers or body (NFR-21).
+  app.onError((error, c) => {
+    console.error('unhandled error', {
+      path: c.req.path,
+      name: error.name,
+      message: error.message,
+    });
+    return apiError(c, 500, 'internal_error', 'Something went wrong. Please try again.');
+  });
 
   return app;
 }

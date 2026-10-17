@@ -11,7 +11,8 @@ export interface MailMessage {
 // The one thing the auth flows depend on. Production sends through Resend; tests pass a memory
 // mailbox, so no test reaches the network.
 export interface Mailer {
-  send(message: MailMessage): Promise<void>;
+  // Resolves with the provider's message id when there is one.
+  send(message: MailMessage): Promise<{ id?: string } | void>;
 }
 
 type Fetch = (input: string, init: RequestInit) => Promise<Response>;
@@ -37,6 +38,8 @@ export function createResendMailer(
       });
       // The status only: the response body can echo the recipient (NFR-21).
       if (!res.ok) throw new Error(`Resend responded ${res.status}`);
+      const body = (await res.json().catch(() => ({}))) as { id?: string };
+      return { id: body.id };
     },
   };
 }

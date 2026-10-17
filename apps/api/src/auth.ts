@@ -6,6 +6,7 @@ import { jwt } from 'better-auth/plugins/jwt';
 import { oauthProvider } from '@better-auth/oauth-provider';
 import { localeSchema, termsVersion, termsVersionSchema } from '@stairno-account/contract';
 import * as schema from './db/schema';
+import { mailLog } from './db/schema';
 import { renderMail, resolveLocale, type Mailer, type TemplateName } from './mail';
 
 export interface AuthConfig {
@@ -58,15 +59,24 @@ export function createAuth(config: AuthConfig) {
   async function sendAuthMail(
     template: TemplateName,
     page: string,
-    user: { email: string; name: string },
+    user: { id: string; email: string; name: string },
     token: string,
   ) {
     const locale = resolveLocale((user as { locale?: string }).locale);
     const url = `${config.accountUrl}/${locale}/${page}?token=${encodeURIComponent(token)}`;
-    await config.mailer.send({
-      to: user.email,
-      ...renderMail(template, locale, { name: user.name, url }),
-    });
+    const entry = { userId: user.id, template, locale, to: user.email };
+    // FR-74: a failed send never fails the request. It is recorded, and the user can ask again.
+    try {
+      const sent = await config.mailer.send({
+        to: user.email,
+        ...renderMail(template, locale, { name: user.name, url }),
+      });
+      await config.db.insert(mailLog).values({ ...entry, status: 'sent', providerId: sent?.id });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('mail failed', { template, error: message });
+      await config.db.insert(mailLog).values({ ...entry, status: 'failed', error: message });
+    }
   }
 
   return betterAuth({

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { sql } from 'drizzle-orm';
+import { termsVersion } from '@stairno-account/contract';
 import { en } from '../../src/mail/templates/en';
 import { ko } from '../../src/mail/templates/ko';
 import { ACCOUNT_URL, createTestApp } from '../helpers/app';
@@ -23,7 +24,13 @@ async function setup() {
     ctx.app.request('/auth/sign-up/email', {
       method: 'POST',
       headers: { 'content-type': 'application/json', origin: ACCOUNT_URL },
-      body: JSON.stringify({ name: 'Test User', email, password: PASSWORD, ...extra }),
+      body: JSON.stringify({
+        name: 'Test User',
+        email,
+        password: PASSWORD,
+        termsVersion,
+        ...extra,
+      }),
     });
   const emailVerified = async () => {
     const rows = await ctx.db.execute(

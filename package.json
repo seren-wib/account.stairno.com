@@ -1,0 +1,27 @@
+{
+  "name": "account.stairno.com",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stairno Account: sign-in, account center and the shared API",
+  "type": "module",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "check": "npm run check --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.1",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.5"
+  }
+}

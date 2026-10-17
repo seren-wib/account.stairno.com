@@ -2,6 +2,7 @@ import { relations, sql } from 'drizzle-orm';
 import {
   pgTable,
   text,
+  bigint,
   timestamp,
   boolean,
   integer,
@@ -298,6 +299,15 @@ export const oauthClientAssertion = pgTable('oauth_client_assertion', {
     .default(sql`pg_catalog.gen_random_uuid()`)
     .primaryKey(),
   expiresAt: timestamp('expires_at').notNull(),
+});
+
+export const rateLimit = pgTable('rate_limit', {
+  id: uuid('id')
+    .default(sql`pg_catalog.gen_random_uuid()`)
+    .primaryKey(),
+  key: text('key').notNull().unique(),
+  count: integer('count').notNull(),
+  lastRequest: bigint('last_request', { mode: 'number' }).notNull(),
 });
 
 export const userRelations = relations(user, ({ many }) => ({

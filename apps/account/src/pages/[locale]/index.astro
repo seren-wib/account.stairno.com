@@ -1,13 +1,12 @@
 ---
-import { isLocale } from '@stairno/ui/i18n';
 import Base from '../../layouts/Base.astro';
+import { isLocale, t } from '../../i18n';
 
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale);
 ---
 
-<Base locale={locale} title="Stairno Account">
-  <main class="container">
-    <h1>Stairno Account</h1>
-  </main>
+<Base locale={locale} heading={dict.meta.title}>
+  <p>{Astro.locals.user?.name}</p>
 </Base>

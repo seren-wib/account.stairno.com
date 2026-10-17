@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { sql } from 'drizzle-orm';
+import { termsVersion } from '@stairno-account/contract';
 import { ACCOUNT_URL, createTestApp } from '../helpers/app';
 import { stubPwnedPasswords } from '../helpers/hibp';
 
@@ -14,7 +15,7 @@ async function signUp(password: string, email = `user-${crypto.randomUUID()}@exa
   const res = await app.request('/auth/sign-up/email', {
     method: 'POST',
     headers: { 'content-type': 'application/json', origin: ACCOUNT_URL },
-    body: JSON.stringify({ name: 'Test User', email, password }),
+    body: JSON.stringify({ name: 'Test User', email, password, termsVersion }),
   });
   const users = await db.execute(sql`select count(*)::int as n from "user"`);
   return { res, userCount: (users.rows[0] as { n: number }).n };

@@ -1,5 +1,6 @@
 // Day-one check (plan §5 risk 3): Better Auth + oauth-provider + Drizzle (neon-http) on workerd.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { termsVersion } from '@stairno-account/contract';
 import { resetDatabase, startApiWorker } from './helpers';
 
 const ORIGIN = 'http://localhost:4321';
@@ -44,7 +45,7 @@ describe('API Worker on workerd', () => {
   });
 
   it('FR-1 signs up and gets a session, FR-23 the session names the user', async () => {
-    const res = await post('/auth/sign-up/email', { name: 'E2E', email, password });
+    const res = await post('/auth/sign-up/email', { name: 'E2E', email, password, termsVersion });
     expect(res.status).toBe(200);
     const cookie = sessionCookie(res);
     expect(cookie).toBeDefined();

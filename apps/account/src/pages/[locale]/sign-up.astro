@@ -1,0 +1,173 @@
+---
+import { termsVersion } from '@stairno-account/contract';
+import Base from '../../layouts/Base.astro';
+import { isLocale, localePath, t } from '../../i18n';
+import { oauthQuery } from '../../lib/auth-form';
+import { safeRedirect } from '../../lib/redirect';
+
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale).signUp;
+const next = safeRedirect(Astro.url.searchParams.get('redirect'), locale);
+const oauth = oauthQuery(Astro.url.search) ?? '';
+const signInHref = `${localePath(locale, 'sign-in')}${oauth ? `?${oauth}` : ''}`;
+
+// "{terms} … {privacy} … {version}" with the two names as links.
+const acceptParts = dict.accept
+  .replace('{version}', termsVersion)
+  .split(/(\{terms\}|\{privacy\})/)
+  .filter(Boolean);
+---
+
+<Base locale={locale} path="sign-up" heading={dict.heading}>
+  <noscript>
+    <p class="form-note">{dict.noscript}</p>
+  </noscript>
+  <form
+    class="form"
+    data-sign-up
+    data-api={Astro.locals.apiUrl}
+    data-next={next}
+    data-oauth={oauth}
+    data-locale={locale}
+    data-terms-version={termsVersion}
+    data-errors={JSON.stringify(dict.errors)}
+    novalidate
+  >
+    <label class="field">
+      <span>{dict.name}</span>
+      <input name="name" autocomplete="name" required aria-describedby="name-error" />
+      <span class="field-error" id="name-error" data-error-for="name" hidden></span>
+    </label>
+    <label class="field">
+      <span>{dict.email}</span>
+      <input
+        type="email"
+        name="email"
+        autocomplete="email"
+        required
+        aria-describedby="email-error"
+      />
+      <span class="field-error" id="email-error" data-error-for="email" hidden></span>
+    </label>
+    <label class="field">
+      <span>{dict.password}</span>
+      <input
+        type="password"
+        name="password"
+        autocomplete="new-password"
+        minlength="8"
+        maxlength="128"
+        required
+        aria-describedby="password-hint password-error"
+      />
+      <span class="field-hint" id="password-hint">
+        {dict.passwordHint}
+      </span>
+      <span class="field-error" id="password-error" data-error-for="password" hidden></span>
+    </label>
+    <div class="field field-check">
+      <label>
+        <input type="checkbox" name="acceptTerms" required aria-describedby="acceptTerms-error" />
+        <span>
+          {acceptParts.map((part) =>
+            part === '{terms}' ? (
+              <a href={localePath(locale, 'terms')}>{dict.terms}</a>
+            ) : part === '{privacy}' ? (
+              <a href={localePath(locale, 'privacy')}>{dict.privacy}</a>
+            ) : (
+              part
+            ),
+          )}
+        </span>
+      </label>
+      <span class="field-error" id="acceptTerms-error" data-error-for="acceptTerms" hidden></span>
+    </div>
+    <p class="form-error" role="alert" data-error-for="form" hidden></p>
+    <button class="button form-submit" type="submit">
+      {dict.submit}
+    </button>
+  </form>
+
+  <section class="form-done" data-sent hidden>
+    <h2 tabindex="-1">{dict.sent}</h2>
+    <p data-sent-body data-template={dict.sentBody}></p>
+    <a class="button form-submit" data-continue href={next}>
+      {dict.continue}
+    </a>
+  </section>
+
+  <p class="form-links">
+    {dict.hasAccount} <a href={signInHref}>{dict.signIn}</a>
+  </p>
+</Base>
+
+<script>
+  import { resumeAuthorizeUrl } from '../../lib/auth-form';
+  import { apiErrorField, clientErrors, type SignUpField } from '../../lib/sign-up-form';
+
+  const form = document.querySelector<HTMLFormElement>('[data-sign-up]');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const { api = '', next = '/', oauth, locale, termsVersion, errors = '{}' } = form.dataset;
+    const text = JSON.parse(errors) as Record<string, string>;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
+    // NFR-17: messages as text next to their fields.
+    const show = (found: Partial<Record<SignUpField | 'form', string>>) => {
+      for (const slot of form.querySelectorAll<HTMLElement>('[data-error-for]')) {
+        const key = found[slot.dataset.errorFor as SignUpField | 'form'];
+        slot.textContent = key ? (text[key] ?? '') : '';
+        slot.hidden = !key;
+        const input = form.querySelector(`[name="${slot.dataset.errorFor}"]`);
+        if (input) input.setAttribute('aria-invalid', key ? 'true' : 'false');
+      }
+      const first = Object.keys(found)[0];
+      if (first && first !== 'form') form.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
+    };
+
+    const data = new FormData(form);
+    const input = {
+      name: String(data.get('name') ?? ''),
+      email: String(data.get('email') ?? ''),
+      password: String(data.get('password') ?? ''),
+      acceptTerms: data.get('acceptTerms') === 'on',
+    };
+    const local = clientErrors(input);
+    show(local);
+    if (Object.keys(local).length > 0) return;
+
+    if (button) button.disabled = true;
+    try {
+      const res = await fetch(`${api}/auth/sign-up/email`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: input.name.trim(),
+          email: input.email,
+          password: input.password,
+          termsVersion,
+          locale,
+        }),
+      });
+      if (res.ok) {
+        const sent = document.querySelector<HTMLElement>('[data-sent]');
+        const body = document.querySelector<HTMLElement>('[data-sent-body]');
+        const onward = document.querySelector<HTMLAnchorElement>('[data-continue]');
+        if (body) body.textContent = (body.dataset.template ?? '').replace('{email}', input.email);
+        if (onward) onward.href = oauth ? resumeAuthorizeUrl(oauth, api) : next;
+        form.hidden = true;
+        if (sent) sent.hidden = false;
+        sent?.querySelector('h2')?.focus();
+        return;
+      }
+      const reply = (await res.json().catch(() => null)) as { code?: string } | null;
+      const { field, key } = apiErrorField(res.status, reply?.code);
+      show({ [field]: key });
+    } catch {
+      show({ form: 'unavailable' });
+    }
+    if (button) button.disabled = false;
+  });
+</script>

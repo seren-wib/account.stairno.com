@@ -22,5 +22,34 @@ export type Dictionary = {
     unavailable: string;
     noscript: string;
   };
+  signUp: {
+    heading: string;
+    name: string;
+    email: string;
+    password: string;
+    passwordHint: string;
+    terms: string;
+    privacy: string;
+    // {terms} and {privacy} become links; {version} the terms version.
+    accept: string;
+    submit: string;
+    hasAccount: string;
+    signIn: string;
+    sent: string;
+    // {email} is the address the mail went to.
+    sentBody: string;
+    continue: string;
+    noscript: string;
+    errors: {
+      name: string;
+      email: string;
+      passwordLength: string;
+      passwordBreached: string;
+      emailTaken: string;
+      terms: string;
+      tooMany: string;
+      unavailable: string;
+    };
+  };
   notFound: { heading: string; home: string };
 };

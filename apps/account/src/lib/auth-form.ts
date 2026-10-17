@@ -16,3 +16,12 @@ export function nextLocation(
 ): string {
   return body?.url ? new URL(body.url, apiUrl).href : fallback;
 }
+
+// FR-17 after sign-up: the new user already has a session, so the site's original authorization
+// request can simply run again. The provider's signature fields are not part of that request.
+export function resumeAuthorizeUrl(oauth: string, apiUrl: string): string {
+  const params = new URLSearchParams(oauth);
+  params.delete('sig');
+  params.delete('exp');
+  return `${apiUrl}/auth/oauth2/authorize?${params}`;
+}

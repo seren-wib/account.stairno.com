@@ -1,0 +1,85 @@
+---
+import Account from '../../layouts/Account.astro';
+import { isLocale, t } from '../../i18n';
+import { apiGet, formatDate } from '../../lib/api';
+
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale).connections;
+
+interface Connection {
+  clientId: string;
+  name: string;
+  connectedAt: string;
+  lastUsedAt: string;
+}
+
+// FR-21
+const list = await apiGet<{ items: Connection[] }>(Astro.locals, Astro.request, '/v1/connections');
+const connections = list?.items ?? null;
+---
+
+<Account locale={locale} page="connections" heading={dict.heading}>
+  <p class="form-note">{dict.intro}</p>
+  {connections === null ? (
+    <p class="form-error">{dict.unavailable}</p>
+  ) : connections.length === 0 ? (
+    <p>{dict.empty}</p>
+  ) : (
+    <>
+      <ul
+        class="item-list"
+        data-connections
+        data-api={Astro.locals.apiUrl}
+        data-unavailable={dict.unavailable}
+      >
+        {connections.map((site) => (
+          <li class="item">
+            <div>
+              <p class="item-title">{site.name}</p>
+              <p class="item-meta">
+                {dict.connected} {formatDate(site.connectedAt, locale)} · {dict.lastUsed}{' '}
+                {formatDate(site.lastUsedAt, locale)}
+              </p>
+            </div>
+            <button class="item-action" type="button" data-disconnect={site.clientId}>
+              {dict.disconnect}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p class="form-error" role="alert" data-connections-error hidden />
+    </>
+  )}
+</Account>
+
+<script>
+  // FR-21: the site's refresh tokens stop working; it asks for sign-in next time.
+  const list = document.querySelector<HTMLElement>('[data-connections]');
+  const error = document.querySelector<HTMLElement>('[data-connections-error]');
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-disconnect]')) {
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        const res = await fetch(
+          `${list?.dataset.api}/v1/connections/${button.dataset.disconnect}`,
+          {
+            method: 'DELETE',
+            credentials: 'include',
+          },
+        );
+        if (res.ok || res.status === 404) {
+          window.location.reload();
+          return;
+        }
+      } catch {
+        // The API is unreachable.
+      }
+      if (error) {
+        error.textContent = list?.dataset.unavailable ?? '';
+        error.hidden = false;
+      }
+      button.disabled = false;
+    });
+  }
+</script>

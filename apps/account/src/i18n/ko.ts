@@ -140,6 +140,16 @@ export const ko: Dictionary = {
     signOutOthers: '다른 모든 기기에서 로그아웃',
     unavailable: '기기 목록을 불러올 수 없습니다. 잠시 뒤에 다시 해 주세요.',
   },
+  connections: {
+    heading: '연결된 사이트',
+    intro:
+      'Stairno 계정으로 로그인한 사이트입니다. 연결을 끊으면 그 사이트는 다음에 다시 로그인을 요청합니다.',
+    connected: '연결',
+    lastUsed: '마지막 로그인',
+    disconnect: '연결 끊기',
+    empty: '연결된 사이트가 없습니다.',
+    unavailable: '사이트 목록을 불러올 수 없습니다. 잠시 뒤에 다시 해 주세요.',
+  },
   verifyEmail: {
     heading: '이메일 확인',
     done: '이메일을 확인했습니다',

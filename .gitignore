@@ -15,6 +15,7 @@ docs/specs/
 !.env.example
 .dev.vars
 .dev.vars.*
+!.dev.vars.example
 
 # editor and OS
 .DS_Store
@@ -30,3 +31,6 @@ npm-debug.log*
 
 # claude desktop preview config
 .claude/launch.json
+
+# playwright mcp snapshots and logs
+.playwright-mcp/

@@ -1,0 +1,22 @@
+{
+  "name": "@stairno-account/account",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && wrangler deploy --dry-run",
+    "check": "astro check",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.151.1"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.4.0",
+    "@stairno/ui": "github:seren-wib/stairno-ui#v0.1.0",
+    "astro": "^7.4.0"
+  }
+}

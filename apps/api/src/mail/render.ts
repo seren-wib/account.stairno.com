@@ -1,9 +1,7 @@
+import { locales, type Locale } from '@stairno-account/contract';
 import { en } from './templates/en';
 import { ko } from './templates/ko';
 import type { MailDictionary, TemplateName } from './templates/types';
-
-export const locales = ['ko', 'en'] as const;
-export type Locale = (typeof locales)[number];
 
 const dictionaries: Record<Locale, MailDictionary> = { ko, en };
 

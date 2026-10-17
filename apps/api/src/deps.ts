@@ -9,8 +9,14 @@ export interface Deps {
 }
 
 export type AuthSession = Auth['$Infer']['Session'];
+export type AuthUser = AuthSession['user'];
 
 export interface AppEnv {
   Bindings: Env;
-  Variables: { deps: Deps; session: AuthSession };
+  Variables: {
+    deps: Deps;
+    user: AuthUser;
+    // The account center's cookie session; null when the request came with a Bearer token.
+    session: AuthSession['session'] | null;
+  };
 }

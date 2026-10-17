@@ -80,6 +80,13 @@ describe('API Worker on workerd', () => {
     expect(await session.json()).toBeNull();
   });
 
+  it('FR-21 runs the raw SQL of the connections list on the Neon HTTP driver', async () => {
+    const cookie = sessionCookie(await post('/auth/sign-in/email', { email, password }))!;
+    const res = await fetch(new URL('/v1/connections', base), { headers: { cookie } });
+    expect(res.status, await res.clone().text()).toBe(200);
+    expect(await res.json()).toEqual({ items: [], nextCursor: null });
+  });
+
   it('NFR-5 rejects a state-changing request from another origin', async () => {
     const res = await fetch(new URL('/auth/sign-in/email', base), {
       method: 'POST',

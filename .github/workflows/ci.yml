@@ -28,3 +28,37 @@ jobs:
       - run: npm run db:check
       - run: npm test
       - run: npm run build
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    # Same containers as e2e/compose.yml: PostgreSQL and the Neon HTTP proxy, so the
+    # API Worker runs on workerd with the production database driver. No secrets.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: main
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 20
+      neon-proxy:
+        image: ghcr.io/timowilhelm/local-neon-http-proxy:main
+        env:
+          PG_CONNECTION_STRING: postgres://postgres:postgres@postgres:5432/main
+        ports:
+          - 4444:4444
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:e2e

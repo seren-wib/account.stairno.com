@@ -137,6 +137,23 @@ export type Dictionary = {
     empty: string;
     unavailable: string;
   };
+  deleteAccount: {
+    heading: string;
+    warning: string;
+    password: string;
+    confirm: string;
+    submit: string;
+    done: string;
+    doneBody: string;
+    hub: string;
+    errors: {
+      passwordMissing: string;
+      password: string;
+      confirm: string;
+      tooMany: string;
+      unavailable: string;
+    };
+  };
   verifyEmail: {
     heading: string;
     done: string;

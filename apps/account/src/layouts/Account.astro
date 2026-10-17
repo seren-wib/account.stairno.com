@@ -1,0 +1,81 @@
+---
+// The frame of every signed-in page (SDD §7.1): the signed-in email and sign-out in the header,
+// the account menu beside the content. The session guard has already put the user in locals.
+import Base from './Base.astro';
+import { localePath, t, type Locale } from '../i18n';
+
+export type AccountPage = 'overview' | 'profile' | 'devices' | 'connections' | 'delete';
+
+interface Props {
+  locale: Locale;
+  page: AccountPage;
+  heading: string;
+}
+
+const { locale, page, heading } = Astro.props;
+const dict = t(locale).account;
+const user = Astro.locals.user;
+
+// First phase only; payment methods, orders, subscriptions and downloads come with the second.
+const items: { page: AccountPage; path: string }[] = [
+  { page: 'overview', path: '' },
+  { page: 'profile', path: 'profile' },
+  { page: 'devices', path: 'devices' },
+  { page: 'connections', path: 'connections' },
+  { page: 'delete', path: 'delete' },
+];
+const current = items.find((item) => item.page === page);
+---
+
+<Base locale={locale} path={current?.path ?? ''} heading={heading}>
+  <Fragment slot="actions">
+    <span class="account-email">{user?.email}</span>
+    <button
+      class="account-sign-out"
+      type="button"
+      data-sign-out
+      data-api={Astro.locals.apiUrl}
+      data-target={localePath(locale, 'sign-in')}
+    >
+      {dict.signOut}
+    </button>
+  </Fragment>
+  <div class="account-grid">
+    <nav class="account-menu" aria-label={dict.menuLabel}>
+      <ul>
+        {items.map((item) => (
+          <li>
+            <a
+              href={localePath(locale, item.path)}
+              aria-current={item.page === page ? 'page' : undefined}
+            >
+              {dict.menu[item.page]}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+    <div class="account-content">
+      <slot />
+    </div>
+  </div>
+</Base>
+
+<script>
+  // FR-4: ends this session only, then back to sign-in.
+  const button = document.querySelector<HTMLButtonElement>('[data-sign-out]');
+  button?.addEventListener('click', async () => {
+    const { api = '', target = '/' } = button.dataset;
+    button.disabled = true;
+    try {
+      await fetch(`${api}/auth/sign-out`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      });
+    } finally {
+      window.location.assign(target);
+    }
+  });
+</script>

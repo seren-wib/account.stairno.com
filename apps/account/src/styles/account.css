@@ -120,3 +120,117 @@
   gap: 1rem;
   max-width: 480px;
 }
+
+/* Signed-in frame: account menu beside the content, a tab row on narrow screens (NFR-18). */
+.account-grid {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 3rem;
+}
+
+.account-menu ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.account-menu a {
+  display: block;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--fg-muted);
+}
+
+.account-menu a:hover {
+  color: var(--fg);
+}
+
+.account-menu a[aria-current='page'] {
+  background: var(--surface);
+  color: var(--fg);
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .account-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .account-menu ul {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+.account-email {
+  font-size: 0.875rem;
+  color: var(--on-night-muted);
+}
+
+.account-sign-out {
+  border: 1px solid var(--on-night-faint);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  background: transparent;
+  color: var(--on-night);
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .account-email {
+    display: none;
+  }
+}
+
+.detail-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1.5rem;
+}
+
+.detail-list dt {
+  color: var(--fg-muted);
+  font-size: 0.875rem;
+}
+
+.detail-list dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.status {
+  color: var(--fg-muted);
+}
+
+.notice {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.notice p {
+  margin: 0;
+}
+
+.section-title {
+  margin: 2.5rem 0 1rem;
+  font-size: 1.15rem;
+}
+
+.shortcut-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

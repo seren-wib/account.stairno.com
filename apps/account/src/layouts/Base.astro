@@ -38,7 +38,11 @@ const title = heading === dict.meta.title ? heading : `${heading} · ${dict.meta
       brand="Stairno"
       switchLabel={dict.nav.switchLocale}
       themeLabels={dict.nav.theme}
-    />
+    >
+      <Fragment slot="actions">
+        <slot name="actions" />
+      </Fragment>
+    </Header>
     <main>
       <section class="page-head">
         <div class="container">

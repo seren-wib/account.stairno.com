@@ -1,12 +1,81 @@
 ---
-import Base from '../../layouts/Base.astro';
-import { isLocale, t } from '../../i18n';
+import Account from '../../layouts/Account.astro';
+import { isLocale, localePath, t } from '../../i18n';
 
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
 const dict = t(locale);
+const user = Astro.locals.user;
+const messages = JSON.stringify({
+  resent: dict.overview.resent,
+  tooMany: dict.overview.tooMany,
+  unavailable: dict.overview.unavailable,
+});
 ---
 
-<Base locale={locale} heading={dict.meta.title}>
-  <p>{Astro.locals.user?.name}</p>
-</Base>
+<Account locale={locale} page="overview" heading={user?.name ?? dict.overview.heading}>
+  <dl class="detail-list">
+    <div>
+      <dt>{dict.overview.email}</dt>
+      <dd>{user?.email}</dd>
+    </div>
+  </dl>
+
+  {user?.emailVerified ? (
+    <p class="status">{dict.overview.verified}</p>
+  ) : (
+    <div class="notice">
+      <p>{dict.overview.unverified}</p>
+      <button
+        class="button form-submit"
+        type="button"
+        data-resend-verification
+        data-email={user?.email}
+        data-api={Astro.locals.apiUrl}
+        data-messages={messages}
+      >
+        {dict.overview.resend}
+      </button>
+      <p class="form-note" role="status" data-resend-result />
+    </div>
+  )}
+
+  <h2 class="section-title">{dict.overview.shortcuts}</h2>
+  <ul class="shortcut-list">
+    <li>
+      <a href={localePath(locale, 'profile')}>{dict.account.menu.profile}</a>
+    </li>
+    <li>
+      <a href={localePath(locale, 'devices')}>{dict.account.menu.devices}</a>
+    </li>
+    <li>
+      <a href={localePath(locale, 'connections')}>{dict.account.menu.connections}</a>
+    </li>
+  </ul>
+</Account>
+
+<script>
+  // FR-74: once a minute; the API answers 429 to a second request.
+  const button = document.querySelector<HTMLButtonElement>('[data-resend-verification]');
+  button?.addEventListener('click', async () => {
+    const { api = '', email = '', messages = '{}' } = button.dataset;
+    const text = JSON.parse(messages) as Record<'resent' | 'tooMany' | 'unavailable', string>;
+    const result = document.querySelector<HTMLElement>('[data-resend-result]');
+    button.disabled = true;
+    let message = text.unavailable;
+    try {
+      const res = await fetch(`${api}/auth/send-verification-email`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) message = text.resent;
+      else if (res.status === 429) message = text.tooMany;
+    } catch {
+      // The API is unreachable.
+    }
+    if (result) result.textContent = message;
+    button.disabled = false;
+  });
+</script>

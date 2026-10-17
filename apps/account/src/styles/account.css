@@ -1,0 +1,24 @@
+/* Account center pieces on top of @stairno/ui base.css. Colours and type come from its tokens. */
+
+/* The shared header is white text meant for the night sky. Every account page opens with a night
+   band under it, like the hub's hero, so the header reads the same here. */
+.page-head {
+  background: var(--night);
+  color: var(--on-night);
+  padding-block: calc(var(--header-height) + 2.5rem) 2.5rem;
+}
+
+.page-head h1 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.page-body {
+  padding-block: 2.5rem 4rem;
+  min-height: 50vh;
+}
+
+/* Links inside the page read as links; base.css leaves them bare for the hub's menus. */
+.page-body a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}

@@ -1,15 +1,23 @@
 ---
 import Fonts from '@stairno/ui/components/Fonts.astro';
+import Footer from '@stairno/ui/components/Footer.astro';
+import Header from '@stairno/ui/components/Header.astro';
 import ThemeInit from '@stairno/ui/components/ThemeInit.astro';
 import '@stairno/ui/base.css';
-import type { Locale } from '@stairno/ui/i18n';
+import '../styles/account.css';
+import { t, type Locale } from '../i18n';
 
 interface Props {
   locale: Locale;
-  title: string;
+  /** Path below the locale prefix, for the locale switch. */
+  path?: string;
+  /** The page heading in the night band, and the start of the <title>. */
+  heading: string;
 }
 
-const { locale, title } = Astro.props;
+const { locale, path = '', heading } = Astro.props;
+const dict = t(locale);
+const title = heading === dict.meta.title ? heading : `${heading} · ${dict.meta.title}`;
 ---
 
 <!doctype html>
@@ -19,10 +27,42 @@ const { locale, title } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <ThemeInit />
     <title>{title}</title>
+    <meta name="description" content={dict.meta.description} />
     <meta name="robots" content="noindex" />
     <Fonts />
   </head>
   <body>
-    <slot />
+    <Header
+      locale={locale}
+      path={path}
+      brand="Stairno"
+      switchLabel={dict.nav.switchLocale}
+      themeLabels={dict.nav.theme}
+    />
+    <main>
+      <section class="page-head">
+        <div class="container">
+          <h1>{heading}</h1>
+        </div>
+      </section>
+      <div class="page-body container">
+        <slot />
+      </div>
+    </main>
+    <Footer
+      locale={locale}
+      path={path}
+      brand="Stairno"
+      links={{
+        heading: dict.footer.heading,
+        // DR-7: the account center links back to the hub and nowhere else of Stairno.
+        items: [{ href: `https://stairno.com/${locale}/`, label: dict.footer.hub }],
+      }}
+      source={{
+        href: 'https://github.com/seren-wib/account.stairno.com',
+        label: dict.footer.source,
+      }}
+      switchLabel={dict.nav.switchLocale}
+    />
   </body>
 </html>

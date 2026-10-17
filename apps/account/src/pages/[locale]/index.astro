@@ -1,0 +1,13 @@
+---
+import { isLocale } from '@stairno/ui/i18n';
+import Base from '../../layouts/Base.astro';
+
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+---
+
+<Base locale={locale} title="Stairno Account">
+  <main class="container">
+    <h1>Stairno Account</h1>
+  </main>
+</Base>

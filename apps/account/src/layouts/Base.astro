@@ -1,0 +1,28 @@
+---
+import Fonts from '@stairno/ui/components/Fonts.astro';
+import ThemeInit from '@stairno/ui/components/ThemeInit.astro';
+import '@stairno/ui/base.css';
+import type { Locale } from '@stairno/ui/i18n';
+
+interface Props {
+  locale: Locale;
+  title: string;
+}
+
+const { locale, title } = Astro.props;
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <ThemeInit />
+    <title>{title}</title>
+    <meta name="robots" content="noindex" />
+    <Fonts />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

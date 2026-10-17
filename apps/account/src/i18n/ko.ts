@@ -87,5 +87,13 @@ export const ko: Dictionary = {
       unavailable: '지금은 바꿀 수 없습니다. 잠시 뒤에 다시 해 주세요.',
     },
   },
+  verifyEmail: {
+    heading: '이메일 확인',
+    done: '이메일을 확인했습니다',
+    doneBody: '이제 이 주소로 Stairno 계정의 모든 기능을 쓸 수 있습니다.',
+    expired: '링크가 만료됐거나 이미 쓰였습니다.',
+    expiredBody: '로그인한 뒤 계정 개요에서 인증 메일을 다시 받을 수 있습니다.',
+    overview: '계정 개요로',
+  },
   notFound: { heading: '페이지를 찾을 수 없습니다', home: '계정 개요로' },
 };

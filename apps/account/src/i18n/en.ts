@@ -89,5 +89,13 @@ export const en: Dictionary = {
       unavailable: 'This is not possible right now. Please try again shortly.',
     },
   },
+  verifyEmail: {
+    heading: 'Confirm email',
+    done: 'Email confirmed',
+    doneBody: 'Every part of your Stairno account now works with this address.',
+    expired: 'This link has expired or was already used.',
+    expiredBody: 'Sign in and ask for a new verification mail on the account overview.',
+    overview: 'Go to the overview',
+  },
   notFound: { heading: 'Page not found', home: 'Back to the overview' },
 };

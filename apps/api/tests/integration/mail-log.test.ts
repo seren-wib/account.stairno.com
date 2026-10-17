@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { sql } from 'drizzle-orm';
+import { createMailer } from '../../src/mail';
 import { createTestApp } from '../helpers/app';
 import { PASSWORD, post, signUp } from '../helpers/auth';
 import { stubPwnedPasswords } from '../helpers/hibp';
@@ -49,6 +50,16 @@ describe('mail log', () => {
     expect(row).toMatchObject({ template: 'verifyEmail', status: 'failed', to: email });
     expect(row?.error).toContain('503');
     expect(JSON.stringify(error.mock.calls)).not.toContain(email);
+  });
+
+  it('FR-74 records a mail dropped for lack of an API key as skipped', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { app, db } = await createTestApp({}, {}, createMailer({ apiKey: undefined }));
+
+    await signUp(app);
+
+    const [row] = await mailLog(db);
+    expect(row?.status).toBe('skipped');
   });
 
   it('FR-8 FR-74 deleting the account removes its mail log', async () => {

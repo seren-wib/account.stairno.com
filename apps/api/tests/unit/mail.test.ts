@@ -93,7 +93,8 @@ describe('Resend mailer', () => {
   it('skips sending without an API key and logs no address', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const fetchFn = vi.fn();
-    await createMailer({ apiKey: undefined, fetch: fetchFn }).send(message);
+    const result = await createMailer({ apiKey: undefined, fetch: fetchFn }).send(message);
+    expect(result).toEqual({ skipped: true });
     expect(fetchFn).not.toHaveBeenCalled();
     expect(warn).toHaveBeenCalledTimes(1);
     expect(JSON.stringify(warn.mock.calls)).not.toContain('someone@example.com');

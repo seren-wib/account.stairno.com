@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { createAuth, type AuthConfig } from '../../src/auth';
 import { createApp, type Deps } from '../../src/index';
 import * as schema from '../../src/db/schema';
+import type { Mailer } from '../../src/mail';
 import { createMemoryMailbox } from './mailbox';
 
 export const API_URL = 'https://api.stairno.com';
@@ -21,12 +22,16 @@ export async function createTestDb() {
 
 type UrlConfig = Pick<AuthConfig, 'apiUrl' | 'accountUrl' | 'cookieDomain'>;
 
-export async function createTestApp(overrides: Partial<Deps> = {}, urls: Partial<UrlConfig> = {}) {
+export async function createTestApp(
+  overrides: Partial<Deps> = {},
+  urls: Partial<UrlConfig> = {},
+  mailer?: Mailer,
+) {
   const db = await createTestDb();
   const mailbox = createMemoryMailbox();
   const auth = createAuth({
     db,
-    mailer: mailbox,
+    mailer: mailer ?? mailbox,
     apiUrl: API_URL,
     accountUrl: ACCOUNT_URL,
     cookieDomain: 'stairno.com',

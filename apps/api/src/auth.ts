@@ -177,6 +177,9 @@ export function createAuth(config: AuthConfig) {
         enforcePerClientResources: false,
         // FR-19: one hour, stated here rather than left to the library default.
         accessTokenExpiresIn: 60 * 60,
+        // FR-20: 90 days (the default is 30). Reuse interval stays 0: any reuse of a rotated
+        // refresh token is a replay and is refused.
+        refreshTokenExpiresIn: 60 * 60 * 24 * 90,
         customIdTokenClaims: idTokenClaims,
         customUserInfoClaims: ({ user, scopes }) =>
           scopes.includes('profile') ? { locale: user.locale } : {},

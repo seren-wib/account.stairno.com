@@ -1,3 +1,4 @@
+import { termsVersion } from '@stairno-account/contract';
 import { ACCOUNT_URL } from './app';
 
 // Any Hono app; only app.request() is used.
@@ -51,6 +52,7 @@ export async function signUp(
     name: 'Test User',
     email,
     password,
+    termsVersion,
     ...extra,
   });
   return { res, email: email as string, password: password as string, cookie: cookieFrom(res) };

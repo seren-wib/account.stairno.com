@@ -33,6 +33,22 @@ function isEmailChange(token: string): boolean {
   }
 }
 
+// FR-18: sites read who signed in straight from the ID token. Better Auth leaves the standard
+// claims to userinfo unless the `claims` parameter asks for them, so they are added here by scope.
+// `locale` is the standard profile claim (FR-78).
+function idTokenClaims({
+  user,
+  scopes,
+}: {
+  user: { email: string; emailVerified: boolean; name: string } & Record<string, unknown>;
+  scopes: string[];
+}) {
+  return {
+    ...(scopes.includes('email') ? { email: user.email, email_verified: user.emailVerified } : {}),
+    ...(scopes.includes('profile') ? { name: user.name, locale: user.locale } : {}),
+  };
+}
+
 // SDD §4. One factory so the Worker, the tests and the schema generator build the same instance.
 export function createAuth(config: AuthConfig) {
   const secure = config.apiUrl.startsWith('https://');
@@ -159,6 +175,9 @@ export function createAuth(config: AuthConfig) {
         scopes: ['openid', 'profile', 'email', 'offline_access'],
         resources: [config.apiUrl],
         enforcePerClientResources: false,
+        customIdTokenClaims: idTokenClaims,
+        customUserInfoClaims: ({ user, scopes }) =>
+          scopes.includes('profile') ? { locale: user.locale } : {},
       }),
     ],
   });

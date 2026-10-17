@@ -1,0 +1,46 @@
+---
+import Base from '../../layouts/Base.astro';
+import { isLocale, localePath, t } from '../../i18n';
+
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale).verifyEmail;
+
+// FR-2, FR-6: the verification and email-change mails link here. The server hands the token to
+// the API with the visitor's cookie (an email change is checked against the signed-in user), so
+// the page works without JavaScript and the account center never reads the database (DR-1).
+async function verify(token: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${Astro.locals.apiUrl}/auth/verify-email?token=${encodeURIComponent(token)}`,
+      { headers: { cookie: Astro.request.headers.get('cookie') ?? '' } },
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+const token = Astro.url.searchParams.get('token');
+const verified = token ? await verify(token) : false;
+---
+
+<Base locale={locale} path="verify-email" heading={dict.heading}>
+  <section class="form-done">
+    {verified ? (
+      <>
+        <h2>{dict.done}</h2>
+        <p>{dict.doneBody}</p>
+        <a class="button form-submit" href={localePath(locale)}>
+          {dict.overview}
+        </a>
+      </>
+    ) : (
+      <>
+        <p class="form-error">{dict.expired}</p>
+        <p>{dict.expiredBody}</p>
+        <a href={localePath(locale)}>{dict.overview}</a>
+      </>
+    )}
+  </section>
+</Base>

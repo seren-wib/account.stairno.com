@@ -81,5 +81,13 @@ export type Dictionary = {
       unavailable: string;
     };
   };
+  verifyEmail: {
+    heading: string;
+    done: string;
+    doneBody: string;
+    expired: string;
+    expiredBody: string;
+    overview: string;
+  };
   notFound: { heading: string; home: string };
 };

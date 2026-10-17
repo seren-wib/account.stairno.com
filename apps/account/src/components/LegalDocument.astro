@@ -1,0 +1,31 @@
+---
+// FR-31: a legal document with its version (the one sign-up accepts, FR-9) and effective date.
+import { termsVersion } from '@stairno-account/contract';
+import Base from '../layouts/Base.astro';
+import { legal } from '../legal';
+import { t, type Locale } from '../i18n';
+
+interface Props {
+  locale: Locale;
+  kind: 'terms' | 'privacy';
+}
+
+const { locale, kind } = Astro.props;
+const doc = legal[locale][kind];
+---
+
+<Base locale={locale} path={kind} heading={doc.title}>
+  <article class="legal">
+    <p class="form-note">
+      {t(locale).legal.version} {termsVersion} · {doc.effective}
+    </p>
+    {doc.sections.map((section) => (
+      <section>
+        <h2>{section.heading}</h2>
+        {section.body.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+      </section>
+    ))}
+  </article>
+</Base>

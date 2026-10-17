@@ -190,5 +190,6 @@ export const ko: Dictionary = {
     expiredBody: '로그인한 뒤 계정 개요에서 인증 메일을 다시 받을 수 있습니다.',
     overview: '계정 개요로',
   },
+  legal: { version: '버전' },
   notFound: { heading: '페이지를 찾을 수 없습니다', home: '계정 개요로' },
 };

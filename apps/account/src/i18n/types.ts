@@ -171,5 +171,6 @@ export type Dictionary = {
     expiredBody: string;
     overview: string;
   };
+  legal: { version: string };
   notFound: { heading: string; home: string };
 };

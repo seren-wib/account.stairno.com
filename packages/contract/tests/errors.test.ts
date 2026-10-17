@@ -15,6 +15,7 @@ describe('error codes', () => {
       'invalid_transition',
       'amount_mismatch',
       'provider_error',
+      'internal_error',
     ]);
     expect(new Set(errorCodes).size).toBe(errorCodes.length);
   });

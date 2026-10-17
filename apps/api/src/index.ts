@@ -6,6 +6,7 @@ import { createMailer } from './mail';
 import type { AppEnv, Deps } from './deps';
 import type { Env } from './env';
 import { apiError } from './http/errors';
+import { createCors } from './middleware/cors';
 import { requireUser } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
 import { meRoutes } from './routes/me';
@@ -15,6 +16,11 @@ export type { Deps } from './deps';
 
 export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   const app = new Hono<AppEnv>();
+
+  // FR-26: before everything else, so preflights are answered without a session.
+  const corsFor = createCors(getDeps);
+  app.use('/auth/*', corsFor.auth);
+  app.use('/v1/*', corsFor.api);
 
   app.get('/health', async (c) => {
     try {

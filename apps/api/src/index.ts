@@ -6,6 +6,7 @@ import { createMailer } from './mail';
 import type { AppEnv, Deps } from './deps';
 import type { Env } from './env';
 import { requireSession } from './middleware/session';
+import { meRoutes } from './routes/me';
 import { sessionRoutes } from './routes/sessions';
 
 export type { Deps } from './deps';
@@ -30,6 +31,7 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
     await next();
   });
   app.use('/v1/*', requireSession);
+  app.route('/v1/me', meRoutes);
   app.route('/v1/sessions', sessionRoutes);
 
   return app;

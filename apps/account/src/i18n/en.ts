@@ -191,5 +191,6 @@ export const en: Dictionary = {
     expiredBody: 'Sign in and ask for a new verification mail on the account overview.',
     overview: 'Go to the overview',
   },
+  legal: { version: 'Version' },
   notFound: { heading: 'Page not found', home: 'Back to the overview' },
 };

@@ -1,0 +1,9 @@
+---
+import LegalDocument from '../../components/LegalDocument.astro';
+import { isLocale } from '../../i18n';
+
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+---
+
+<LegalDocument locale={locale} kind="terms" />

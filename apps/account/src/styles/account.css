@@ -296,3 +296,18 @@
   gap: 0.75rem;
   align-items: center;
 }
+
+/* FR-31: long text, one readable column. */
+.legal {
+  max-width: 720px;
+  line-height: 1.75;
+}
+
+.legal h2 {
+  margin: 2rem 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.legal p {
+  margin: 0 0 0.75rem;
+}

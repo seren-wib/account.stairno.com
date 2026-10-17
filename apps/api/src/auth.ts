@@ -175,6 +175,8 @@ export function createAuth(config: AuthConfig) {
         scopes: ['openid', 'profile', 'email', 'offline_access'],
         resources: [config.apiUrl],
         enforcePerClientResources: false,
+        // FR-19: one hour, stated here rather than left to the library default.
+        accessTokenExpiresIn: 60 * 60,
         customIdTokenClaims: idTokenClaims,
         customUserInfoClaims: ({ user, scopes }) =>
           scopes.includes('profile') ? { locale: user.locale } : {},

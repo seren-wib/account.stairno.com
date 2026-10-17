@@ -1,18 +1,17 @@
 import { Hono } from 'hono';
-import { sql, type SQL } from 'drizzle-orm';
-import { createAuth, type Auth } from './auth';
+import { sql } from 'drizzle-orm';
+import { createAuth } from './auth';
 import { createDb } from './db/client';
 import { createMailer } from './mail';
+import type { AppEnv, Deps } from './deps';
 import type { Env } from './env';
+import { requireSession } from './middleware/session';
+import { sessionRoutes } from './routes/sessions';
 
-export interface Deps {
-  // Only what the routes need, so tests can pass a PGlite database or a failing stub.
-  db: { execute(query: SQL): Promise<unknown> };
-  auth: Auth;
-}
+export type { Deps } from './deps';
 
 export function createApp(getDeps: (env: Env) => Promise<Deps>) {
-  const app = new Hono<{ Bindings: Env }>();
+  const app = new Hono<AppEnv>();
 
   app.get('/health', async (c) => {
     try {
@@ -25,6 +24,13 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   });
 
   app.on(['GET', 'POST'], '/auth/*', async (c) => (await getDeps(c.env)).auth.handler(c.req.raw));
+
+  app.use('/v1/*', async (c, next) => {
+    c.set('deps', await getDeps(c.env));
+    await next();
+  });
+  app.use('/v1/*', requireSession);
+  app.route('/v1/sessions', sessionRoutes);
 
   return app;
 }

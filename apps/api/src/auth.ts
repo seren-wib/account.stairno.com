@@ -111,6 +111,16 @@ export function createAuth(config: AuthConfig) {
       database: { generateId: 'uuid' },
     },
     trustedOrigins: [config.accountUrl],
+    // FR-15: sites are managed by the admin command only, which calls these server-side.
+    // Over HTTP any signed-in user would reach them, so they are closed there.
+    disabledPaths: [
+      '/oauth2/create-client',
+      '/oauth2/get-client',
+      '/oauth2/get-clients',
+      '/oauth2/update-client',
+      '/oauth2/delete-client',
+      '/oauth2/client/rotate-secret',
+    ],
     databaseHooks: {
       user: {
         create: {
@@ -143,6 +153,9 @@ export function createAuth(config: AuthConfig) {
         loginPage: `${config.accountUrl}/sign-in`,
         consentPage: `${config.accountUrl}/consent`,
         allowDynamicClientRegistration: false,
+        // Site clients belong to Stairno, not to the operator who registered them, so deleting
+        // that operator's account (FR-8) leaves the sites alone.
+        clientReference: () => 'stairno',
         scopes: ['openid', 'profile', 'email', 'offline_access'],
         resources: [config.apiUrl],
         enforcePerClientResources: false,

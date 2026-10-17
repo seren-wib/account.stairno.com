@@ -4,7 +4,7 @@ import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import { jwt } from 'better-auth/plugins/jwt';
 import { oauthProvider } from '@better-auth/oauth-provider';
-import { localeSchema } from '@stairno-account/contract';
+import { localeSchema, termsVersion, termsVersionSchema } from '@stairno-account/contract';
 import * as schema from './db/schema';
 import { renderMail, resolveLocale, type Mailer, type TemplateName } from './mail';
 
@@ -93,8 +93,13 @@ export function createAuth(config: AuthConfig) {
       additionalFields: {
         // FR-78: only the languages the account center and the mails have.
         locale: { type: 'string', defaultValue: 'ko', validator: { input: localeSchema } },
-        termsVersion: { type: 'string', required: false },
-        termsAcceptedAt: { type: 'date', required: false },
+        // FR-9: the client names the version it showed; the server stamps the time.
+        termsVersion: {
+          type: 'string',
+          required: false,
+          validator: { input: termsVersionSchema },
+        },
+        termsAcceptedAt: { type: 'date', required: false, input: false },
       },
     },
     advanced: {
@@ -106,13 +111,26 @@ export function createAuth(config: AuthConfig) {
       database: { generateId: 'uuid' },
     },
     trustedOrigins: [config.accountUrl],
+    databaseHooks: {
+      user: {
+        create: {
+          // Every account comes from sign-up, which the hook above only lets through with the
+          // current terms accepted.
+          before: async (user) => ({ data: { ...user, termsAcceptedAt: new Date() } }),
+        },
+      },
+    },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
         // FR-8: deleting always asks for the password again. Better Auth alone would also
         // accept a session younger than a day without it.
-        const body = ctx.body as { password?: unknown } | undefined;
+        const body = ctx.body as { password?: unknown; termsVersion?: unknown } | undefined;
         if (ctx.path === '/delete-user' && !body?.password) {
           throw new APIError('BAD_REQUEST', { message: 'Password is required' });
+        }
+        // FR-9: no account without accepting the current terms.
+        if (ctx.path === '/sign-up/email' && body?.termsVersion !== termsVersion) {
+          throw new APIError('BAD_REQUEST', { message: 'The current terms must be accepted' });
         }
       }),
     },

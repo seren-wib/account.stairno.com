@@ -2,7 +2,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
 import { fileURLToPath } from 'node:url';
-import { createAuth } from '../../src/auth';
+import { createAuth, type AuthConfig } from '../../src/auth';
 import { createApp, type Deps } from '../../src/index';
 import * as schema from '../../src/db/schema';
 import { createMemoryMailbox } from './mailbox';
@@ -19,7 +19,9 @@ export async function createTestDb() {
   return db;
 }
 
-export async function createTestApp(overrides: Partial<Deps> = {}) {
+type UrlConfig = Pick<AuthConfig, 'apiUrl' | 'accountUrl' | 'cookieDomain'>;
+
+export async function createTestApp(overrides: Partial<Deps> = {}, urls: Partial<UrlConfig> = {}) {
   const db = await createTestDb();
   const mailbox = createMemoryMailbox();
   const auth = createAuth({
@@ -29,6 +31,7 @@ export async function createTestApp(overrides: Partial<Deps> = {}) {
     accountUrl: ACCOUNT_URL,
     cookieDomain: 'stairno.com',
     secret: 'test-secret-not-used-anywhere-else-0123456789',
+    ...urls,
   });
   const deps: Deps = { db, auth, ...overrides };
   return { app: createApp(async () => deps), db, auth, mailbox };

@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import { jwt } from 'better-auth/plugins/jwt';
 import { oauthProvider } from '@better-auth/oauth-provider';
@@ -87,6 +88,8 @@ export function createAuth(config: AuthConfig) {
     user: {
       // FR-6: the new address is verified first; the old one stays until then.
       changeEmail: { enabled: true },
+      // FR-8: deleted at once, no confirmation mail. Orders and billing keys join in 2차.
+      deleteUser: { enabled: true },
       additionalFields: {
         // FR-78: only the languages the account center and the mails have.
         locale: { type: 'string', defaultValue: 'ko', validator: { input: localeSchema } },
@@ -103,6 +106,16 @@ export function createAuth(config: AuthConfig) {
       database: { generateId: 'uuid' },
     },
     trustedOrigins: [config.accountUrl],
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        // FR-8: deleting always asks for the password again. Better Auth alone would also
+        // accept a session younger than a day without it.
+        const body = ctx.body as { password?: unknown } | undefined;
+        if (ctx.path === '/delete-user' && !body?.password) {
+          throw new APIError('BAD_REQUEST', { message: 'Password is required' });
+        }
+      }),
+    },
     plugins: [
       // FR-1: rejects breached passwords on sign-up, change and reset. Sends only the first
       // five hex characters of the SHA-1 hash to api.pwnedpasswords.com.

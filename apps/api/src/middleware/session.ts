@@ -1,12 +1,32 @@
 import { createMiddleware } from 'hono/factory';
-import type { AppEnv } from '../deps';
+import type { AppEnv, AuthUser } from '../deps';
 import { apiError } from '../http/errors';
 
 const SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS'];
 
-// The signed-in user from the session cookie, or 401 (FR-24). Bearer tokens come with FR-13.
-export const requireSession = createMiddleware<AppEnv>(async (c, next) => {
+// FR-13: the caller is the user of a Bearer access token, or else of the session cookie.
+// A Bearer token that fails verification is 401; it never falls back to the cookie.
+export const requireUser = createMiddleware<AppEnv>(async (c, next) => {
   const { auth } = c.var.deps;
+  const authorization = c.req.header('authorization');
+
+  if (authorization?.startsWith('Bearer ')) {
+    const context = await auth.$context;
+    // Access tokens come from the OIDC provider: issuer `{API_URL}/auth`, audience `{API_URL}`
+    // (FR-19). verifyJWT checks the signature against our JWKS, `exp` and the audience.
+    const { payload } = await auth.api.verifyJWT({
+      body: { token: authorization.slice('Bearer '.length).trim(), issuer: context.baseURL },
+    });
+    // A site's client-credentials token has no `sub` and is not a user.
+    const user = payload?.sub
+      ? ((await context.internalAdapter.findUserById(payload.sub)) as AuthUser | null)
+      : null;
+    if (!user) return apiError(c, 401, 'unauthorized', 'The access token is not valid.');
+    c.set('user', user);
+    c.set('session', null);
+    return next();
+  }
+
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session) return apiError(c, 401, 'unauthorized', 'Sign in to continue.');
 
@@ -20,6 +40,15 @@ export const requireSession = createMiddleware<AppEnv>(async (c, next) => {
     }
   }
 
-  c.set('session', session);
+  c.set('user', session.user);
+  c.set('session', session.session);
+  await next();
+});
+
+// Routes that act on the account center's own session (the device list) need the cookie.
+export const requireCookieSession = createMiddleware<AppEnv>(async (c, next) => {
+  if (!c.var.session) {
+    return apiError(c, 401, 'unauthorized', 'This needs the account center session.');
+  }
   await next();
 });

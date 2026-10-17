@@ -2,13 +2,15 @@ import { Hono } from 'hono';
 import type { AppEnv } from '../deps';
 import { apiError } from '../http/errors';
 import { summarizeUserAgent } from '../lib/user-agent';
+import { requireCookieSession } from '../middleware/session';
 
 // FR-7: the signed-in devices. Better Auth identifies sessions by token; the token stays here
 // and the account center only ever sees the session id.
 export const sessionRoutes = new Hono<AppEnv>()
+  .use(requireCookieSession)
   .get('/', async (c) => {
     const sessions = await c.var.deps.auth.api.listSessions({ headers: c.req.raw.headers });
-    const currentId = c.var.session.session.id;
+    const currentId = c.var.session?.id;
     return c.json({
       items: sessions.map((s) => ({
         id: s.id,

@@ -4,7 +4,7 @@ import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import { jwt } from 'better-auth/plugins/jwt';
 import { oauthProvider } from '@better-auth/oauth-provider';
 import * as schema from './db/schema';
-import { renderMail, resolveLocale, type Mailer } from './mail';
+import { renderMail, resolveLocale, type Mailer, type TemplateName } from './mail';
 
 export interface AuthConfig {
   // Drizzle database (neon-http in Workers, PGlite in tests). Typed loosely so both fit.
@@ -19,6 +19,23 @@ export interface AuthConfig {
 // SDD §4. One factory so the Worker, the tests and the schema generator build the same instance.
 export function createAuth(config: AuthConfig) {
   const secure = config.apiUrl.startsWith('https://');
+
+  // Auth mails link to an account center page in the user's language, which hands the token
+  // to the API (SDD §7.3). The user object carries the additional `locale` field.
+  async function sendAuthMail(
+    template: TemplateName,
+    page: string,
+    user: { email: string; name: string },
+    token: string,
+  ) {
+    const locale = resolveLocale((user as { locale?: string }).locale);
+    const url = `${config.accountUrl}/${locale}/${page}?token=${encodeURIComponent(token)}`;
+    await config.mailer.send({
+      to: user.email,
+      ...renderMail(template, locale, { name: user.name, url }),
+    });
+  }
+
   return betterAuth({
     baseURL: config.apiUrl,
     basePath: '/auth',
@@ -29,20 +46,17 @@ export function createAuth(config: AuthConfig) {
       minPasswordLength: 8,
       maxPasswordLength: 128,
       requireEmailVerification: false,
+      // FR-5: the link works once for one hour, and resetting ends every session.
+      resetPasswordTokenExpiresIn: 60 * 60,
       revokeSessionsOnPasswordReset: true,
+      sendResetPassword: ({ user, token }) =>
+        sendAuthMail('resetPassword', 'reset-password', user, token),
     },
     emailVerification: {
       // FR-2: unverified users can sign in; orders and cards check emailVerified instead.
       sendOnSignUp: true,
-      async sendVerificationEmail({ user, token }) {
-        const locale = resolveLocale((user as { locale?: string }).locale);
-        // The account center page hands the token to GET /auth/verify-email (SDD §7.3).
-        const url = `${config.accountUrl}/${locale}/verify-email?token=${encodeURIComponent(token)}`;
-        await config.mailer.send({
-          to: user.email,
-          ...renderMail('verifyEmail', locale, { name: user.name, url }),
-        });
-      },
+      sendVerificationEmail: ({ user, token }) =>
+        sendAuthMail('verifyEmail', 'verify-email', user, token),
     },
     session: {
       expiresIn: 60 * 60 * 24 * 30,

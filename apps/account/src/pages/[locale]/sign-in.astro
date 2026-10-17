@@ -46,7 +46,8 @@ const messages = JSON.stringify({
     <a href={localePath(locale, 'forgot-password')}>{dict.forgot}</a>
   </p>
   <p class="form-links">
-    {dict.noAccount} <a href={localePath(locale, 'sign-up')}>{dict.signUp}</a>
+    {dict.noAccount}
+    <a href={`${localePath(locale, 'sign-up')}${oauth ? `?${oauth}` : ''}`}>{dict.signUp}</a>
   </p>
 </Base>
 

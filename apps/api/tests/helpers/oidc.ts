@@ -8,14 +8,18 @@ type TestApp = Awaited<ReturnType<typeof createTestApp>>;
 export const LABS_CALLBACK = 'https://stairnolabs.com/api/auth/oauth2/callback/stairno';
 
 // A site registered the way the admin command does it (FR-15), by a throwaway operator.
-export async function registerLabs(ctx: TestApp) {
+export async function registerSite(ctx: TestApp, name: string, redirectUri: string) {
   const operator = await signUp(ctx.app);
   const client = await registerClient(
     ctx.auth,
-    { name: 'Stairno Labs', redirectUris: [LABS_CALLBACK] },
+    { name, redirectUris: [redirectUri] },
     new Headers({ cookie: operator.cookie }),
   );
-  return { ...client, redirectUri: LABS_CALLBACK };
+  return { ...client, redirectUri };
+}
+
+export function registerLabs(ctx: TestApp) {
+  return registerSite(ctx, 'Stairno Labs', LABS_CALLBACK);
 }
 
 export type Site = Awaited<ReturnType<typeof registerLabs>>;

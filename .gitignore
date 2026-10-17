@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# build and local tool output
+dist/
+.wrangler/
+.astro/
+
+# local spec originals (Google Docs holds the shared copy)
+docs/specs/
+
+# environment
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+
+# editor and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# logs
+npm-debug.log*
+*.log
+
+# claude desktop preview config
+.claude/launch.json

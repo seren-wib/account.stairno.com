@@ -12,7 +12,7 @@ export const mailLog = pgTable('mail_log', {
   template: text('template').notNull(),
   locale: text('locale').notNull(),
   to: text('to').notNull(),
-  // 'sent' or 'failed'
+  // 'sent', 'failed', or 'skipped' when no mail provider is configured
   status: text('status').notNull(),
   providerId: text('provider_id'),
   error: text('error'),

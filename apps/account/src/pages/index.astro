@@ -1,4 +1,12 @@
 ---
-// FR-75 picks the signed-in user's language first; until sessions are wired, Korean.
-return Astro.redirect('/ko/', 302);
+// FR-75: the signed-in user's language, else the browser's, else ko.
+import { apiGet } from '../lib/api';
+import { pickLocale } from '../lib/locale';
+
+const signedIn = Astro.request.headers.has('cookie');
+const me = signedIn
+  ? await apiGet<{ locale?: string }>(Astro.locals, Astro.request, '/v1/me')
+  : null;
+const locale = pickLocale(Astro.request.headers.get('accept-language'), me?.locale);
+return Astro.redirect(`/${locale}/`, 302);
 ---

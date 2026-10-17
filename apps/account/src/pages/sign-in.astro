@@ -1,0 +1,8 @@
+---
+// The OIDC provider's login page (SDD §4) has no locale in it. Forward to the visitor's language
+// and keep the signed authorization query untouched (FR-17, FR-75).
+import { pickLocale } from '../lib/locale';
+
+const locale = pickLocale(Astro.request.headers.get('accept-language'));
+return Astro.redirect(`/${locale}/sign-in${Astro.url.search}`, 302);
+---

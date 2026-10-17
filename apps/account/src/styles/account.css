@@ -22,3 +22,61 @@
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
+
+/* Forms: one column, labels above fields, errors as text (NFR-17). */
+.form {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 420px;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.field input {
+  font: inherit;
+  font-weight: 400;
+  min-height: 48px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.field input:focus-visible {
+  outline: 3px solid var(--fg);
+  outline-offset: 1px;
+}
+
+.form-error {
+  margin: 0;
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.form-error::before {
+  content: '! ';
+}
+
+.form-note,
+.form-links {
+  color: var(--fg-muted);
+}
+
+/* base.css paints the pill for the night palette; on the page it takes the text colour. */
+.form-submit {
+  justify-self: start;
+  border: 0;
+  background: var(--fg);
+  color: var(--bg);
+  cursor: pointer;
+}
+
+.form-submit:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}

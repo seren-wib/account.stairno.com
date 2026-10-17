@@ -2,6 +2,8 @@ declare namespace App {
   interface Locals {
     // Set by the session guard on pages that need sign-in (FR-12).
     user?: import('./lib/session-guard').SessionUser;
+    // PUBLIC_API_URL, for pages whose browser code calls the API.
+    apiUrl?: string;
   }
 }
 

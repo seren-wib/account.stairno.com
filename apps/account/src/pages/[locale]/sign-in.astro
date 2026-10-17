@@ -1,0 +1,94 @@
+---
+import Base from '../../layouts/Base.astro';
+import { isLocale, localePath, t } from '../../i18n';
+import { oauthQuery } from '../../lib/auth-form';
+import { safeRedirect } from '../../lib/redirect';
+
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale).signIn;
+const next = safeRedirect(Astro.url.searchParams.get('redirect'), locale);
+const oauth = oauthQuery(Astro.url.search) ?? '';
+const messages = JSON.stringify({
+  failed: dict.failed,
+  tooMany: dict.tooMany,
+  unavailable: dict.unavailable,
+});
+---
+
+<Base locale={locale} path="sign-in" heading={dict.heading}>
+  <noscript>
+    <p class="form-note">{dict.noscript}</p>
+  </noscript>
+  <form
+    class="form"
+    data-sign-in
+    data-api={Astro.locals.apiUrl}
+    data-next={next}
+    data-oauth={oauth}
+    data-messages={messages}
+    novalidate
+  >
+    <label class="field">
+      <span>{dict.email}</span>
+      <input type="email" name="email" autocomplete="email" required />
+    </label>
+    <label class="field">
+      <span>{dict.password}</span>
+      <input type="password" name="password" autocomplete="current-password" required />
+    </label>
+    <p class="form-error" role="alert" data-error hidden></p>
+    <button class="button form-submit" type="submit">
+      {dict.submit}
+    </button>
+  </form>
+  <p class="form-links">
+    <a href={localePath(locale, 'forgot-password')}>{dict.forgot}</a>
+  </p>
+  <p class="form-links">
+    {dict.noAccount} <a href={localePath(locale, 'sign-up')}>{dict.signUp}</a>
+  </p>
+</Base>
+
+<script>
+  import { nextLocation } from '../../lib/auth-form';
+
+  const form = document.querySelector<HTMLFormElement>('[data-sign-in]');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const { api = '', next = '/', oauth, messages = '{}' } = form.dataset;
+    const text = JSON.parse(messages) as Record<'failed' | 'tooMany' | 'unavailable', string>;
+    const error = form.querySelector<HTMLElement>('[data-error]');
+    const button = form.querySelector<HTMLButtonElement>('button');
+    const data = new FormData(form);
+    if (error) error.hidden = true;
+    if (button) button.disabled = true;
+    let message = text.unavailable;
+    try {
+      const res = await fetch(`${api}/auth/sign-in/email`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          email: data.get('email'),
+          password: data.get('password'),
+          ...(oauth ? { oauth_query: oauth } : {}),
+        }),
+      });
+      if (res.ok) {
+        window.location.assign(nextLocation(await res.json().catch(() => null), api, next));
+        return;
+      }
+      // FR-3: one message whether the email is unknown or the password is wrong.
+      if (res.status === 401 || res.status === 400) message = text.failed;
+      if (res.status === 429) message = text.tooMany;
+    } catch {
+      // Network failure: the API is unreachable.
+    }
+    if (error) {
+      error.textContent = message;
+      error.hidden = false;
+    }
+    if (button) button.disabled = false;
+  });
+</script>

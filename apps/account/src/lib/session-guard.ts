@@ -50,6 +50,7 @@ async function fetchSessionUser(
 // FR-12. A factory so tests can pass a fake fetch; src/middleware.ts wires the real one.
 export function createSessionGuard(options: { apiUrl: string; fetch: Fetch }) {
   return async (context: APIContext, next: MiddlewareNext) => {
+    context.locals.apiUrl = options.apiUrl;
     const locale = protectedLocale(context.url.pathname);
     if (!locale) return next();
 

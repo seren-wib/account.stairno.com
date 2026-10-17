@@ -118,7 +118,24 @@ export function createAuth(config: AuthConfig) {
         termsAcceptedAt: { type: 'date', required: false, input: false },
       },
     },
+    // NFR-4, FR-74: per client IP and path, in the database so every Worker isolate sees one count.
+    // Better Auth has no per-account limit; the Cloudflare WAF rule covers bursts (SDD §9).
+    rateLimit: {
+      enabled: true,
+      storage: 'database',
+      window: 60,
+      max: 100,
+      customRules: {
+        '/sign-in/*': { window: 60, max: 10 },
+        '/sign-up/*': { window: 60, max: 10 },
+        '/request-password-reset': { window: 60, max: 3 },
+        '/send-verification-email': { window: 60, max: 1 },
+        // The account center's server asks on every page, all from one egress address.
+        '/get-session': false,
+      },
+    },
     advanced: {
+      ipAddress: { ipAddressHeaders: ['cf-connecting-ip'] },
       cookiePrefix: 'stairno',
       useSecureCookies: secure,
       crossSubDomainCookies: config.cookieDomain

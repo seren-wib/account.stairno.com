@@ -1,6 +1,12 @@
 // Bindings and secrets of the API Worker (SDD §10). Secrets come from Wrangler secrets
 // in production and from .dev.vars locally; nothing here is ever committed with a value.
 export interface Env {
+  // vars
+  API_URL: string;
+  ACCOUNT_URL: string;
+  // Parent domain shared by account and api for the session cookie (FR-10). Empty locally.
+  COOKIE_DOMAIN: string;
   // secrets
   DATABASE_URL: string;
+  BETTER_AUTH_SECRET: string;
 }

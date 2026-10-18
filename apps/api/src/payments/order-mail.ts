@@ -12,10 +12,10 @@ export type OrderMail = 'receipt' | 'renewalFailed' | 'refunded' | 'refundReject
 
 type MailDeps = Pick<Deps, 'db' | 'mailer' | 'origins'>;
 
-// The account center page the button opens.
+// The account center page the button opens (SRS 3.5: cards are a section of the billing page).
 const PAGE: Record<OrderMail, string> = {
   receipt: 'orders',
-  renewalFailed: 'payment-methods',
+  renewalFailed: 'billing#payment-methods',
   refunded: 'orders',
   refundRejected: 'orders',
 };

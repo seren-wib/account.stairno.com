@@ -157,6 +157,22 @@ export type Dictionary = {
     emailSent: string;
     errors: { name: string; email: string; unavailable: string; tooMany: string };
   };
+  password: {
+    heading: string;
+    current: string;
+    new: string;
+    hint: string;
+    submit: string;
+    done: string;
+    errors: {
+      currentMissing: string;
+      current: string;
+      passwordLength: string;
+      passwordBreached: string;
+      tooMany: string;
+      unavailable: string;
+    };
+  };
   devices: {
     heading: string;
     current: string;

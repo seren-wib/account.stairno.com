@@ -37,6 +37,7 @@ describe('overview', () => {
       'payment-methods',
       'orders',
       'subscriptions',
+      'downloads',
     ]) {
       expect(html).toContain(`href="/en/${page}/"`);
     }
@@ -68,6 +69,7 @@ describe('signed-in frame', () => {
       'payment-methods/',
       'orders/',
       'subscriptions/',
+      'downloads/',
       'delete/',
     ]) {
       expect(menu).toContain(`href="/en/${page}"`);

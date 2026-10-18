@@ -16,6 +16,8 @@ describe('error codes', () => {
       'amount_mismatch',
       'provider_error',
       'payment_method_required',
+      'payload_too_large',
+      'unsupported_media_type',
       'internal_error',
     ]);
     expect(new Set(errorCodes).size).toBe(errorCodes.length);

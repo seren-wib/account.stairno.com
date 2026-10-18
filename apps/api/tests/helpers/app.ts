@@ -6,6 +6,7 @@ import { createAuth, type AuthConfig } from '../../src/auth';
 import { createApp, type Deps } from '../../src/index';
 import * as schema from '../../src/db/schema';
 import type { Mailer } from '../../src/mail';
+import { createFakeProvider } from '../../src/payments/fake';
 import { createMemoryMailbox } from './mailbox';
 
 export const API_URL = 'https://api.stairno.com';
@@ -43,6 +44,13 @@ export async function createTestApp(
     ...urls,
   });
   const origins = { account: urls.accountUrl ?? ACCOUNT_URL, hub: urls.hubUrl ?? HUB_URL };
-  const deps: Deps = { db, auth, origins, paymentsMode: 'test', ...overrides };
+  const deps: Deps = {
+    db,
+    auth,
+    origins,
+    paymentsMode: 'test',
+    providers: { toss: createFakeProvider() },
+    ...overrides,
+  };
   return { app: createApp(async () => deps), db, auth, mailbox };
 }

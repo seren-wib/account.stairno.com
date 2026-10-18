@@ -11,8 +11,10 @@ import { createCors } from './middleware/cors';
 import { authenticate } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
 import { parsePaymentsMode } from './payments/mode';
+import { createTossProvider } from './payments/toss';
 import { meRoutes } from './routes/me';
 import { orderRoutes } from './routes/orders';
+import { paymentRoutes } from './routes/payments';
 import { productRoutes } from './routes/products';
 import { sessionRoutes } from './routes/sessions';
 
@@ -57,6 +59,7 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   app.route('/v1/connections', connectionRoutes);
   app.route('/v1/me', meRoutes);
   app.route('/v1/orders', orderRoutes);
+  app.route('/v1/payments', paymentRoutes);
   app.route('/v1/products', productRoutes);
   app.route('/v1/sessions', sessionRoutes);
 
@@ -93,11 +96,15 @@ function workerDeps(env: Env): Promise<Deps> {
       mailer: createMailer({ apiKey: env.RESEND_API_KEY }),
     });
     await auth.$context;
+    const paymentsMode = parsePaymentsMode(env.PAYMENTS_MODE);
     return {
       db,
       auth,
       origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL },
-      paymentsMode: parsePaymentsMode(env.PAYMENTS_MODE),
+      paymentsMode,
+      providers: {
+        toss: createTossProvider({ secretKey: env.TOSS_SECRET_KEY, mode: paymentsMode }),
+      },
     };
   })().catch((error: unknown) => {
     deps = undefined;

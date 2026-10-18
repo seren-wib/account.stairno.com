@@ -2,6 +2,7 @@ import type { SQL } from 'drizzle-orm';
 import type { Auth } from './auth';
 import type { Env } from './env';
 import type { PaymentsMode } from './payments/mode';
+import type { PaymentProvider } from './payments/provider';
 
 export interface Deps {
   // Only what the routes need, so tests can pass a PGlite database or a failing stub.
@@ -11,6 +12,8 @@ export interface Deps {
   origins: { account: string; hub: string };
   // FR-42, read once from PAYMENTS_MODE.
   paymentsMode: PaymentsMode;
+  // NFR-13: the only way routes reach a payment provider. Tests pass the fake (NFR-16).
+  providers: { toss: PaymentProvider };
 }
 
 export type AuthSession = Auth['$Infer']['Session'];

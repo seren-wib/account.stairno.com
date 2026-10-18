@@ -7,9 +7,9 @@ import {
 } from './provider';
 
 // NFR-16: the provider every payment test runs on. By default it approves what it is asked for;
-// a test scripts the next answer with willDecline, willApproveAmount or willThrow. It keeps the
-// payments and billing keys it has seen, so a repeated confirm answers like the real providers do,
-// and it records every call.
+// a test scripts the next answers with willDecline, willApproveAmount or willThrow, played in the
+// order given. It keeps the payments and billing keys it has seen, so a repeated confirm answers
+// like the real providers do, and it records every call.
 
 type Next =
   | { kind: 'decline'; reason: string }
@@ -28,14 +28,13 @@ export function createFakeProvider({ delayMs = 0 }: { delayMs?: number } = {}) {
   const payments = new Map<string, PaymentResult>();
   const billingKeys = new Map<string, BillingKey>();
   const calls: FakeCall[] = [];
-  let next: Next | undefined;
+  const script: Next[] = [];
   let issued = 0;
 
   async function answer(method: FakeCall['method'], input: unknown) {
     calls.push({ method, input });
     if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
-    const scripted = next;
-    next = undefined;
+    const scripted = script.shift();
     if (scripted?.kind === 'throw') throw new ProviderError('fake', scripted.message);
     return scripted;
   }
@@ -133,13 +132,13 @@ export function createFakeProvider({ delayMs = 0 }: { delayMs?: number } = {}) {
     calls,
 
     willDecline(reason = 'Declined by the fake provider.') {
-      next = { kind: 'decline', reason };
+      script.push({ kind: 'decline', reason });
     },
     willApproveAmount(amount: number) {
-      next = { kind: 'amount', amount };
+      script.push({ kind: 'amount', amount });
     },
     willThrow(message = 'The fake provider is unreachable.') {
-      next = { kind: 'throw', message };
+      script.push({ kind: 'throw', message });
     },
 
     // A webhook as the fake provider would send it; pass another signature to forge one.

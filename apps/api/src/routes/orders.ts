@@ -20,7 +20,7 @@ const PROVIDER_BY_CURRENCY = { KRW: 'toss', USD: 'paypal' } as const;
 
 const iso = (value: string | Date | null) => (value ? new Date(value).toISOString() : null);
 
-function orderJson(row: OrderRow) {
+export function orderJson(row: OrderRow) {
   return {
     id: row.id,
     status: row.status,

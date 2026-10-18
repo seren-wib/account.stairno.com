@@ -1,0 +1,1 @@
+ALTER TABLE "payment" ADD COLUMN "failure_reason" text;

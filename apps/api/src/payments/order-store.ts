@@ -1,6 +1,7 @@
 import { sql, type SQL } from 'drizzle-orm';
 import type { Deps } from '../deps';
 import { allowedFrom } from './orders';
+import type { PaymentResult } from './provider';
 
 // The order queries. neon-http has no interactive transactions, so every write is one statement,
 // guarded by the statuses the state machine allows for its event (SDD §6.2): zero rows means
@@ -90,6 +91,88 @@ export async function insertOrder(
   );
   if (!order) throw new Error('the order was not created');
   return order;
+}
+
+export interface PaymentRow {
+  order_id: string;
+  provider: string;
+  provider_payment_key: string;
+  status: 'pending' | 'done' | 'failed' | 'canceled';
+  method_summary: string | null;
+  receipt_url: string | null;
+  failure_reason: string | null;
+}
+
+// FR-38: the payment recorded under a provider payment key, whichever order it belongs to.
+export async function findPayment(db: Db, providerPaymentKey: string) {
+  const [payment] = await rows<PaymentRow>(
+    db,
+    sql`
+      select order_id, provider, provider_payment_key, status, method_summary, receipt_url,
+             failure_reason
+      from payment where provider_payment_key = ${providerPaymentKey}`,
+  );
+  return payment;
+}
+
+// FR-44: a pending order whose confirm came with the wrong amount fails before the provider is
+// asked. false when another request moved it first.
+export async function failPendingOrder(db: Db, orderId: string): Promise<boolean> {
+  const moved = await rows<{ id: string }>(
+    db,
+    sql`
+      update "order" set status = 'failed'
+      where id = ${orderId} and status in (${statusIn(allowedFrom('fail'))})
+      returning id`,
+  );
+  return moved.length > 0;
+}
+
+// FR-37, FR-39, FR-43: what the provider answered, written in one statement. The order moves
+// only out of a status the state machine allows; the payment and, for a fulfilled order, the
+// entitlement are written only when it did. `fulfilled` is confirm and grant together, so paid_at
+// and fulfilled_at are stamped at once. false when another request moved the order first.
+export async function settleOrder(
+  db: Db,
+  input: {
+    orderId: string;
+    to: 'fulfilled' | 'failed';
+    provider: string;
+    payment: PaymentResult;
+  },
+): Promise<boolean> {
+  const { payment } = input;
+  const fulfilled = input.to === 'fulfilled';
+  const from = fulfilled ? allowedFrom('confirm') : allowedFrom('fail');
+  const [result] = await rows<{ moved: number }>(
+    db,
+    sql`
+      with moved as (
+        update "order" set status = ${input.to},
+          paid_at = case when ${fulfilled} then now() else paid_at end,
+          fulfilled_at = case when ${fulfilled} then now() else fulfilled_at end
+        where id = ${input.orderId} and status in (${statusIn(from)})
+        returning id, user_id, product_id
+      ), paid as (
+        insert into payment (order_id, provider, provider_payment_key, status, method_summary,
+                             receipt_url, failure_reason, raw)
+        select id, ${input.provider}, ${payment.providerPaymentKey}, ${payment.status},
+               ${payment.methodSummary ?? null}, ${payment.receiptUrl ?? null},
+               ${payment.failureReason ?? null}, ${JSON.stringify(payment.raw ?? null)}::jsonb
+        from moved
+        on conflict (provider_payment_key) do nothing
+      ), granted as (
+        insert into entitlement (user_id, product_id, status, downloadable, source_order_id)
+        select m.user_id, m.product_id, 'active', p.download_key is not null, m.id
+        from moved m join product p on p.id = m.product_id
+        where ${fulfilled} and m.user_id is not null
+        on conflict (user_id, product_id) do update
+          set status = 'active', expires_at = null, downloadable = excluded.downloadable,
+              source_order_id = excluded.source_order_id, updated_at = now()
+      )
+      select count(*)::int as moved from moved`,
+  );
+  return (result?.moved ?? 0) > 0;
 }
 
 // FR-36, FR-40: the site's own order, expired first if it is pending past its 30 minutes. The

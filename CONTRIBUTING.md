@@ -1,20 +1,27 @@
 # Contributing
 
-This is a one-person project that runs like a team: issue → branch → failing test → implementation → pull request → CI → merge. The rules match the hub's ([stairno.com](https://github.com/seren-wib/stairno.com)) CONTRIBUTING.md, plus what only this repository has (two workspaces, migrations, secrets).
+This is a one-person project that runs like a team, on Git Flow: issue → feature branch → failing test → implementation → `develop`; when a block is done, a release branch → pull request → CI → `main`, which deploys. The rules match the hub's ([stairno.com](https://github.com/seren-wib/stairno.com)) CONTRIBUTING.md, plus what only this repository has (two workspaces, migrations, secrets).
 
-## Branches
+## Branches (Git Flow)
 
-| Branch                      | Lifetime  | Role                                    | From   | Merges into |
-| --------------------------- | --------- | --------------------------------------- | ------ | ----------- |
-| `main`                      | Permanent | What is deployed. A merge is a release. | —      | —           |
-| `feature/<issue>-<summary>` | One task  | A single piece of work                  | `main` | `main`      |
+| Branch                      | Lifetime  | Role                                                | From      | Merges into          |
+| --------------------------- | --------- | --------------------------------------------------- | --------- | -------------------- |
+| `main`                      | Permanent | What is released. A merge into it deploys           | —         | —                    |
+| `develop`                   | Permanent | The next release being built. The default branch    | `main`    | —                    |
+| `feature/<issue>-<summary>` | One task  | One feature                                         | `develop` | `develop`            |
+| `release/vX.Y.Z`            | One block | Preparing this release: fixes and docs, no features | `develop` | `main` and `develop` |
+| `hotfix/vX.Y.Z`             | One fix   | A bug in the released version                       | `main`    | `main` and `develop` |
 
-- There are no `develop` or `release` branches
-- Nothing is committed to `main` directly. Every change goes through a pull request
-- One task, one issue, one branch, one pull request. Example: `feature/1-account-specs`
-- A task is one feature or concern. Documentation, workspace tooling, database wiring, auth wiring, screen skeletons, unit tests, end-to-end tests and CI each get their own issue and pull request. Do not bundle them
-- Merge one pull request (and see it deployed) before opening the next. There is never more than one open pull request
-- While a pull request waits for CI and its deployment, the next issue, branch and failing tests may be prepared locally
+- `main` changes only through pull requests from `release/*` or `hotfix/*`. CI must pass, and the merge is a merge commit, so `main` and `develop` keep one history
+- `develop` takes direct pushes for documents and small changes. A feature goes through its own branch and a pull request into `develop`, which does not wait for CI; the pull request is the record. Run the local checks (see Tests) before pushing anything to `develop`
+- Release: when a block of work is done, branch `release/vX.Y.Z` from `develop` and open a pull request into `main`. Fix only what CI or the final check finds, merge, tag `vX.Y.Z` on the merge commit, then merge `main` back into `develop`
+- Hotfix: branch `hotfix/vX.Y.Z` (the next patch) from `main`, open a pull request into `main`, merge, tag, then merge `main` back into `develop`
+- Versions follow semver: a block of features raises MINOR, a hotfix raises PATCH
+- One task, one issue, one branch. Example: `feature/185-payment-mails`
+- A task is one feature a user can use: its API, screen, tests and document updates go in together, so the feature can be checked as a whole
+- Something that only serves that feature, such as an adapter or a small fix found on the way, goes in as commits of the same branch. Only a change that stands on its own or touches other features gets its own branch
+- As a size guide, 300 to 800 changed lines including tests. Past 1000, look for a place to split
+- There is never more than one open pull request into `main`
 
 ## Issues
 
@@ -42,20 +49,27 @@ This is a one-person project that runs like a team: issue → branch → failing
 | `chore`    | Configuration, dependencies      |
 | `ci`       | CI and deploy workflows          |
 
-Test-driven work is committed in the same order:
+Each slice of a feature is a `test` → `feat` pair, committed in that order. A move or clean-up that keeps behaviour is its own `refactor` commit, before the pair it prepares. Each commit should be small enough to revert on its own:
 
 ```
-test(api): add failing cases for order transitions
-feat(api): implement order state machine
-refactor(api): extract transition table
+refactor(api): share the payment JSON between routes
+test(api): add failing cases for receipts
+feat(api): send a receipt when an order is paid
+test(api): add failing cases for the renewal failure mail
+feat(api): tell the buyer when a renewal is declined
 ```
 
 ## Pull requests
 
 - The title uses the commit format. The body links the issue (`Closes #1`) and says why, how it was checked and which requirement IDs it covers
-- CI must pass before merging: formatting, type checks, tests, builds, the migration check (`verify`) and the end-to-end tests on the Workers runtime (`e2e`). The `main` ruleset requires both
-- Merges are rebase merges, so every commit lands on `main` as it is and each one must follow the commit rules above
-- Delete the feature branch right after merging
+- CI runs on pull requests into `main`: formatting, type checks, tests, builds, the migration check (`verify`) and the end-to-end tests on the Workers runtime (`e2e`). The `main` ruleset requires both. Every push to `develop` runs the same CI for information; nothing waits for it
+- Feature pull requests into `develop` are rebase merges, so every commit lands as it is and must follow the commit rules above. Release and hotfix pull requests into `main` are merge commits
+- Delete the branch right after merging
+
+## Releases
+
+- A merge into `main` deploys through the deploy workflow: it runs the tests once more, migrates, then deploys the API and the account center. The workflow can also be run by hand
+- The release tag `vX.Y.Z` goes on the merge commit in `main`
 
 ## Tests
 
@@ -63,7 +77,7 @@ refactor(api): extract transition table
 - Payment providers are replaced by a fake adapter in tests. Real test-key calls happen only in deployment rehearsals (NFR-16)
 - Integration tests run on PGlite, an in-memory PostgreSQL, so CI needs no secrets
 - `npm test` runs every workspace; `npm run test:e2e` needs the containers in `e2e/compose.yml`
-- Before pushing, run the test files you changed together with `npm run format:check`, `npm run check` and `npm run db:check`. The full suite runs in CI (`verify`)
+- Before pushing, run the test files you changed together with `npm run format:check`, `npm run check` and `npm run db:check`. The full suite runs in CI (`verify`) on every push to `develop` and every pull request into `main`
 
 ## Database
 

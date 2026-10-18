@@ -1,0 +1,3 @@
+ALTER TABLE "mail_log" ADD COLUMN "order_id" uuid;--> statement-breakpoint
+ALTER TABLE "mail_log" ADD CONSTRAINT "mail_log_order_id_order_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."order"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "mail_log_order_template_uidx" ON "mail_log" USING btree ("order_id","template") WHERE "mail_log"."order_id" is not null;

@@ -2,6 +2,10 @@
 // CSP allows Toss there and nowhere else (NFR-7, SDD §7.4).
 export const TOSS_SDK_URL = 'https://js.tosspayments.com/v2/standard';
 
+// Before it moves the page to Toss, the SDK calls Toss's gateway (apigw-sandbox in test) and its
+// log and event hosts; a CSP that blocks them leaves the button doing nothing (checked 2026-10-18).
+export const TOSS_CONNECT_SRC = ['https://*.tosspayments.com'];
+
 export type CardWindowResult =
   | { kind: 'registered'; authKey: string; customerKey: string }
   | { kind: 'canceled' }

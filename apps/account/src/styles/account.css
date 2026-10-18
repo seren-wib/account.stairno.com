@@ -332,7 +332,24 @@
   list-style: none;
 }
 
-/* Lists of sessions and connected sites. */
+/* A page of short blocks one under another: notes, messages, a list, a button. */
+.page-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.page-stack > p {
+  margin: 0;
+}
+
+.page-stack > .item-list {
+  align-self: stretch;
+  margin: 0;
+}
+
+/* Lists of sessions, connected sites and cards. */
 .item-list {
   display: grid;
   margin: 0 0 1.5rem;

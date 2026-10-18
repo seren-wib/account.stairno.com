@@ -5,20 +5,17 @@ import Base from './Base.astro';
 import { localePath, t, type Locale } from '../i18n';
 
 export type AccountPage =
-  | 'overview'
-  | 'profile'
-  | 'devices'
-  | 'connections'
-  | 'paymentMethods'
-  | 'delete';
+  'overview' | 'profile' | 'devices' | 'connections' | 'paymentMethods' | 'delete';
 
 interface Props {
   locale: Locale;
   page: AccountPage;
   heading: string;
+  /** Passed to Base: hosts this page's browser code calls besides the API (NFR-7). */
+  connect?: string[];
 }
 
-const { locale, page, heading } = Astro.props;
+const { locale, page, heading, connect } = Astro.props;
 const dict = t(locale).account;
 
 // Orders, subscriptions and downloads join payment methods as the second phase builds them.
@@ -33,7 +30,7 @@ const items: { page: AccountPage; path: string }[] = [
 const current = items.find((item) => item.page === page);
 ---
 
-<Base locale={locale} path={current?.path ?? ''} heading={heading}>
+<Base locale={locale} path={current?.path ?? ''} heading={heading} connect={connect}>
   <div class="account-grid">
     <nav class="account-menu" aria-label={dict.menuLabel}>
       <ul>

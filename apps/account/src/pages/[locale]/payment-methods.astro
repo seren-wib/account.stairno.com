@@ -3,7 +3,7 @@ import Account from '../../layouts/Account.astro';
 import { isLocale, t } from '../../i18n';
 import { CARD_COMPANY_CODES, type CardCompanyCode } from '../../i18n/types';
 import { apiGet, formatDate } from '../../lib/api';
-import { TOSS_SDK_URL } from '../../lib/toss';
+import { TOSS_CONNECT_SRC, TOSS_SDK_URL } from '../../lib/toss';
 
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
@@ -29,7 +29,13 @@ const cards = list?.items ?? null;
 const verified = Astro.locals.user?.emailVerified ?? false;
 const canAdd = Boolean(list?.clientKey) && verified;
 // NFR-7: Toss's SDK, and Toss in the CSP, only where the card window can actually open.
-if (canAdd) Astro.csp?.insertScriptResource(new URL(TOSS_SDK_URL).origin);
+// The first inserted resource replaces Astro's default 'self' instead of joining it, so 'self'
+// goes back in by hand (checked in the built page, 2026-10-18).
+if (canAdd) {
+  Astro.csp?.insertScriptResource("'self'");
+  Astro.csp?.insertScriptResource(new URL(TOSS_SDK_URL).origin);
+}
+const connect = canAdd ? TOSS_CONNECT_SRC : [];
 
 const isKnown = (code: string | null): code is CardCompanyCode =>
   code !== null && (CARD_COMPANY_CODES as readonly string[]).includes(code);
@@ -49,68 +55,70 @@ const messages = JSON.stringify({
 });
 ---
 
-<Account locale={locale} page="paymentMethods" heading={dict.heading}>
-  <p class="form-note">{dict.intro}</p>
-  <p
-    class="status"
-    role="status"
-    data-cards-status
-    data-api={Astro.locals.apiUrl}
-    data-messages={messages}
-    hidden
-  ></p>
-  {cards === null ? (
-    <p class="form-error">{dict.unavailable}</p>
-  ) : (
-    <>
-      {cards.length === 0 ? (
-        <p class="status">{dict.empty}</p>
-      ) : (
-        <ul class="item-list">
-          {cards.map((card) => (
-            <li class="item">
-              <div>
-                <p class="item-title">
-                  {cardName(card)} •••• {card.cardLast4 ?? '····'}
-                  {card.isDefault && <span class="badge">{dict.default}</span>}
-                </p>
-                <p class="item-meta">
-                  {dict.added} {formatDate(card.createdAt, locale)}
-                </p>
-              </div>
-              <div class="button-row">
-                {!card.isDefault && (
-                  <button class="item-action" type="button" data-make-default={card.id}>
-                    {dict.makeDefault}
+<Account locale={locale} page="paymentMethods" heading={dict.heading} connect={connect}>
+  <div class="page-stack">
+    <p class="form-note">{dict.intro}</p>
+    <p
+      class="status"
+      role="status"
+      data-cards-status
+      data-api={Astro.locals.apiUrl}
+      data-messages={messages}
+      hidden
+    ></p>
+    <p class="form-error" role="alert" data-cards-error hidden></p>
+    {cards === null ? (
+      <p class="form-error">{dict.unavailable}</p>
+    ) : (
+      <>
+        {cards.length === 0 ? (
+          <p class="status">{dict.empty}</p>
+        ) : (
+          <ul class="item-list">
+            {cards.map((card) => (
+              <li class="item">
+                <div>
+                  <p class="item-title">
+                    {cardName(card)} •••• {card.cardLast4 ?? '····'}
+                    {card.isDefault && <span class="badge">{dict.default}</span>}
+                  </p>
+                  <p class="item-meta">
+                    {dict.added} {formatDate(card.createdAt, locale)}
+                  </p>
+                </div>
+                <div class="button-row">
+                  {!card.isDefault && (
+                    <button class="item-action" type="button" data-make-default={card.id}>
+                      {dict.makeDefault}
+                    </button>
+                  )}
+                  <button class="item-action" type="button" data-remove-card={card.id}>
+                    {dict.remove}
                   </button>
-                )}
-                <button class="item-action" type="button" data-remove-card={card.id}>
-                  {dict.remove}
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-      {!verified ? (
-        <p class="notice">{dict.verifyFirst}</p>
-      ) : canAdd ? (
-        <button
-          class="button form-submit"
-          type="button"
-          data-add-card
-          data-client-key={list?.clientKey}
-          data-customer-key={list?.customerKey}
-          data-sdk={TOSS_SDK_URL}
-        >
-          {dict.add}
-        </button>
-      ) : (
-        <p class="notice">{dict.addUnavailable}</p>
-      )}
-    </>
-  )}
-  <p class="form-error" role="alert" data-cards-error hidden></p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {!verified ? (
+          <p class="notice">{dict.verifyFirst}</p>
+        ) : canAdd ? (
+          <button
+            class="button form-submit"
+            type="button"
+            data-add-card
+            data-client-key={list?.clientKey}
+            data-customer-key={list?.customerKey}
+            data-sdk={TOSS_SDK_URL}
+          >
+            {dict.add}
+          </button>
+        ) : (
+          <p class="notice">{dict.addUnavailable}</p>
+        )}
+      </>
+    )}
+  </div>
 </Account>
 
 <script>

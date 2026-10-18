@@ -10,6 +10,7 @@ import { createMemoryMailbox } from './mailbox';
 
 export const API_URL = 'https://api.stairno.com';
 export const ACCOUNT_URL = 'https://account.stairno.com';
+export const HUB_URL = 'https://stairno.com';
 
 // The migrated snapshot from tests/global-setup.ts, read once per test file.
 let snapshot: Promise<Blob> | undefined;
@@ -22,7 +23,7 @@ export async function createTestDb() {
   return drizzle(client, { schema });
 }
 
-type UrlConfig = Pick<AuthConfig, 'apiUrl' | 'accountUrl' | 'cookieDomain'>;
+type UrlConfig = Pick<AuthConfig, 'apiUrl' | 'accountUrl' | 'hubUrl' | 'cookieDomain'>;
 
 export async function createTestApp(
   overrides: Partial<Deps> = {},
@@ -36,10 +37,12 @@ export async function createTestApp(
     mailer: mailer ?? mailbox,
     apiUrl: API_URL,
     accountUrl: ACCOUNT_URL,
+    hubUrl: HUB_URL,
     cookieDomain: 'stairno.com',
     secret: 'test-secret-not-used-anywhere-else-0123456789',
     ...urls,
   });
-  const deps: Deps = { db, auth, ...overrides };
+  const origins = { account: urls.accountUrl ?? ACCOUNT_URL, hub: urls.hubUrl ?? HUB_URL };
+  const deps: Deps = { db, auth, origins, ...overrides };
   return { app: createApp(async () => deps), db, auth, mailbox };
 }

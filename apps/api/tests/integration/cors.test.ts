@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ACCOUNT_URL, createTestApp } from '../helpers/app';
-import { signUp } from '../helpers/auth';
+import { ACCOUNT_URL, HUB_URL, createTestApp } from '../helpers/app';
+import { post, sessionUser, signUp } from '../helpers/auth';
 import { stubPwnedPasswords } from '../helpers/hibp';
 import { registerLabs } from '../helpers/oidc';
 
@@ -77,5 +77,40 @@ describe('CORS', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('access-control-allow-origin')).toBe(ACCOUNT_URL);
     expect(res.headers.get('vary')).toContain('Origin');
+  });
+
+  it.each([
+    ['/auth/get-session', 'GET'],
+    ['/auth/sign-out', 'POST'],
+  ])('FR-80 lets the hub call %s with credentials', async (path, method) => {
+    const { preflight } = await setup();
+
+    const res = await preflight(path, HUB_URL, method);
+
+    expect(res.headers.get('access-control-allow-origin')).toBe(HUB_URL);
+    expect(res.headers.get('access-control-allow-credentials')).toBe('true');
+  });
+
+  it.each([
+    ['/auth/sign-in/email', 'POST'],
+    ['/auth/sign-up/email', 'POST'],
+    ['/v1/me', 'GET'],
+  ])('FR-80 keeps the hub away from %s', async (path, method) => {
+    const { preflight } = await setup();
+
+    const res = await preflight(path, HUB_URL, method);
+
+    expect(res.headers.get('access-control-allow-origin')).toBeNull();
+  });
+
+  it('FR-80 accepts a sign-out posted from the hub and ends the session', async () => {
+    const { app } = await setup();
+    const { cookie } = await signUp(app);
+
+    const res = await post(app, '/auth/sign-out', {}, cookie, { origin: HUB_URL });
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe(HUB_URL);
+    expect(await sessionUser(app, cookie)).toBeNull();
   });
 });

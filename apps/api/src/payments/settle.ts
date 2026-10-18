@@ -13,7 +13,9 @@ export type Outcome =
   // Approved for another amount and the cancel failed: the money is held until refunded by hand
   | { kind: 'held' }
   // Approved while the order closed (expired or failed meanwhile) and given back
-  | { kind: 'closed' };
+  | { kind: 'closed' }
+  // Not final at the provider yet (a payer who has not approved): nothing is written
+  | { kind: 'pending' };
 
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
@@ -28,6 +30,7 @@ export async function applyProviderResult(
 ): Promise<Outcome> {
   const { order, result, providerId } = input;
   const paymentKey = result.providerPaymentKey;
+  if (result.status === 'pending') return { kind: 'pending' };
 
   if (
     result.status === 'done' &&

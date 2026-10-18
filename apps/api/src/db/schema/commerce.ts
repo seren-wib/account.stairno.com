@@ -80,6 +80,8 @@ export const order = pgTable(
     // 'toss' or 'paypal', decided by the currency when the order is created
     provider: text('provider').notNull(),
     returnUrl: text('return_url').notNull(),
+    // The provider's own order, for providers that have one (the PayPal order id, FR-49)
+    providerOrderId: text('provider_order_id'),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     paidAt: timestamp('paid_at', { withTimezone: true }),
     fulfilledAt: timestamp('fulfilled_at', { withTimezone: true }),
@@ -89,6 +91,10 @@ export const order = pgTable(
   (table) => [
     index('order_user_id_idx').on(table.userId),
     index('order_client_id_idx').on(table.clientId),
+    // One of our orders per provider order
+    uniqueIndex('order_provider_order_uidx')
+      .on(table.provider, table.providerOrderId)
+      .where(sql`${table.providerOrderId} is not null`),
   ],
 );
 

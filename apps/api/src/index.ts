@@ -12,6 +12,7 @@ import { createCors } from './middleware/cors';
 import { authenticate } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
 import { parsePaymentsMode } from './payments/mode';
+import { createPayPalProvider } from './payments/paypal';
 import { createTossProvider } from './payments/toss';
 import { meRoutes } from './routes/me';
 import { orderRoutes } from './routes/orders';
@@ -112,6 +113,12 @@ function workerDeps(env: Env): Promise<Deps> {
       paymentsMode,
       providers: {
         toss: createTossProvider({ secretKey: env.TOSS_SECRET_KEY, mode: paymentsMode }),
+        paypal: createPayPalProvider({
+          clientId: env.PAYPAL_CLIENT_ID,
+          clientSecret: env.PAYPAL_CLIENT_SECRET,
+          webhookId: env.PAYPAL_WEBHOOK_ID,
+          mode: paymentsMode,
+        }),
       },
     };
   })().catch((error: unknown) => {

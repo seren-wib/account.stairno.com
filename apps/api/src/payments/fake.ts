@@ -7,17 +7,24 @@ import {
 } from './provider';
 
 // NFR-16: the provider every payment test runs on. By default it approves what it is asked for;
-// a test scripts the next answers with willDecline, willApproveAmount or willThrow, played in the
-// order given. It keeps the payments and billing keys it has seen, so a repeated confirm answers
+// a test scripts the next answers with willDecline, willApproveAmount, willWaitForPayer or
+// willThrow, played in the order given. It keeps the payments and billing keys it has seen, so a repeated confirm answers
 // like the real providers do, and it records every call.
 
 type Next =
   | { kind: 'decline'; reason: string }
   | { kind: 'amount'; amount: number }
+  | { kind: 'pending' }
   | { kind: 'throw'; message: string };
 
 export interface FakeCall {
-  method: 'confirm' | 'cancel' | 'issueBillingKey' | 'deleteBillingKey' | 'chargeBillingKey';
+  method:
+    | 'createCheckout'
+    | 'confirm'
+    | 'cancel'
+    | 'issueBillingKey'
+    | 'deleteBillingKey'
+    | 'chargeBillingKey';
   input: unknown;
 }
 
@@ -45,6 +52,17 @@ export function createFakeProvider({ delayMs = 0 }: { delayMs?: number } = {}) {
     currency: string,
     scripted: Next | undefined,
   ): PaymentResult {
+    // Not final: nothing is remembered, so the next confirm goes through again.
+    if (scripted?.kind === 'pending') {
+      return {
+        status: 'pending',
+        providerPaymentKey: key,
+        amount,
+        currency,
+        failureReason: 'ORDER_NOT_APPROVED',
+        raw: { fake: true },
+      };
+    }
     const result: PaymentResult =
       scripted?.kind === 'decline'
         ? {
@@ -70,6 +88,12 @@ export function createFakeProvider({ delayMs = 0 }: { delayMs?: number } = {}) {
 
   const provider = {
     id: 'fake',
+
+    async createCheckout(input) {
+      await answer('createCheckout', input);
+      const providerOrderId = `fake_order_${input.order.id}`;
+      return { providerOrderId, approvalUrl: `https://fake.invalid/approve/${providerOrderId}` };
+    },
 
     async confirm(input) {
       const known = payments.get(input.providerPaymentKey);
@@ -136,6 +160,9 @@ export function createFakeProvider({ delayMs = 0 }: { delayMs?: number } = {}) {
     },
     willApproveAmount(amount: number) {
       script.push({ kind: 'amount', amount });
+    },
+    willWaitForPayer() {
+      script.push({ kind: 'pending' });
     },
     willThrow(message = 'The fake provider is unreachable.') {
       script.push({ kind: 'throw', message });

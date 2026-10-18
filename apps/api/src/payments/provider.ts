@@ -13,8 +13,9 @@ export interface OrderRef {
 }
 
 export interface PaymentResult {
-  // 'done' approved, 'failed' declined, 'canceled' after a cancel or refund
-  status: 'done' | 'failed' | 'canceled';
+  // 'done' approved, 'failed' declined, 'canceled' after a cancel or refund, 'pending' not final
+  // yet (a PayPal payer who has not approved, or a capture PayPal still holds): nothing is written
+  status: 'done' | 'failed' | 'canceled' | 'pending';
   providerPaymentKey: string;
   // As the provider reports them, to compare with the order (FR-37, FR-50)
   amount: number;
@@ -48,8 +49,23 @@ export interface WebhookEvent {
   raw: unknown;
 }
 
+export interface Checkout {
+  // The provider's own order id; kept on our order so a site cannot swap it (FR-49)
+  providerOrderId: string;
+  // Where the site sends the payer to approve
+  approvalUrl: string;
+}
+
 export interface PaymentProvider {
   readonly id: ProviderId;
+  // Providers that need their own order before the payer approves (PayPal, FR-49)
+  createCheckout?(input: {
+    order: OrderRef;
+    returnUrl: string;
+    cancelUrl: string;
+  }): Promise<Checkout>;
+  // Toss: confirm the paymentKey. PayPal: capture the provider order id given as the key; the
+  // result's providerPaymentKey is then the capture id.
   confirm(input: {
     order: OrderRef;
     providerPaymentKey: string;

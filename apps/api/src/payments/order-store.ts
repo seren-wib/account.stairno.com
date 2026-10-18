@@ -21,6 +21,9 @@ export interface OrderRow {
   paid_at: string | Date | null;
   fulfilled_at: string | Date | null;
   refunded_at: string | Date | null;
+  // Only from readOrder: where the provider sends the payer back, and its own order id
+  return_url?: string;
+  provider_order_id?: string | null;
 }
 
 export interface OrderTarget {
@@ -115,6 +118,34 @@ export async function findPayment(db: Db, providerPaymentKey: string) {
   return payment;
 }
 
+// FR-38 for providers whose payment key is only known after the call (the PayPal capture id).
+export async function findPaymentForOrder(db: Db, orderId: string) {
+  const [payment] = await rows<PaymentRow>(
+    db,
+    sql`
+      select order_id, provider, provider_payment_key, status, method_summary, receipt_url,
+             failure_reason
+      from payment where order_id = ${orderId}
+      order by created_at limit 1`,
+  );
+  return payment;
+}
+
+// FR-49: the provider's order for one of ours, kept while the order can still be paid.
+export async function setProviderOrderId(
+  db: Db,
+  input: { orderId: string; providerOrderId: string },
+): Promise<boolean> {
+  const moved = await rows<{ id: string }>(
+    db,
+    sql`
+      update "order" set provider_order_id = ${input.providerOrderId}
+      where id = ${input.orderId} and status in (${statusIn(allowedFrom('confirm'))})
+      returning id`,
+  );
+  return moved.length > 0;
+}
+
 // FR-44: a pending order whose confirm came with the wrong amount fails before the provider is
 // asked. false when another request moved it first.
 export async function failPendingOrder(db: Db, orderId: string): Promise<boolean> {
@@ -196,7 +227,7 @@ export async function readOrder(
       )
       select o.id, case when e.id is null then o.status else 'expired' end as status,
              p.sku, o.currency, o.amount, o.provider, o.created_at, o.expires_at, o.paid_at,
-             o.fulfilled_at, o.refunded_at
+             o.fulfilled_at, o.refunded_at, o.return_url, o.provider_order_id
       from "order" o
       join product p on p.id = o.product_id
       left join expired e on e.id = o.id

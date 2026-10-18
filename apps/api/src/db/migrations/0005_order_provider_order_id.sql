@@ -1,0 +1,2 @@
+ALTER TABLE "order" ADD COLUMN "provider_order_id" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "order_provider_order_uidx" ON "order" USING btree ("provider","provider_order_id") WHERE "order"."provider_order_id" is not null;

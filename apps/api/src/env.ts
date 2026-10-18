@@ -17,4 +17,8 @@ export interface Env {
   RESEND_API_KEY?: string;
   // Toss secret key, test_sk_... until business registration (FR-43). Unset means Toss is off.
   TOSS_SECRET_KEY?: string;
+  // PayPal REST app (sandbox until business registration) and its webhook's id (FR-49, FR-52)
+  PAYPAL_CLIENT_ID?: string;
+  PAYPAL_CLIENT_SECRET?: string;
+  PAYPAL_WEBHOOK_ID?: string;
 }

@@ -1,20 +1,18 @@
 import { cors } from 'hono/cors';
 import { sql } from 'drizzle-orm';
-import type { MiddlewareHandler } from 'hono';
+import type { Context, MiddlewareHandler } from 'hono';
 import type { AppEnv, Deps } from '../deps';
 import type { Env } from '../env';
 import { isAllowedOrigin, originsOf } from '../lib/origins';
 
 const SITE_ORIGINS_TTL_MS = 60_000;
 
-// The account center: Better Auth's trusted origins, which is exactly ACCOUNT_URL (and the API's own
-// origin, which never needs CORS).
-async function accountOrigins(deps: Deps) {
-  return (await deps.auth.$context).trustedOrigins;
-}
+// FR-80: the hub's account menu reads the session and signs out; nothing else under /auth.
+const HUB_AUTH_PATHS = new Set(['/auth/get-session', '/auth/sign-out']);
 
-// FR-26. One middleware per mount: `/auth/*` for the account center only, `/v1/*` also for the
-// origins of registered sites, read from oauth_client and kept for a minute per isolate.
+// FR-26. One middleware per mount: `/auth/*` for the account center (and the hub on two paths),
+// `/v1/*` also for the origins of registered sites, read from oauth_client and kept for a minute
+// per isolate.
 export function createCors(getDeps: (env: Env) => Promise<Deps>) {
   let siteCache: { origins: string[]; at: number } | undefined;
 
@@ -28,10 +26,10 @@ export function createCors(getDeps: (env: Env) => Promise<Deps>) {
     return origins;
   }
 
-  const options = (pick: (deps: Deps) => Promise<string[]>) =>
+  const options = (pick: (deps: Deps, c: Context) => Promise<string[]> | string[]) =>
     cors({
       origin: async (origin, c) => {
-        const allowed = await pick(await getDeps(c.env as Env));
+        const allowed = await pick(await getDeps(c.env as Env), c);
         return isAllowedOrigin(origin, allowed) ? origin : null;
       },
       credentials: true,
@@ -41,7 +39,11 @@ export function createCors(getDeps: (env: Env) => Promise<Deps>) {
     }) as MiddlewareHandler<AppEnv>;
 
   return {
-    auth: options(accountOrigins),
-    api: options(async (deps) => [...(await accountOrigins(deps)), ...(await siteOrigins(deps))]),
+    auth: options((deps, c) =>
+      HUB_AUTH_PATHS.has(c.req.path)
+        ? [deps.origins.account, deps.origins.hub]
+        : [deps.origins.account],
+    ),
+    api: options(async (deps) => [deps.origins.account, ...(await siteOrigins(deps))]),
   };
 }

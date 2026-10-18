@@ -81,12 +81,13 @@ function workerDeps(env: Env): Promise<Deps> {
       db,
       apiUrl: env.API_URL,
       accountUrl: env.ACCOUNT_URL,
+      hubUrl: env.HUB_URL,
       cookieDomain: env.COOKIE_DOMAIN,
       secret: env.BETTER_AUTH_SECRET,
       mailer: createMailer({ apiKey: env.RESEND_API_KEY }),
     });
     await auth.$context;
-    return { db, auth };
+    return { db, auth, origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL } };
   })().catch((error: unknown) => {
     deps = undefined;
     throw error;

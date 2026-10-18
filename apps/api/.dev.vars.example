@@ -6,6 +6,8 @@ DATABASE_URL=postgres://postgres:postgres@db.localtest.me:5432/main
 BETTER_AUTH_SECRET=replace-with-openssl-rand-base64-32
 API_URL=http://localhost:8787
 ACCOUNT_URL=http://localhost:4321
+# The hub's dev server, when you run stairno.com next to these two.
+HUB_URL=http://localhost:4322
 COOKIE_DOMAIN=
 # Leave empty to skip mail locally. Resend test keys only; never a live key in this file.
 RESEND_API_KEY=

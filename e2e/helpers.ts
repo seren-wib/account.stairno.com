@@ -36,6 +36,7 @@ export async function startApiWorker() {
     bindings: {
       API_URL: text('http://localhost:8787'),
       ACCOUNT_URL: text('http://localhost:4321'),
+      HUB_URL: text('http://localhost:4322'),
       COOKIE_DOMAIN: text(''),
       DATABASE_URL: text(WORKER_DATABASE_URL),
       BETTER_AUTH_SECRET: text('test-secret-for-e2e-only-0123456789abcdef'),

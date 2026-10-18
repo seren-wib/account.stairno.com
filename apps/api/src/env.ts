@@ -4,6 +4,8 @@ export interface Env {
   // vars
   API_URL: string;
   ACCOUNT_URL: string;
+  // The hub stairno.com, whose account menu reads the session (FR-80).
+  HUB_URL: string;
   // Parent domain shared by account and api for the session cookie (FR-10). Empty locally.
   COOKIE_DOMAIN: string;
   // secrets

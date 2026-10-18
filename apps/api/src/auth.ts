@@ -14,6 +14,8 @@ export interface AuthConfig {
   db: Parameters<typeof drizzleAdapter>[0];
   apiUrl: string;
   accountUrl: string;
+  // The hub stairno.com: its account menu reads the session and signs out from the browser (FR-80).
+  hubUrl: string;
   cookieDomain: string;
   secret: string;
   mailer: Mailer;
@@ -157,7 +159,9 @@ export function createAuth(config: AuthConfig) {
         : { enabled: false },
       database: { generateId: 'uuid' },
     },
-    trustedOrigins: [config.accountUrl],
+    // NFR-5: state-changing requests from these origins pass the origin check. CORS decides which
+    // paths each may read (middleware/cors.ts); the hub only gets get-session and sign-out.
+    trustedOrigins: [config.accountUrl, config.hubUrl],
     // FR-15: sites are managed by the admin command only, which calls these server-side.
     // Over HTTP any signed-in user would reach them, so they are closed there.
     disabledPaths: [

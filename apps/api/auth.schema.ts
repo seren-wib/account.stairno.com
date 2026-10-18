@@ -9,6 +9,7 @@ export const auth = createAuth({
   db: drizzle(neon('postgres://schema:schema@localhost/schema')),
   apiUrl: 'https://api.stairno.com',
   accountUrl: 'https://account.stairno.com',
+  hubUrl: 'https://stairno.com',
   cookieDomain: 'stairno.com',
   secret: 'schema-generation-only-secret-0123456789abcdef',
   mailer: createMailer({ apiKey: undefined }),

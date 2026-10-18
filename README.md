@@ -165,6 +165,7 @@ API Worker (`apps/api/.dev.vars` locally, Wrangler vars and secrets in productio
 - **`BETTER_AUTH_SECRET`** (secret): signs sessions and encrypts the signing keys. Changing it invalidates existing sessions and keys.
 - **`RESEND_API_KEY`** (secret, optional): without it mail is skipped and recorded as `skipped`.
 - **`API_URL`**, **`ACCOUNT_URL`**: public URLs of the two Workers. They set the OIDC issuer, the trusted origin and the links in mail.
+- **`HUB_URL`**: the hub (`https://stairno.com`). Its account menu may read the session and sign out, and nothing else under `/auth`.
 - **`COOKIE_DOMAIN`**: `stairno.com` in production, empty locally (host-only cookie).
 
 Account center Worker (`apps/account/.dev.vars` locally, `wrangler.jsonc` in production):

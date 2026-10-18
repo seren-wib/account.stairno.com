@@ -64,6 +64,8 @@ const auth = createAuth({
   db: createDb(required('DATABASE_URL')),
   apiUrl: required('API_URL'),
   accountUrl: required('ACCOUNT_URL'),
+  // Only widens the trusted origins; the command signs in as the account center.
+  hubUrl: process.env.HUB_URL ?? 'https://stairno.com',
   cookieDomain: process.env.COOKIE_DOMAIN ?? '',
   secret: required('BETTER_AUTH_SECRET'),
   mailer: createMailer({ apiKey: undefined }),

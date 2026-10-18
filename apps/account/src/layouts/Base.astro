@@ -14,9 +14,11 @@ interface Props {
   path?: string;
   /** The page heading in the night band, and the start of the <title>. */
   heading: string;
+  /** Frame the content in one card that overlaps the night band (auth pages, FR-27). */
+  card?: boolean;
 }
 
-const { locale, path = '', heading } = Astro.props;
+const { locale, path = '', heading, card = false } = Astro.props;
 const dict = t(locale);
 // NFR-7: browser code on these pages calls the API and nothing else.
 Astro.csp?.insertDirective(connectSrc(Astro.locals.apiUrl));
@@ -53,9 +55,17 @@ const title = heading === dict.meta.title ? heading : `${heading} · ${dict.meta
           <h1>{heading}</h1>
         </div>
       </section>
-      <div class="page-body container">
-        <slot />
-      </div>
+      {card ? (
+        <div class="page-body page-body-card container">
+          <div class="card">
+            <slot />
+          </div>
+        </div>
+      ) : (
+        <div class="page-body container">
+          <slot />
+        </div>
+      )}
     </main>
     <Footer
       locale={locale}

@@ -25,7 +25,7 @@ const scopes = (params.get('scope') ?? '')
   .filter((scope): scope is keyof typeof dict.scopes => known.includes(scope as never));
 ---
 
-<Base locale={locale} path="consent" heading={dict.heading}>
+<Base locale={locale} path="consent" heading={dict.heading} card>
   <div
     class="form"
     data-consent

@@ -16,6 +16,8 @@ API_URL = "https://api.stairno.com"
 ACCOUNT_URL = "https://account.stairno.com"
 HUB_URL = "https://stairno.com"
 COOKIE_DOMAIN = "stairno.com"
+# test until business registration (roadmap step 9); off stops payments and nothing else (FR-42).
+PAYMENTS_MODE = "test"
 
 [observability]
 enabled = true

@@ -10,7 +10,9 @@ import { apiError } from './http/errors';
 import { createCors } from './middleware/cors';
 import { requireUser } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
+import { parsePaymentsMode } from './payments/mode';
 import { meRoutes } from './routes/me';
+import { productRoutes } from './routes/products';
 import { sessionRoutes } from './routes/sessions';
 
 export type { Deps } from './deps';
@@ -52,6 +54,7 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   app.use('/v1/*', requireUser);
   app.route('/v1/connections', connectionRoutes);
   app.route('/v1/me', meRoutes);
+  app.route('/v1/products', productRoutes);
   app.route('/v1/sessions', sessionRoutes);
 
   app.notFound((c) => apiError(c, 404, 'not_found', 'Nothing here.'));
@@ -87,7 +90,12 @@ function workerDeps(env: Env): Promise<Deps> {
       mailer: createMailer({ apiKey: env.RESEND_API_KEY }),
     });
     await auth.$context;
-    return { db, auth, origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL } };
+    return {
+      db,
+      auth,
+      origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL },
+      paymentsMode: parsePaymentsMode(env.PAYMENTS_MODE),
+    };
   })().catch((error: unknown) => {
     deps = undefined;
     throw error;

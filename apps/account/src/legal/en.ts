@@ -24,7 +24,7 @@ export const en: LegalDocuments = {
       {
         heading: 'Article 3. Operator and publication',
         body: [
-          'The account service is run by Stairno. Operator: YooSung Nam, contact: contact@stairno.com.',
+          'The account service is run by Stairno. Contact: contact@stairno.com.',
           'These terms can be read at any time on the sign-up screen and on the terms page of the account center.',
         ],
       },
@@ -190,8 +190,8 @@ export const en: LegalDocuments = {
       {
         heading: '12. Privacy officer',
         body: [
-          'The privacy officer oversees the processing of personal data and handles questions and complaints.',
-          'Name: YooSung Nam, contact: contact@stairno.com',
+          'The privacy desk oversees the processing of personal data and handles questions and complaints.',
+          'Desk: Stairno privacy desk, contact: contact@stairno.com',
         ],
       },
       {

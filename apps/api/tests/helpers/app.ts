@@ -26,8 +26,11 @@ export async function createTestDb() {
 
 type UrlConfig = Pick<AuthConfig, 'apiUrl' | 'accountUrl' | 'hubUrl' | 'cookieDomain'>;
 
+// Providers are merged one by one, so a test that brings its own Toss keeps the fake PayPal.
+type Overrides = Partial<Omit<Deps, 'providers'>> & { providers?: Partial<Deps['providers']> };
+
 export async function createTestApp(
-  overrides: Partial<Deps> = {},
+  overrides: Overrides = {},
   urls: Partial<UrlConfig> = {},
   mailer?: Mailer,
 ) {
@@ -44,13 +47,14 @@ export async function createTestApp(
     ...urls,
   });
   const origins = { account: urls.accountUrl ?? ACCOUNT_URL, hub: urls.hubUrl ?? HUB_URL };
+  const { providers, ...rest } = overrides;
   const deps: Deps = {
     db,
     auth,
     origins,
     paymentsMode: 'test',
-    providers: { toss: createFakeProvider() },
-    ...overrides,
+    ...rest,
+    providers: { toss: createFakeProvider(), paypal: createFakeProvider(), ...providers },
   };
   // `deps` is the object every request reads, so a test may swap a part of it afterwards.
   return { app: createApp(async () => deps), db, auth, mailbox, deps };

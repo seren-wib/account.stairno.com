@@ -17,7 +17,7 @@ interface Sent {
 
 function stub(...answers: (Response | Error)[]) {
   const sent: Sent[] = [];
-  const fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const fetch = async (input: string | URL | Request, init?: RequestInit) => {
     sent.push({
       url: String(input),
       method: init?.method ?? 'GET',

@@ -31,6 +31,7 @@ export const en: Dictionary = {
       devices: 'Signed-in devices',
       connections: 'Connected sites',
       paymentMethods: 'Payment methods',
+      subscriptions: 'Subscriptions',
       delete: 'Delete account',
     },
   },
@@ -204,6 +205,30 @@ export const en: Dictionary = {
       '4J': 'JCB',
       '4V': 'VISA',
     },
+  },
+  subscriptions: {
+    heading: 'Subscriptions',
+    intro:
+      'Subscriptions are charged to your default payment method at the end of each period. Cancel one and you keep it until the current period ends, with no charge after that.',
+    statuses: {
+      active: 'Active',
+      past_due: 'Payment failed',
+      canceled: 'Canceled',
+      expired: 'Expired',
+    },
+    renews: '{amount} on {date}',
+    endsOn: 'Ends',
+    endedOn: 'Ended',
+    card: 'Card',
+    noCard: 'No card',
+    overdue:
+      'The payment did not go through. It is tried again in three days. Please check your payment method.',
+    cards: 'Go to payment methods',
+    cancel: 'Cancel',
+    resume: 'Keep subscription',
+    empty: 'You have no subscription.',
+    unavailable: 'The subscription list could not be loaded. Please try again shortly.',
+    invalidTransition: 'This subscription is already over. Please refresh the page.',
   },
   connections: {
     heading: 'Connected sites',

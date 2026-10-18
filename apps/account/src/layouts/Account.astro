@@ -5,7 +5,13 @@ import Base from './Base.astro';
 import { localePath, t, type Locale } from '../i18n';
 
 export type AccountPage =
-  'overview' | 'profile' | 'devices' | 'connections' | 'paymentMethods' | 'delete';
+  | 'overview'
+  | 'profile'
+  | 'devices'
+  | 'connections'
+  | 'paymentMethods'
+  | 'subscriptions'
+  | 'delete';
 
 interface Props {
   locale: Locale;
@@ -18,13 +24,14 @@ interface Props {
 const { locale, page, heading, connect } = Astro.props;
 const dict = t(locale).account;
 
-// Orders, subscriptions and downloads join payment methods as the second phase builds them.
+// Orders and downloads join payment methods and subscriptions as the second phase builds them.
 const items: { page: AccountPage; path: string }[] = [
   { page: 'overview', path: '' },
   { page: 'profile', path: 'profile' },
   { page: 'devices', path: 'devices' },
   { page: 'connections', path: 'connections' },
   { page: 'paymentMethods', path: 'payment-methods' },
+  { page: 'subscriptions', path: 'subscriptions' },
   { page: 'delete', path: 'delete' },
 ];
 const current = items.find((item) => item.page === page);

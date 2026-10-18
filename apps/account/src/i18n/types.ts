@@ -60,6 +60,7 @@ export type Dictionary = {
       devices: string;
       connections: string;
       paymentMethods: string;
+      subscriptions: string;
       delete: string;
     };
   };
@@ -203,6 +204,24 @@ export type Dictionary = {
     unavailable: string;
     // Toss's card company codes as its responses give them (Toss org codes).
     cards: Record<CardCompanyCode, string>;
+  };
+  subscriptions: {
+    heading: string;
+    intro: string;
+    statuses: { active: string; past_due: string; canceled: string; expired: string };
+    // {amount} and {date}
+    renews: string;
+    endsOn: string;
+    endedOn: string;
+    card: string;
+    noCard: string;
+    overdue: string;
+    cards: string;
+    cancel: string;
+    resume: string;
+    empty: string;
+    unavailable: string;
+    invalidTransition: string;
   };
   deleteAccount: {
     heading: string;

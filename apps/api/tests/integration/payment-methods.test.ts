@@ -305,6 +305,45 @@ describe('PATCH /v1/payment-methods/{id}/default', () => {
     const { items } = await ctx.list();
     expect(items.filter((m) => m.isDefault).map((m) => m.id)).toEqual([second.id]);
   });
+
+  it('FR-54 moves live subscriptions to the new default, so the old card can be removed', async () => {
+    const ctx = await setup();
+    await ctx.register('auth_1');
+    await ctx.register('auth_2');
+    const { items } = await ctx.list();
+    const first = items.find((m) => m.isDefault)!;
+    const second = items.find((m) => !m.isDefault)!;
+    const site = await registerLabs(ctx);
+    await addProduct(ctx.db, {
+      sku: 'atlas-odyssey-pro',
+      clientId: site.clientId,
+      nameKo: '프로',
+      nameEn: 'Pro',
+      kind: 'subscription',
+      interval: 'month',
+      prices: [{ currency: 'KRW', amount: 5000 }],
+    });
+    // One live subscription and one that is over, both on the first card.
+    await ctx.db.execute(sql`
+      insert into subscription (user_id, product_id, payment_method_id, status,
+                                current_period_start, current_period_end)
+      select pm.user_id, p.id, pm.id, s.status, now(), now() + interval '1 month'
+      from payment_method pm, product p, (values ('active'), ('expired')) s(status)
+      where pm.id = ${first.id}`);
+
+    await ctx.send('PATCH', `/v1/payment-methods/${second.id}/default`);
+
+    const subs = (
+      (await ctx.db.execute(
+        sql`select status, payment_method_id from subscription order by status`,
+      )) as { rows: { status: string; payment_method_id: string }[] }
+    ).rows;
+    expect(subs).toEqual([
+      { status: 'active', payment_method_id: second.id },
+      { status: 'expired', payment_method_id: first.id },
+    ]);
+    expect((await ctx.send('DELETE', `/v1/payment-methods/${first.id}`)).status).toBe(204);
+  });
 });
 
 describe('who may manage cards', () => {

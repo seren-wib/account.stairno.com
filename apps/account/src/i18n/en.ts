@@ -327,7 +327,8 @@ export const en: Dictionary = {
     done: 'Email confirmed',
     doneBody: 'Every part of your Stairno account now works with this address.',
     expired: 'This link has expired or was already used.',
-    expiredBody: 'Sign in and ask for a new verification mail on your account home.',
+    expiredBody:
+      'Sign in and ask for a new verification mail under sign-in details on your account page.',
     overview: 'Go to your account',
   },
   legal: { version: 'Version' },

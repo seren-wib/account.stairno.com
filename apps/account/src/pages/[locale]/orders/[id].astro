@@ -1,0 +1,90 @@
+---
+import Account from '../../../layouts/Account.astro';
+import { isLocale, localePath, t } from '../../../i18n';
+import { apiGet, formatDate } from '../../../lib/api';
+import { formatMoney } from '../../../lib/money';
+import type { Order } from '../../../lib/orders';
+
+const { locale, id = '' } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale).orders;
+
+// FR-32, FR-61, FR-63: one order, its payment and receipt, and its refund request. The API
+// answers only for the user's own orders.
+const order = await apiGet<Order>(
+  Astro.locals,
+  Astro.request,
+  `/v1/me/orders/${encodeURIComponent(id)}`,
+);
+const status = order
+  ? (dict.statuses[order.status as keyof typeof dict.statuses] ?? order.status)
+  : '';
+---
+
+<Account locale={locale} page="orders" heading={dict.detailHeading}>
+  <div class="page-stack">
+    {order === null ? (
+      <p class="form-error">{dict.notFound}</p>
+    ) : (
+      <>
+        <dl class="detail-list">
+          <div>
+            <dt>{dict.number}</dt>
+            <dd>{order.id}</dd>
+          </div>
+          <div>
+            <dt>{dict.product}</dt>
+            <dd>{order.name[locale]}</dd>
+          </div>
+          <div>
+            <dt>{dict.amount}</dt>
+            <dd>{formatMoney(order.amount, order.currency, locale)}</dd>
+          </div>
+          <div>
+            <dt>{dict.status}</dt>
+            <dd>{status}</dd>
+          </div>
+          <div>
+            <dt>{dict.orderedOn}</dt>
+            <dd>{formatDate(order.createdAt, locale)}</dd>
+          </div>
+          {order.paidAt && (
+            <div>
+              <dt>{dict.paidOn}</dt>
+              <dd>{formatDate(order.paidAt, locale)}</dd>
+            </div>
+          )}
+          {order.refundedAt && (
+            <div>
+              <dt>{dict.refundedOn}</dt>
+              <dd>{formatDate(order.refundedAt, locale)}</dd>
+            </div>
+          )}
+          {order.payment?.methodSummary && (
+            <div>
+              <dt>{dict.paidWith}</dt>
+              <dd>{order.payment.methodSummary}</dd>
+            </div>
+          )}
+          {order.refundRequest && (
+            <div>
+              <dt>{dict.refundRequest}</dt>
+              <dd>
+                {dict.refund[order.refundRequest.status as keyof typeof dict.refund]} ·{' '}
+                {dict.requestedOn} {formatDate(order.refundRequest.requestedAt, locale)}
+                {order.refundRequest.resolvedAt &&
+                  ` · ${dict.decidedOn} ${formatDate(order.refundRequest.resolvedAt, locale)}`}
+              </dd>
+            </div>
+          )}
+        </dl>
+        {order.payment?.receiptUrl && (
+          <a href={order.payment.receiptUrl} rel="noopener noreferrer" target="_blank">
+            {dict.receipt}
+          </a>
+        )}
+      </>
+    )}
+    <a href={localePath(locale, 'orders')}>{dict.back}</a>
+  </div>
+</Account>

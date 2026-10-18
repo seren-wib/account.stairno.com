@@ -4,6 +4,7 @@ export { errorCodes, type ErrorBody, type ErrorCode } from './errors';
 export { localeSchema, locales, type Locale } from './locale';
 export { createOrderInputSchema, type CreateOrderInput } from './orders';
 export { registerTossCardInputSchema, type RegisterTossCardInput } from './payment-methods';
+export { refundRequestInputSchema, type RefundRequestInput } from './refund-requests';
 export {
   confirmTossPaymentInputSchema,
   paypalOrderInputSchema,

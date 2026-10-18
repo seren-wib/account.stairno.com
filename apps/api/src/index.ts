@@ -22,6 +22,7 @@ import { orderRoutes } from './routes/orders';
 import { paymentMethodRoutes } from './routes/payment-methods';
 import { paymentRoutes } from './routes/payments';
 import { productRoutes } from './routes/products';
+import { refundRequestRoutes } from './routes/refund-requests';
 import { sessionRoutes } from './routes/sessions';
 import { subscriptionRoutes } from './routes/subscriptions';
 import { renewDueSubscriptions } from './subscriptions/renew';
@@ -82,6 +83,7 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   app.route('/v1/payment-methods', paymentMethodRoutes);
   app.route('/v1/payments', paymentRoutes);
   app.route('/v1/products', productRoutes);
+  app.route('/v1/refund-requests', refundRequestRoutes);
   app.route('/v1/sessions', sessionRoutes);
   app.route('/v1/subscriptions', subscriptionRoutes);
 

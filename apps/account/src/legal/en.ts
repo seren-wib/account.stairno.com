@@ -1,78 +1,99 @@
 import type { LegalDocuments } from './types';
 
-// Draft. Places marked 〔확인 필요〕 (to confirm) wait for the operator (plan §8, open items).
-// The Korean text is the governing version.
+// English rendering of ko.ts, section for section. The Korean text governs.
+// 〔확인 필요〕 marks values the operator still has to confirm (plan §8, open items).
 export const en: LegalDocuments = {
   terms: {
     title: 'Terms of Service',
     effective: 'Effective 〔확인 필요〕',
     sections: [
       {
-        heading: '1. Purpose',
+        heading: 'Article 1. Purpose',
         body: [
-          'These terms set the conditions for using the Stairno account (account.stairno.com and api.stairno.com, "the account"). One Stairno account signs you in to the Stairno projects (Works, Games, Labs).',
+          'These terms set the conditions and procedures for using the Stairno account service (account.stairno.com, api.stairno.com), and the rights and duties of users and the operator. The Korean version governs.',
         ],
       },
       {
-        heading: '2. Operator',
+        heading: 'Article 2. Definitions',
         body: [
-          'The account is run by Stairno. Operator 〔확인 필요: operator name〕, contact contact@stairno.com.',
+          '"Account" means the Stairno account made with an email and a password. One account signs you in to the Stairno projects (Works, Games, Labs).',
+          '"Account center" means the screens at account.stairno.com for creating and managing the account; "Stairno sites" means the other Stairno sites and products you sign in to with the account.',
+          '"User" means a person who accepted these terms and created an account.',
         ],
       },
       {
-        heading: '3. Signing up',
+        heading: 'Article 3. Operator and publication',
         body: [
+          'The account service is run by Stairno. Operator: 〔확인 필요: operator name〕, contact: contact@stairno.com.',
+          'These terms can be read at any time on the sign-up screen and on the terms page of the account center.',
+        ],
+      },
+      {
+        heading: 'Article 4. Effect and changes',
+        body: [
+          'These terms apply to users who accepted them when signing up.',
+          'When the terms change, the version goes up and the changes and the effective date are announced on this page from 7 days before they take effect. Changes against users are announced from 30 days before and also sent to the email you signed up with.',
+          'If you do not accept the new terms you can leave. Continuing to use the service after the effective date counts as acceptance, except for matters the law requires separate consent for, which are asked separately.',
+        ],
+      },
+      {
+        heading: 'Article 5. Signing up',
+        body: [
+          'Only people aged 14 or older can sign up.',
           'You sign up by accepting these terms and the privacy policy and entering an email, a password and a name. You confirm the email through the link in the mail sent right after signing up.',
-          "Do not use someone else's email or false information.",
+          "Do not sign up with someone else's email or false information. If this comes to light, the account may be suspended or deleted.",
         ],
       },
       {
-        heading: '4. Your account',
+        heading: 'Article 6. Your account',
         body: [
-          'You are responsible for your password. You can sign out unknown devices from the signed-in devices list, and reset a forgotten password by mail.',
-          'You may not transfer or lend your account to anyone.',
+          'You are responsible for your password and may not share it, or transfer or lend the account.',
+          'You can sign out unknown devices from the signed-in devices list and reset a forgotten password by mail. If you think the account has been taken over, change the password at once and tell the operator.',
         ],
       },
       {
-        heading: '5. Connected sites',
+        heading: 'Article 7. Signing in to Stairno sites',
         body: [
-          'When you use "Sign in with Stairno" on a Stairno site, that site receives your email, name and language. You can disconnect a site at any time from the connected sites list.',
-          'Purchases on a site and their refunds follow that site’s terms.',
+          'When you use "Sign in with Stairno" on a Stairno site, that site receives your email, whether it is confirmed, your name and your language. You can disconnect a site at any time from the connected sites list.',
+          'Services and products on a Stairno site, and their payment and refunds, follow that site’s terms and notices.',
         ],
       },
       {
-        heading: '6. Prohibited use',
+        heading: 'Article 8. Provision, changes and interruptions',
         body: [
-          'Do not call the account or the API in bulk automatically, try to access other people’s accounts, or disrupt the service. Use may be restricted if this happens.',
+          'The account service is free. Features may change, and the service may be briefly unavailable because of maintenance, failures or events such as natural disasters. Planned maintenance is announced on the account center in advance.',
+          'If the service has to end, users are told by email 30 days in advance.',
         ],
       },
       {
-        heading: '7. Changes and interruptions',
+        heading: 'Article 9. Your obligations',
         body: [
-          'Features may change. The service may be briefly unavailable for maintenance or because of failures. If the service has to end, we tell you by email 30 days in advance.',
+          'You must not: try to access other people’s accounts, call the account or the API in bulk automatically, get around the service’s security measures or disrupt its operation, or break the law.',
         ],
       },
       {
-        heading: '8. Leaving',
+        heading: 'Article 10. Restrictions',
         body: [
-          'Deleting the account in the account center, after entering your password again, closes it at once. A deleted account cannot be restored.',
+          'If a user breaks Article 9, the operator may restrict some features, suspend the account or delete it, depending on how serious it is. Except in urgent cases the reason is sent by email first, with a chance to respond.',
         ],
       },
       {
-        heading: '9. Liability',
+        heading: 'Article 11. Leaving',
         body: [
-          'Stairno makes reasonable efforts to run the account safely. Stairno is not liable for losses caused by careless handling of your password or by events it cannot prevent, such as natural disasters. Liability set by law is not limited.',
+          'You can leave at any time by deleting the account in the account center after entering your password again. The account is deleted at once and cannot be restored. Signing up again with the same email creates a new account.',
         ],
       },
       {
-        heading: '10. Changes to these terms',
+        heading: 'Article 12. Liability',
         body: [
-          'When these terms change, the version goes up and the change is announced on this page 7 days before it takes effect. Changes against your interest are also announced by email 30 days ahead.',
+          'The operator compensates losses it causes users through intent or negligence.',
+          'Without intent or gross negligence, the operator is not liable for losses from careless handling of your password, from events it cannot prevent such as natural disasters, or from temporary interruptions of a free service. Liability set by law is not limited by this article.',
         ],
       },
       {
-        heading: '11. Governing law',
+        heading: 'Article 13. Disputes and governing law',
         body: [
+          'Questions and complaints go to contact@stairno.com and are answered within 7 days of receipt.',
           'These terms follow the law of the Republic of Korea. Disputes go to the court competent under the Korean Civil Procedure Act.',
         ],
       },
@@ -85,72 +106,108 @@ export const en: LegalDocuments = {
       {
         heading: '1. Purposes',
         body: [
-          'Personal data is used only to create the account and sign you in, to sign you in to Stairno sites, to keep the account secure (device management, limits on repeated attempts) and to send account mail (email confirmation, password reset, email change). It is not used for advertising or marketing.',
+          'Stairno ("the operator") processes personal data only for the purposes below and announces any change of purpose in advance, asking for consent where required. The Korean version governs.',
+          'Signing up and confirming identity, signing in and staying signed in, signing in to Stairno sites, account security (device management, limits on repeated attempts, preventing takeover), sending account mail (email confirmation, password reset, email change) and answering questions.',
+          'Personal data is not used for advertising or marketing.',
         ],
       },
       {
         heading: '2. Data processed',
         body: [
-          'Required: email, name, password (stored only as an irreversible hash), language, the accepted terms version and time.',
-          'Collected automatically: the IP address and browser details (User-Agent) of signed-in devices, sign-in times, records of account mail sent.',
-          'Nothing else is collected, and no tracking scripts are used.',
+          'Required at sign-up: email, name, password (stored only as an irreversible hash), language, the accepted terms version and time.',
+          'Created or collected during use: IP address and browser details (User-Agent) of signed-in devices, sign-in times, records of account mail sent, connected Stairno sites and when they were connected.',
+          'Nothing else is collected, and no behavioural tracking or tracking tools are used.',
         ],
       },
       {
         heading: '3. Retention',
         body: [
-          'When you delete the account, the account data, sign-in records, connected sites and mail records are deleted at once.',
-          'Sign-in sessions last 30 days after last use; records of repeated attempts last one minute.',
+          'Account data is kept until you leave and deleted at once when you do.',
+          'Sign-in sessions last 30 days after last use and records of repeated attempts one minute, after which they expire. Records of account mail are deleted with the account.',
+          'If the law ever requires keeping some data, the basis and period will be added to this policy.',
         ],
       },
       {
-        heading: '4. Sharing',
+        heading: '4. Destruction',
         body: [
-          'Personal data is not sold or given to third parties. When you sign in to a Stairno site, that site receives your email, name and language; all these sites are run by Stairno.',
+          'At the end of retention or when you leave, data is deleted from the database without delay and cannot be recovered. No personal data is kept on paper.',
         ],
       },
       {
-        heading: '5. Processors and transfers abroad',
+        heading: '5. Sharing with third parties',
         body: [
-          'The service relies on the following processors, which means personal data is transferred abroad. Transfers happen over the network while you use the service; retention is as in section 3.',
-          'Cloudflare, Inc. (United States): hosting and network. Data: everything exchanged while using the service.',
-          'Neon, Inc. (data stored in Singapore): database. Data: the data in section 2.',
-          'Resend, Inc. (United States): sending account mail. Data: email, name, mail content.',
-          '〔확인 필요: processor contacts and how to refuse the transfer〕',
+          'Personal data is not given or sold to third parties.',
+          'When you use "Sign in with Stairno" on a Stairno site, that site receives your email, whether it is confirmed, your name and your language. All Stairno sites are run by the operator.',
         ],
       },
       {
-        heading: '6. Destruction',
+        heading: '6. Processors',
         body: [
-          'At the end of retention or when you leave, data is deleted from the database and cannot be recovered.',
+          'The following processors are used to run the service; the contracts with them set the data protection they must provide.',
+          'Cloudflare, Inc.: hosting and network delivery.',
+          'Neon, LLC (part of Databricks, Inc.): database storage.',
+          'Plus Five Five, Inc. (Resend): sending account mail.',
         ],
       },
       {
-        heading: '7. Your rights',
+        heading: '7. Transfers abroad',
         body: [
-          'In the account center you can see (overview, profile, signed-in devices, connected sites), correct (name, language, email) and delete (delete account) your data at any time. Send other requests to contact@stairno.com.',
+          'The processing in section 6 transfers personal data abroad. As processing and storage needed to conclude and perform the contract, it is disclosed here under Article 28-8(1)(3) of the Korean Personal Information Protection Act. Transfers happen over the network when you use the service.',
+          'Cloudflare, Inc. (United States, 101 Townsend St, San Francisco, CA 94107, dpo@cloudflare.com): everything exchanged while using the service, at each use, for hosting and network delivery, for the retention in section 3.',
+          'Neon, LLC (data stored in Singapore, privacy@databricks.com): all data in section 2, at sign-up and each use, for database storage, for the retention in section 3.',
+          'Plus Five Five, Inc. (Resend, United States, support@resend.com): email, name and mail content, when account mail is sent, for sending it, for that provider’s retention after sending.',
+          'To refuse the transfer, do not sign up, or leave. The account service cannot be provided without this processing, so signing up and using it is not possible.',
         ],
       },
       {
         heading: '8. Safeguards',
         body: [
-          'All traffic is encrypted with HTTPS. Passwords are stored only as scrypt hashes, and passwords known from data breaches cannot be used. Only the operator can reach the database and secrets.',
+          'Administrative: only the operator can access personal data.',
+          'Technical: all traffic is encrypted with HTTPS; passwords are stored only as scrypt hashes and passwords known from data breaches are refused; database credentials and secrets are kept only in a separate secret store, and system logs carry no emails or tokens; sign-in attempts are rate-limited.',
         ],
       },
       {
-        heading: '9. Cookies',
+        heading: '9. Cookies and similar storage',
         body: [
-          'One session cookie keeps you signed in. No advertising or analytics cookies are used. Blocking cookies in the browser makes signing in impossible.',
+          'Only a session cookie that keeps you signed in, and browser storage that remembers your theme, are used. No advertising or analytics cookies are used.',
+          'You can refuse cookies in your browser settings, but then you cannot sign in.',
         ],
       },
       {
-        heading: '10. Privacy officer',
-        body: ['〔확인 필요: name〕, contact@stairno.com'],
+        heading: '10. Children under 14',
+        body: [
+          'Children under 14 cannot sign up and their personal data is not processed. If such a sign-up comes to light, the account is deleted.',
+        ],
       },
       {
-        heading: '11. Changes',
+        heading: '11. Your rights',
         body: [
-          'When this policy changes, the version goes up and the change is announced on this page 7 days before it takes effect. If the data collected or its purposes grow, it is also announced by email 30 days ahead.',
+          'You can ask at any time to see, correct, delete or stop the processing of your personal data.',
+          'In the account center you can see (overview, profile, signed-in devices, connected sites), correct (name, language, email) and delete (delete account) it yourself. Send other requests to contact@stairno.com; the result is sent within 10 days.',
+          'You can also make requests through a representative, with documents showing the authorisation.',
+        ],
+      },
+      {
+        heading: '12. Privacy officer',
+        body: [
+          'The privacy officer oversees the processing of personal data and handles questions and complaints.',
+          'Name: 〔확인 필요〕, contact: contact@stairno.com',
+        ],
+      },
+      {
+        heading: '13. Remedies',
+        body: [
+          'For remedies for infringement of personal data you can apply for dispute resolution or advice to the following Korean bodies.',
+          'Personal Information Dispute Mediation Committee: 1833-6972, www.kopico.go.kr',
+          'Personal Information Infringement Report Center: 118, privacy.kisa.or.kr',
+          'Supreme Prosecutors’ Office: 1301, www.spo.go.kr',
+          'Korean National Police Agency: 182, ecrm.police.go.kr',
+        ],
+      },
+      {
+        heading: '14. Changes',
+        body: [
+          'When this policy changes, the version goes up and the changes and the effective date are announced on this page from 7 days before. Important changes, such as more data or new purposes, are announced from 30 days before and also sent to the email you signed up with.',
         ],
       },
     ],

@@ -14,6 +14,7 @@ region = "aws:ap-southeast-1"
 [vars]
 API_URL = "https://api.stairno.com"
 ACCOUNT_URL = "https://account.stairno.com"
+HUB_URL = "https://stairno.com"
 COOKIE_DOMAIN = "stairno.com"
 
 [observability]

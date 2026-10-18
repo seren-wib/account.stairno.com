@@ -6,6 +6,8 @@ export interface Deps {
   // Only what the routes need, so tests can pass a PGlite database or a failing stub.
   db: { execute(query: SQL): Promise<unknown> };
   auth: Auth;
+  // Browser origins the API answers besides registered sites (FR-26, FR-80).
+  origins: { account: string; hub: string };
 }
 
 export type AuthSession = Auth['$Infer']['Session'];

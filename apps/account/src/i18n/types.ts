@@ -62,6 +62,7 @@ export type Dictionary = {
       paymentMethods: string;
       orders: string;
       subscriptions: string;
+      downloads: string;
       delete: string;
     };
   };
@@ -231,6 +232,16 @@ export type Dictionary = {
     decidedOn: string;
     back: string;
     notFound: string;
+  };
+  downloads: {
+    heading: string;
+    intro: string;
+    download: string;
+    // Followed by the date a subscription's access ends
+    until: string;
+    empty: string;
+    unavailable: string;
+    failed: string;
   };
   subscriptions: {
     heading: string;

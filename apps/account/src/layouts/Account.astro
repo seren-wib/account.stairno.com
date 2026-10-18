@@ -12,6 +12,7 @@ export type AccountPage =
   | 'paymentMethods'
   | 'orders'
   | 'subscriptions'
+  | 'downloads'
   | 'delete';
 
 interface Props {
@@ -25,7 +26,6 @@ interface Props {
 const { locale, page, heading, connect } = Astro.props;
 const dict = t(locale).account;
 
-// Downloads join the second-phase pages as the second phase builds them.
 const items: { page: AccountPage; path: string }[] = [
   { page: 'overview', path: '' },
   { page: 'profile', path: 'profile' },
@@ -34,6 +34,7 @@ const items: { page: AccountPage; path: string }[] = [
   { page: 'paymentMethods', path: 'payment-methods' },
   { page: 'orders', path: 'orders' },
   { page: 'subscriptions', path: 'subscriptions' },
+  { page: 'downloads', path: 'downloads' },
   { page: 'delete', path: 'delete' },
 ];
 const current = items.find((item) => item.page === page);

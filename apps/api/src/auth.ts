@@ -213,6 +213,11 @@ export function createAuth(config: AuthConfig) {
         if (ctx.path === '/sign-up/email' && body?.termsVersion !== termsVersion) {
           throw new APIError('BAD_REQUEST', { message: 'The current terms must be accepted' });
         }
+        // FR-83: a new password ends every other session, as a reset does (FR-5), whatever the
+        // client sends. Better Auth then opens a fresh session for this browser.
+        if (ctx.path === '/change-password' && ctx.body) {
+          return { context: { ...ctx, body: { ...ctx.body, revokeOtherSessions: true } } };
+        }
       }),
     },
     plugins: [

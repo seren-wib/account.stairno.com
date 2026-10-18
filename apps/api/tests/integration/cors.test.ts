@@ -40,6 +40,17 @@ describe('CORS', () => {
     }
   });
 
+  it.each(['GET', 'POST', 'PATCH', 'DELETE'])(
+    'FR-26 FR-53 allows %s, a method the account center sends to /v1',
+    async (method) => {
+      const { preflight } = await setup();
+
+      const res = await preflight('/v1/payment-methods/x/default', ACCOUNT_URL, method);
+
+      expect(res.headers.get('access-control-allow-methods')?.split(',')).toContain(method);
+    },
+  );
+
   it('FR-26 lets a registered site call /v1', async () => {
     const { preflight } = await setup();
 

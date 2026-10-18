@@ -34,7 +34,7 @@ Stairno 계정 센터(account.stairno.com)와 공용 API(api.stairno.com). Stair
 - API 오류는 `{ error: { code, message } }` 하나의 형식이다. `code`는 SDD 8절의 상수만 쓴다(FR-24)
 - 사용자 노출 문자열과 메일 문구는 `ko`, `en` 두 사전에 같은 키로 넣는다. 한쪽만 넣으면 타입 오류다(FR-73, FR-76)
 - 브랜드 표기는 "Stairno". 회사, 그룹, 스튜디오, company, studio라는 말을 화면과 메일에 쓰지 않는다(DR-6). 허브는 stairno.com, 나머지 사이트는 프로젝트(Works, Games, Labs)다
-- 허브에는 계정 링크를 두지 않는다. 계정 센터는 허브로 돌아가는 링크만 가진다(DR-7)
+- 허브에는 헤더의 계정 메뉴만 둔다. 계정 화면, 판매, 접수, 결제는 허브에 두지 않는다. 계정 메뉴는 `@stairno/ui` 컴포넌트 하나를 허브, 계정 센터, 사이트가 같이 쓴다. 계정 센터는 허브로 돌아가는 링크를 가진다(DR-7, FR-79부터 FR-82)
 - Better Auth 버전을 올리면 `experiments/cross-domain-login`을 다시 돌려 13개가 통과하는지 본다
 
 ## 스택

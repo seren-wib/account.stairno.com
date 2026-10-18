@@ -9,7 +9,7 @@ if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
 const dict = t(locale);
 ---
 
-<Account locale={locale} current="account" path="email" heading={dict.profile.emailHeading}>
+<Account locale={locale} current="sign-in" path="email" heading={dict.profile.emailHeading}>
   <div class="page-stack">
     <Profile locale={locale} part="email" />
     <a href={`${localePath(locale, '')}#sign-in`}>{dict.account.back}</a>

@@ -21,6 +21,6 @@ const next = list?.nextCursor
   : null;
 ---
 
-<Account locale={locale} current="billing" path="orders" heading={dict.heading}>
+<Account locale={locale} current="orders" path="orders" heading={dict.heading}>
   <Orders locale={locale} orders={list?.items ?? null} more={next} />
 </Account>

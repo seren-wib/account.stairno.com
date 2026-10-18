@@ -2,7 +2,7 @@
 // The frame of every signed-in page (SDD §7.1): the account page's four categories and their
 // sections beside the content. Every link points at the account page, so on it a click scrolls to
 // the place and elsewhere it goes there. The menu stays below the header while the page scrolls
-// and marks the category in view. The header's account menu (FR-82) comes from Base.
+// and marks the one section in view. The header's account menu (FR-82) comes from Base.
 import Base from './Base.astro';
 import { localePath, t, type Locale } from '../i18n';
 
@@ -11,8 +11,8 @@ export type AccountCategory = 'account' | 'billing' | 'library' | 'security';
 interface Props {
   locale: Locale;
   heading: string;
-  /** On a sub-page, the category it belongs to. The account page marks the one in view. */
-  current?: AccountCategory;
+  /** On a sub-page, the section it belongs to. The account page marks the one in view. */
+  current?: string;
   /** Path below the locale prefix, for the locale switch. */
   path?: string;
   /** Passed to Base: hosts this page's browser code calls besides the API (NFR-7). */
@@ -59,17 +59,17 @@ const categories: { id: AccountCategory; sections: { id: string; label: string }
       <ul>
         {categories.map((category) => (
           <li>
-            <a
-              href={`${home}#${category.id}`}
-              data-category-link={category.id}
-              aria-current={category.id === current ? 'location' : undefined}
-            >
+            <a href={`${home}#${category.id}`} data-category-link={category.id}>
               {dict.menu[category.id]}
             </a>
             <ul class="account-submenu">
               {category.sections.map((section) => (
                 <li>
-                  <a href={`${home}#${section.id}`} data-section-link={section.id}>
+                  <a
+                    href={`${home}#${section.id}`}
+                    data-section-link={section.id}
+                    aria-current={section.id === current ? 'location' : undefined}
+                  >
                     {section.label}
                   </a>
                 </li>
@@ -86,42 +86,65 @@ const categories: { id: AccountCategory; sections: { id: string; label: string }
 </Base>
 
 <script>
-  // On the account page, mark the section in view and its category. Without this script the
-  // links still work.
-  const links = document.querySelectorAll<HTMLAnchorElement>(
-    '[data-category-link], [data-section-link]',
-  );
+  // On the account page, mark the one section in view (only that link, not its category).
+  // Without this script the links still work.
+  const links = document.querySelectorAll<HTMLAnchorElement>('[data-section-link]');
   const sections = [...document.querySelectorAll<HTMLElement>('.account-section')];
   if (sections.length > 0) {
     const mark = (section: HTMLElement) => {
-      const category = section.closest<HTMLElement>('.account-category')?.id;
       for (const link of links) {
-        const id = link.dataset.categoryLink ?? link.dataset.sectionLink;
-        if (id === section.id || id === category) link.setAttribute('aria-current', 'location');
+        if (link.dataset.sectionLink === section.id) link.setAttribute('aria-current', 'location');
         else link.removeAttribute('aria-current');
       }
     };
-    // The last sections may be too short to reach the band; at the very bottom, the last one wins.
-    const last = sections.at(-1);
+    // The section in view is the last one whose top has passed the line under the fixed header,
+    // the same line a menu jump stops it at (its scroll-margin-top). So a jump lights the link
+    // that was clicked, even for a short section. At the very bottom the last section wins,
+    // since a short last section never reaches that line.
     const atBottom = () =>
       window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-    // A band across the upper part of the screen: the section crossing it is the one in view.
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (atBottom() && last) return mark(last);
-        for (const entry of entries) {
-          if (entry.isIntersecting) mark(entry.target as HTMLElement);
-        }
-      },
-      { rootMargin: '-30% 0px -60% 0px' },
-    );
-    for (const section of sections) observer.observe(section);
+    const update = () => {
+      let current = sections[0];
+      for (const section of sections) {
+        const line = parseFloat(getComputedStyle(section).scrollMarginTop) + 4;
+        if (section.getBoundingClientRect().top <= line) current = section;
+      }
+      if (atBottom()) current = sections.at(-1) ?? current;
+      if (current) mark(current);
+    };
+    // A clicked link stays lit until its jump ends: near the bottom the page cannot scroll far
+    // enough for the line rule to reach it.
+    let jumping = false;
+    let jumpTimer: number | undefined;
+    const endJump = () => {
+      jumping = false;
+      window.clearTimeout(jumpTimer);
+    };
+    for (const link of links) {
+      const section = sections.find((s) => s.id === link.dataset.sectionLink);
+      link.addEventListener('click', () => {
+        if (!section) return;
+        mark(section);
+        jumping = true;
+        window.clearTimeout(jumpTimer);
+        jumpTimer = window.setTimeout(endJump, 1500);
+      });
+    }
+    window.addEventListener('scrollend', endJump);
+    let queued = false;
     window.addEventListener(
       'scroll',
       () => {
-        if (atBottom() && last) mark(last);
+        if (jumping || queued) return;
+        queued = true;
+        requestAnimationFrame(() => {
+          queued = false;
+          update();
+        });
       },
       { passive: true },
     );
+    window.addEventListener('resize', update);
+    update();
   }
 </script>

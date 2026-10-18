@@ -140,11 +140,11 @@ describe('POST /v1/downloads', () => {
     const { url } = await ctx.link();
     const [payload, signature] = new URL(url).pathname.split('/').pop()!.split('.');
     const forged = JSON.stringify({ k: 'atlas/other.zip', e: Date.now() + 600_000 });
-    const tampered = `${API_URL}/downloads/${btoa(forged).replace(/=+$/, '')}.${signature}`;
+    const tampered = `${API_URL}/v1/downloads/${btoa(forged).replace(/=+$/, '')}.${signature}`;
 
     expect((await ctx.fetchLink(tampered)).status).toBe(403);
-    expect((await ctx.fetchLink(`${API_URL}/downloads/${payload}.AAAA`)).status).toBe(403);
-    expect((await ctx.fetchLink(`${API_URL}/downloads/nonsense`)).status).toBe(403);
+    expect((await ctx.fetchLink(`${API_URL}/v1/downloads/${payload}.AAAA`)).status).toBe(403);
+    expect((await ctx.fetchLink(`${API_URL}/v1/downloads/nonsense`)).status).toBe(403);
     expect(ctx.downloads.reads).toEqual([]);
   });
 

@@ -68,12 +68,11 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   app.use('/webhooks/*', withDeps);
   app.route('/webhooks', webhookRoutes);
 
-  // FR-62: a signed download link carries its own permission; no session.
-  app.use('/downloads/*', withDeps);
-  app.route('/downloads', downloadFileRoutes);
-
   app.use('/v1/*', withDeps);
-  // Every /v1 route has a caller first (SDD §8); each group then says which kind it takes.
+  // FR-62: a signed download link carries its own permission, so it answers before anyone is
+  // authenticated; nothing after it in the chain runs for it.
+  app.route('/v1/downloads', downloadFileRoutes);
+  // Every other /v1 route has a caller first (SDD §8); each group then says which kind it takes.
   app.use('/v1/*', authenticate);
   app.route('/v1/connections', connectionRoutes);
   app.route('/v1/downloads', downloadRoutes);

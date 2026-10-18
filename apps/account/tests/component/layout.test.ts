@@ -31,6 +31,15 @@ describe('account layout', () => {
     expect(html).toContain('hreflang="en"');
   });
 
+  it('DR-7 sends the header brand to the hub home', async () => {
+    for (const locale of ['ko', 'en']) {
+      const html = await render(locale);
+      expect(html).toMatch(
+        new RegExp(`<a class="brand" href="https://stairno.com/${locale}/">\\s*Stairno`),
+      );
+    }
+  });
+
   it('DR-7 links back to the hub from the footer and to no other Stairno site', async () => {
     const html = await render('en');
     const links = hrefs(html, '<footer', '</footer>');

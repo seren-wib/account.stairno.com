@@ -20,6 +20,12 @@ describe('account center dictionaries', () => {
     }
   });
 
+  it('FR-1 tells people the minimum password length only, never the 128-character cap', () => {
+    for (const [key, text] of [...flatten(ko), ...flatten(en)]) {
+      expect(text, key).not.toMatch(/128/);
+    }
+  });
+
   it('DR-6 never calls Stairno a company, group or studio', () => {
     const copy = [...flatten(ko), ...flatten(en)].map(([, text]) => text.toLowerCase()).join('\n');
     for (const word of ['회사', '그룹', '스튜디오', 'company', 'studio']) {

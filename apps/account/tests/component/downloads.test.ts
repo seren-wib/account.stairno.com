@@ -1,8 +1,8 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Library from '../../src/pages/[locale]/library.astro';
+import Home from '../../src/pages/[locale]/index.astro';
 import { en } from '../../src/i18n/en';
-import { stubApi as stub } from './api-stub';
+import { callTo, stubApi as stub } from './api-stub';
 
 // FR-62, FR-29: the desktop products the user may download, each with a button that asks the
 // API for a ten-minute link and follows it.
@@ -32,9 +32,9 @@ function stubApi(status = 200, body: unknown = { items, nextCursor: null }) {
 
 async function render(locale = 'en') {
   const container = await AstroContainer.create();
-  return container.renderToString(Library, {
+  return container.renderToString(Home, {
     params: { locale },
-    request: new Request(`https://account.stairno.com/${locale}/library`, {
+    request: new Request(`https://account.stairno.com/${locale}/`, {
       headers: { cookie: COOKIE },
     }),
     locals,
@@ -45,7 +45,7 @@ describe('downloads page', () => {
   it('DR-1 reads the list from the API with the visitor cookie', async () => {
     const api = stubApi();
     await render();
-    const [url, init] = api.mock.calls[0] ?? [];
+    const [url, init] = callTo(api, '/v1/me/downloads') ?? [];
     expect(url).toBe('https://api.stairno.com/v1/me/downloads');
     expect(new Headers(init?.headers).get('cookie')).toBe(COOKIE);
   });

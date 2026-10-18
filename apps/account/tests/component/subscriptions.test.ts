@@ -1,6 +1,6 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Billing from '../../src/pages/[locale]/billing.astro';
+import Home from '../../src/pages/[locale]/index.astro';
 import { en } from '../../src/i18n/en';
 import { ko } from '../../src/i18n/ko';
 import { callTo, stubApi as stub } from './api-stub';
@@ -40,9 +40,9 @@ function stubApi(status = 200, body: unknown = { items: [item()], nextCursor: nu
 
 async function render(locale = 'en') {
   const container = await AstroContainer.create();
-  return container.renderToString(Billing, {
+  return container.renderToString(Home, {
     params: { locale },
-    request: new Request(`https://account.stairno.com/${locale}/billing`, {
+    request: new Request(`https://account.stairno.com/${locale}/`, {
       headers: { cookie: COOKIE },
     }),
     locals,
@@ -95,7 +95,7 @@ describe('subscriptions page', () => {
     const html = await render();
     expect(html).toContain(en.subscriptions.statuses.past_due);
     expect(html).toContain(en.subscriptions.overdue);
-    expect(html).toContain('href="/en/billing/#payment-methods"');
+    expect(html).toContain('href="/en/#payment-methods"');
     expect(html).toContain('data-cancel-subscription="sub-1"');
   });
 

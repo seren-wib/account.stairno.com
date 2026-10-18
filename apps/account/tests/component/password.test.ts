@@ -1,10 +1,10 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Security from '../../src/pages/[locale]/security.astro';
+import Password from '../../src/pages/[locale]/password.astro';
 import { en } from '../../src/i18n/en';
 import { stubApi } from './api-stub';
 
-// FR-83: the password section at the top of the Security page.
+// FR-83: the password page the account page links to.
 
 const locals = {
   apiUrl: 'https://api.stairno.com',
@@ -18,28 +18,16 @@ afterEach(() => {
 async function render(search = '') {
   stubApi({});
   const container = await AstroContainer.create();
-  return container.renderToString(Security, {
+  return container.renderToString(Password, {
     params: { locale: 'en' },
-    request: new Request(`https://account.stairno.com/en/security${search}`, {
+    request: new Request(`https://account.stairno.com/en/password${search}`, {
       headers: { cookie: 'stairno.session_token=abc' },
     }),
     locals,
   });
 }
 
-function sectionIds(html: string) {
-  return [...html.matchAll(/<section[^>]*class="account-section[^"]*"[^>]*id="([^"]+)"/g)].map(
-    (m) => m[1],
-  );
-}
-
-describe('password section', () => {
-  it('FR-83 comes first on the Security page and in its menu', async () => {
-    const html = await render();
-    expect(sectionIds(html)).toEqual(['password', 'devices', 'connections']);
-    expect(html).toContain('href="#password"');
-  });
-
+describe('password page', () => {
   it('FR-83 asks for the current password and a new one, for password managers too', async () => {
     const html = await render();
     expect(html).toMatch(/data-change-password[^>]*data-api="https:\/\/api.stairno.com"/);
@@ -62,5 +50,9 @@ describe('password section', () => {
   it('FR-83 says the password changed and the other devices were signed out, after the reload', async () => {
     expect(await render('?password=changed')).toContain(en.password.done);
     expect(await render()).not.toContain(en.password.done);
+  });
+
+  it('FR-1 never states an upper length limit', async () => {
+    expect(en.password.hint).not.toMatch(/128/);
   });
 });

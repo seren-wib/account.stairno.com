@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createLocalJWKSet, jwtVerify, type JSONWebKeySet } from 'jose';
 import { registerClient } from '../../src/admin/register-client';
-import { API_URL, createTestApp } from '../helpers/app';
+import { ACCOUNT_URL, API_URL, createTestApp } from '../helpers/app';
+import { createMemoryAvatarBucket } from '../helpers/bucket';
 import { get, post, signUp } from '../helpers/auth';
 import { stubPwnedPasswords } from '../helpers/hibp';
 import { registerLabs, signInToSite } from '../helpers/oidc';
@@ -56,6 +57,24 @@ describe('ID token', () => {
     const claims = await verifyIdToken(ctx, tokens.id_token ?? '', site.clientId);
 
     expect(claims).toMatchObject({ country: 'KR', zoneinfo: 'Asia/Seoul' });
+  });
+
+  it('FR-85 gives sites the photo address as the standard picture claim', async () => {
+    const ctx = await createTestApp({ avatars: createMemoryAvatarBucket() });
+    const site = await registerLabs(ctx);
+    const { cookie } = await signUp(ctx.app, { locale: 'en' });
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const upload = await ctx.app.request('/v1/me/image', {
+      method: 'PUT',
+      headers: { 'content-type': 'image/png', origin: ACCOUNT_URL, cookie },
+      body: png,
+    });
+    const { image } = (await upload.json()) as { image: string };
+
+    const tokens = await signInToSite(ctx, site, cookie);
+    const claims = await verifyIdToken(ctx, tokens.id_token ?? '', site.clientId);
+
+    expect(claims.picture).toBe(image);
   });
 
   it('FR-84 leaves both claims out when they are not set', async () => {

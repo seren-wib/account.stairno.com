@@ -14,6 +14,22 @@ export interface DownloadBucket {
   } | null>;
 }
 
+// FR-85: the profile photo bucket, as much of R2's binding as the API uses.
+export interface AvatarBucket {
+  put(
+    key: string,
+    value: Uint8Array,
+    options?: { httpMetadata?: { contentType?: string } },
+  ): Promise<unknown>;
+  get(key: string): Promise<{
+    body: ReadableStream;
+    size: number;
+    httpMetadata?: { contentType?: string };
+  } | null>;
+  list(options?: { prefix?: string }): Promise<{ objects: { key: string }[] }>;
+  delete(keys: string | string[]): Promise<void>;
+}
+
 export interface Deps {
   // Only what the routes need, so tests can pass a PGlite database or a failing stub.
   db: { execute(query: SQL): Promise<unknown> };
@@ -33,6 +49,8 @@ export interface Deps {
   // FR-62: the files, and the secret download links are signed with. No bucket, no downloads.
   downloads?: DownloadBucket | undefined;
   downloadSecret: string;
+  // FR-85: profile photos. No bucket, no photos.
+  avatars?: AvatarBucket | undefined;
   // Payment mails (FR-65, FR-72); the auth mails get the same mailer through createAuth.
   mailer: Mailer;
 }

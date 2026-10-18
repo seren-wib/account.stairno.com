@@ -34,7 +34,7 @@ export function createCors(getDeps: (env: Env) => Promise<Deps>) {
       },
       credentials: true,
       allowHeaders: ['content-type', 'authorization'],
-      allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       maxAge: 600,
     }) as MiddlewareHandler<AppEnv>;
 

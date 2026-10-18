@@ -12,6 +12,8 @@ import { createCors } from './middleware/cors';
 import { authenticate } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
 import { downloadFileRoutes, downloadRoutes } from './routes/downloads';
+import { avatarFileRoutes, myImageRoutes } from './routes/avatar';
+import { removeAvatarsOf } from './avatars/store';
 import { entitlementRoutes } from './routes/entitlements';
 import { removeBillingKeysOf } from './payments/account-deletion';
 import { parsePaymentsMode } from './payments/mode';
@@ -75,12 +77,15 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   // FR-62: a signed download link carries its own permission, so it answers before anyone is
   // authenticated; nothing after it in the chain runs for it.
   app.route('/v1/downloads', downloadFileRoutes);
+  // FR-85: public photo addresses, before authenticate like the download links.
+  app.route('/v1/avatars', avatarFileRoutes);
   // Every other /v1 route has a caller first (SDD §8); each group then says which kind it takes.
   app.use('/v1/*', authenticate);
   app.route('/v1/connections', connectionRoutes);
   app.route('/v1/downloads', downloadRoutes);
   app.route('/v1/entitlements', entitlementRoutes);
   app.route('/v1/me/downloads', myDownloadRoutes);
+  app.route('/v1/me/image', myImageRoutes);
   app.route('/v1/me/orders', myOrderRoutes);
   app.route('/v1/me', meRoutes);
   app.route('/v1/orders', orderRoutes);
@@ -137,7 +142,10 @@ function workerDeps(env: Env): Promise<Deps> {
       cookieDomain: env.COOKIE_DOMAIN,
       secret: env.BETTER_AUTH_SECRET,
       mailer,
-      beforeDeleteUser: (userId) => removeBillingKeysOf(payments, userId),
+      beforeDeleteUser: async (userId) => {
+        await removeBillingKeysOf(payments, userId);
+        await removeAvatarsOf({ avatars: env.AVATARS }, userId);
+      },
     });
     await auth.$context;
     return {
@@ -148,6 +156,7 @@ function workerDeps(env: Env): Promise<Deps> {
       paymentsMode,
       tossClientKey: env.TOSS_CLIENT_KEY,
       downloads: env.DOWNLOADS,
+      avatars: env.AVATARS,
       // Download links are signed under a key derived from this, never with it directly.
       downloadSecret: env.BETTER_AUTH_SECRET,
       mailer,

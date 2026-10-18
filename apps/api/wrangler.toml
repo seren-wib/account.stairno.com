@@ -30,3 +30,8 @@ crons = ["0 0 * * *"]
 [[r2_buckets]]
 binding = "DOWNLOADS"
 bucket_name = "stairno-downloads"
+
+# FR-85: profile photos, served by the API at /v1/avatars (SDD §7.6).
+[[r2_buckets]]
+binding = "AVATARS"
+bucket_name = "stairno-avatars"

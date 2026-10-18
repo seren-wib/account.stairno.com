@@ -26,7 +26,8 @@ Stairno 계정 센터(account.stairno.com)와 공용 API(api.stairno.com). Stair
 - 브랜치는 깃플로우다(2026-10-18). `main`은 출시본, `develop`은 다음 출시를 만드는 곳(기본 브랜치). `feature/*`는 develop에서 따서 develop으로, `release/vX.Y.Z`는 develop에서 따서 main과 develop으로, `hotfix/vX.Y.Z`는 main에서 따서 main과 develop으로 간다. 절차는 `CONTRIBUTING.md`
 - `main`에는 release와 hotfix의 PR만 들어간다. CI가 통과해야 하고 merge commit으로 머지한다. 머지하면 배포된다. main으로 가는 열린 PR은 하나만
 - `develop`에는 문서와 작은 수정을 바로 푸시한다. 기능은 feature 브랜치에서 PR로 develop에 넣되 CI를 기다리지 않는다(develop 푸시의 CI는 참고용)
-- 푸시 전 로컬에서는 바꾼 테스트 파일과 `format:check`, `check`, `db:check`만 돌린다. 전체 테스트는 CI가 한다. 작업 블록이 끝나면 release 브랜치를 따서 main으로 PR을 열고, 배포까지 확인해 보고한 뒤 멈춘다(2026-10-18)
+- 푸시 전 로컬에서는 바꾼 테스트 파일과 `format:check`, `check`, `db:check`만 돌린다. 전체 테스트는 CI가 한다. release는 로드맵 단계 하나가 끝날 때 한 번이다. 단계의 기능을 develop에 다 모으고 `release/v0.N.0`(N = 단계 번호)을 main으로 PR, 머지·배포 뒤 운영(테스트 모드)에서 리허설과 인수 체크리스트를 본다(2026-10-18)
+- 테스트 층: 커밋마다 로컬 TDD(바꾼 테스트와 정적 검사) → develop 푸시마다 CI 전체(참고용, 깨지면 다음 기능 전에 고친다) → main으로 가는 PR에서 CI 필수 → 배포 워크플로의 테스트 → 운영 리허설(웹훅·결제사 복귀 주소는 운영에서만 확인된다)(2026-10-18)
 - 기능 하나가 브랜치 하나다. 그 기능의 API, 화면, 테스트, 문서 수정을 같이 넣는다. 그 기능에만 쓰이는 어댑터나 하다가 찾은 작은 수정은 같은 브랜치의 커밋으로 넣고, 다른 기능에도 걸리는 변경만 따로 둔다. 크기는 테스트 포함 300~800줄쯤, 1000줄이 넘으면 나눌 곳을 찾는다(2026-10-18)
 - 커밋은 기능의 조각마다 `test` → `feat` 한 쌍이다. 동작이 그대로인 이동과 정리는 그 쌍 앞에 `refactor` 커밋으로 따로 둔다. 커밋 하나는 혼자 되돌릴 수 있는 크기다(2026-10-18)
 - DB는 `apps/api`만 만진다(DR-1). `apps/account`는 Better Auth나 Drizzle을 import하지 않고 API를 HTTP로 부른다. 서버 렌더링 때는 들어온 `Cookie` 헤더를 그대로 전달한다
@@ -55,7 +56,7 @@ npm run format
 
 ## 배포
 
-`main`에 release나 hotfix가 머지되면 `.github/workflows/deploy.yml`이 테스트 → 마이그레이션(Neon) → `apps/api` → `apps/account` 순서로 Workers에 올린다. 머지 커밋에 `vX.Y.Z` 태그를 찍고 main을 develop에 다시 합친다. 기능 블록은 MINOR, 핫픽스는 PATCH를 올린다(2026-10-18). 마이그레이션이 실패하면 배포하지 않는다. 시크릿과 설치 절차는 테스트와 배포 문서 7절.
+`main`에 release나 hotfix가 머지되면 `.github/workflows/deploy.yml`이 테스트 → 마이그레이션(Neon) → `apps/api` → `apps/account` 순서로 Workers에 올린다. 머지 커밋에 `vX.Y.Z` 태그를 찍고 main을 develop에 다시 합친다. MINOR는 로드맵 단계 번호(4단계 = `v0.4.0`), 핫픽스는 PATCH를 올린다(2026-10-18). 마이그레이션이 실패하면 배포하지 않는다. 시크릿과 설치 절차는 테스트와 배포 문서 7절.
 
 ## GitHub
 

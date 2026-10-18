@@ -1,6 +1,6 @@
 # Contributing
 
-This is a one-person project that runs like a team, on Git Flow: issue → feature branch → failing test → implementation → `develop`; when a block is done, a release branch → pull request → CI → `main`, which deploys. The rules match the hub's ([stairno.com](https://github.com/seren-wib/stairno.com)) CONTRIBUTING.md, plus what only this repository has (two workspaces, migrations, secrets).
+This is a one-person project that runs like a team, on Git Flow: issue → feature branch → failing test → implementation → `develop`; when a roadmap step is done, a release branch → pull request → CI → `main`, which deploys. The rules match the hub's ([stairno.com](https://github.com/seren-wib/stairno.com)) CONTRIBUTING.md, plus what only this repository has (two workspaces, migrations, secrets).
 
 ## Branches (Git Flow)
 
@@ -9,14 +9,14 @@ This is a one-person project that runs like a team, on Git Flow: issue → featu
 | `main`                      | Permanent | What is released. A merge into it deploys           | —         | —                    |
 | `develop`                   | Permanent | The next release being built. The default branch    | `main`    | —                    |
 | `feature/<issue>-<summary>` | One task  | One feature                                         | `develop` | `develop`            |
-| `release/vX.Y.Z`            | One block | Preparing this release: fixes and docs, no features | `develop` | `main` and `develop` |
+| `release/vX.Y.Z`            | One step  | Preparing this release: fixes and docs, no features | `develop` | `main` and `develop` |
 | `hotfix/vX.Y.Z`             | One fix   | A bug in the released version                       | `main`    | `main` and `develop` |
 
 - `main` changes only through pull requests from `release/*` or `hotfix/*`. CI must pass, and the merge is a merge commit, so `main` and `develop` keep one history
 - `develop` takes direct pushes for documents and small changes. A feature goes through its own branch and a pull request into `develop`, which does not wait for CI; the pull request is the record. Run the local checks (see Tests) before pushing anything to `develop`
-- Release: when a block of work is done, branch `release/vX.Y.Z` from `develop` and open a pull request into `main`. Fix only what CI or the final check finds, merge, tag `vX.Y.Z` on the merge commit, then merge `main` back into `develop`
+- Release: once per roadmap step. When every feature of the step is on `develop`, branch `release/v0.N.0` (N is the step) from `develop` and open a pull request into `main`. Fix only what CI or the final check finds, merge, tag `v0.N.0` on the merge commit, then merge `main` back into `develop`. The rehearsal and the acceptance checklist run on production in test mode right after the deploy
 - Hotfix: branch `hotfix/vX.Y.Z` (the next patch) from `main`, open a pull request into `main`, merge, tag, then merge `main` back into `develop`
-- Versions follow semver: a block of features raises MINOR, a hotfix raises PATCH
+- Versions follow semver: MINOR is the roadmap step (step 4 is `v0.4.0`), a hotfix raises PATCH
 - One task, one issue, one branch. Example: `feature/185-payment-mails`
 - A task is one feature a user can use: its API, screen, tests and document updates go in together, so the feature can be checked as a whole
 - Something that only serves that feature, such as an adapter or a small fix found on the way, goes in as commits of the same branch. Only a change that stands on its own or touches other features gets its own branch
@@ -72,6 +72,14 @@ feat(api): tell the buyer when a renewal is declined
 - The release tag `vX.Y.Z` goes on the merge commit in `main`
 
 ## Tests
+
+Testing happens in layers, each wider than the one before:
+
+1. Every commit, locally: the failing test first, then the code that passes it
+2. Every push to `develop`: the full CI, for information. A failure is fixed before the next feature starts
+3. The release pull request into `main`: the full CI, required
+4. The deploy: the tests once more before migrating
+5. Production in test mode: the rehearsal and the acceptance checklist. Provider webhooks and return addresses only reach production
 
 - Every feature starts with a failing test. Test names start with the requirement ID, for example `FR-36 rejects paid -> pending`
 - Payment providers are replaced by a fake adapter in tests. Real test-key calls happen only in deployment rehearsals (NFR-16)

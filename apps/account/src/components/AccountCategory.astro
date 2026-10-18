@@ -1,0 +1,16 @@
+---
+// One of the four categories of the account page (SDD §7.1). The id is the menu's anchor.
+interface Props {
+  id: string;
+  title: string;
+}
+
+const { id, title } = Astro.props;
+---
+
+<section class="account-category" id={id} aria-labelledby={`${id}-title`}>
+  <h2 class="category-title" id={`${id}-title`}>
+    {title}
+  </h2>
+  <slot />
+</section>

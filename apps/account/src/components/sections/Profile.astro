@@ -3,70 +3,75 @@ import { locales, t, type Locale } from '../../i18n';
 
 interface Props {
   locale: Locale;
+  /** The name and language on the account page, or the email change on its own page (FR-30). */
+  part: 'profile' | 'email';
 }
 
-const { locale } = Astro.props;
+const { locale, part } = Astro.props;
 const dict = t(locale).profile;
 const user = Astro.locals.user;
 const api = Astro.locals.apiUrl;
 const messages = JSON.stringify({ saved: dict.saved, emailSent: dict.emailSent, ...dict.errors });
 ---
 
-<form class="form" data-profile data-api={api} data-messages={messages} novalidate>
-  <label class="field">
-    <span>{dict.name}</span>
-    <input
-      name="name"
-      autocomplete="name"
-      value={user?.name}
-      required
-      aria-describedby="name-error"
-    />
-    <span class="field-error" id="name-error" data-error-for="name" hidden></span>
-  </label>
-  <label class="field">
-    <span>{dict.language}</span>
-    <select name="locale">
-      {locales.map((option) => (
-        <option value={option} selected={user?.locale === option}>
-          {dict.languages[option]}
-        </option>
-      ))}
-    </select>
-  </label>
-  <p class="form-note" role="status" data-result></p>
-  <button class="button form-submit" type="submit">
-    {dict.save}
-  </button>
-</form>
+{part === 'profile' && (
+  <form class="form" data-profile data-api={api} data-messages={messages} novalidate>
+    <label class="field">
+      <span>{dict.name}</span>
+      <input
+        name="name"
+        autocomplete="name"
+        value={user?.name}
+        required
+        aria-describedby="name-error"
+      />
+      <span class="field-error" id="name-error" data-error-for="name" hidden></span>
+    </label>
+    <label class="field">
+      <span>{dict.language}</span>
+      <select name="locale">
+        {locales.map((option) => (
+          <option value={option} selected={user?.locale === option}>
+            {dict.languages[option]}
+          </option>
+        ))}
+      </select>
+    </label>
+    <p class="form-note" role="status" data-result></p>
+    <button class="button form-submit" type="submit">
+      {dict.save}
+    </button>
+  </form>
+)}
 
-<h2 class="section-title">{dict.emailHeading}</h2>
-<form class="form" data-change-email data-api={api} data-messages={messages} novalidate>
-  <dl class="detail-list">
-    <div>
-      <dt>{dict.currentEmail}</dt>
-      <dd>{user?.email}</dd>
-    </div>
-  </dl>
-  <label class="field">
-    <span>{dict.newEmail}</span>
-    <input
-      type="email"
-      name="newEmail"
-      autocomplete="email"
-      required
-      aria-describedby="newEmail-hint newEmail-error"
-    />
-    <span class="field-hint" id="newEmail-hint">
-      {dict.emailPending}
-    </span>
-    <span class="field-error" id="newEmail-error" data-error-for="newEmail" hidden></span>
-  </label>
-  <p class="form-note" role="status" data-result></p>
-  <button class="button form-submit" type="submit">
-    {dict.changeEmail}
-  </button>
-</form>
+{part === 'email' && (
+  <form class="form" data-change-email data-api={api} data-messages={messages} novalidate>
+    <dl class="detail-list">
+      <div>
+        <dt>{dict.currentEmail}</dt>
+        <dd>{user?.email}</dd>
+      </div>
+    </dl>
+    <label class="field">
+      <span>{dict.newEmail}</span>
+      <input
+        type="email"
+        name="newEmail"
+        autocomplete="email"
+        required
+        aria-describedby="newEmail-hint newEmail-error"
+      />
+      <span class="field-hint" id="newEmail-hint">
+        {dict.emailPending}
+      </span>
+      <span class="field-error" id="newEmail-error" data-error-for="newEmail" hidden></span>
+    </label>
+    <p class="form-note" role="status" data-result></p>
+    <button class="button form-submit" type="submit">
+      {dict.changeEmail}
+    </button>
+  </form>
+)}
 
 <script>
   import { profileUpdateSchema } from '@stairno-account/contract';
@@ -127,7 +132,7 @@ const messages = JSON.stringify({ saved: dict.saved, emailSent: dict.emailSent, 
       if (res.ok) {
         const current = window.location.pathname.split('/')[1];
         if (current !== parsed.data.locale) {
-          window.location.assign(`/${parsed.data.locale}/profile/`);
+          window.location.assign(`/${parsed.data.locale}/#profile`);
           return;
         }
         message = text.saved;

@@ -55,9 +55,14 @@ export type Dictionary = {
   account: {
     menuLabel: string;
     // The five categories (SRS 3.5): each one page, its own heading.
-    menu: { home: string; security: string; billing: string; library: string; account: string };
-    // What each category holds, for the shortcuts on the home page.
-    descriptions: { security: string; billing: string; library: string; account: string };
+    // The four categories of the account page, top to bottom (SRS 3.5).
+    menu: { account: string; billing: string; library: string; security: string };
+    // Sign-in details in the Account category.
+    signIn: string;
+    password: string;
+    changeEmail: string;
+    changePassword: string;
+    back: string;
   };
   overview: {
     heading: string;
@@ -68,7 +73,6 @@ export type Dictionary = {
     resent: string;
     tooMany: string;
     unavailable: string;
-    shortcuts: string;
   };
   signIn: {
     heading: string;

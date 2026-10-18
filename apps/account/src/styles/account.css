@@ -238,8 +238,8 @@
   max-width: 480px;
 }
 
-/* Signed-in frame: five categories beside the content, a tab row on narrow screens (NFR-18).
-   The menu stays below the fixed header while the sections scroll (SDD §7.1). */
+/* Signed-in frame: the account page's categories beside the content, a tab row on narrow screens
+   (NFR-18). The menu stays below the fixed header while the page scrolls (SDD §7.1). */
 .account-grid {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
@@ -260,7 +260,7 @@
   list-style: none;
 }
 
-/* The current page's sections, under its category. */
+/* Each category's sections, always shown. Fold them if the list grows long (2026-10-18). */
 .account-menu .account-submenu {
   gap: 0;
   margin: 0.25rem 0 0.5rem 0.9rem;
@@ -285,7 +285,8 @@
   color: var(--fg);
 }
 
-.account-menu a[aria-current='page'] {
+/* The category in view on the account page, or the one a sub-page belongs to. */
+.account-menu a[aria-current] {
   background: var(--surface);
   color: var(--fg);
   font-weight: 700;
@@ -297,8 +298,18 @@
     gap: 1.5rem;
   }
 
+  /* The tab row stays under the header, so a jump is one tap away anywhere on the page. */
   .account-menu {
-    position: static;
+    top: var(--header-height);
+    z-index: 5;
+    padding-block: 0.5rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .account-category,
+  .account-section {
+    scroll-margin-top: calc(var(--header-height) + 4.5rem);
   }
 
   .account-menu ul {
@@ -313,9 +324,30 @@
   }
 }
 
-/* One section of a category page. The anchor lands below the fixed header. */
+/* The account page: four categories, each with its sections. A jump scrolls, and lands below the
+   fixed header. */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+.account-category,
 .account-section {
   scroll-margin-top: calc(var(--header-height) + 1.5rem);
+}
+
+.account-category + .account-category {
+  margin-top: 4.5rem;
+}
+
+.category-title {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
 }
 
 .account-section > .section-title:first-child {
@@ -323,12 +355,12 @@
 }
 
 .account-section + .account-section {
-  margin-top: 3rem;
-  padding-top: 2.5rem;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
   border-top: 1px solid var(--border);
 }
 
-/* Danger: account deletion only, at the bottom of the Account page (UC-12). */
+/* Danger: account deletion only, at the very end of the account page (UC-12). */
 :root,
 html[data-theme='light'] {
   --danger: #c62828;
@@ -421,26 +453,18 @@ html[data-theme='dark'] {
   font-size: 1.15rem;
 }
 
-.shortcut-list {
-  display: grid;
-  gap: 1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* Sign-in details: the value, then a small link to the page that changes it (FR-30). */
+.sign-in-list dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
 }
 
-.shortcut-list li {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.shortcut-list a {
-  font-weight: 700;
-}
-
-.shortcut-note {
+.page-body .change-link {
   color: var(--fg-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 400;
 }
 
 /* A page of short blocks one under another: notes, messages, a list, a button. */

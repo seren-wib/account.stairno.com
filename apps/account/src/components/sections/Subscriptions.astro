@@ -16,7 +16,7 @@ interface Props {
 const {
   locale,
   subscriptions,
-  cardsHref = `${localePath(locale, 'billing')}#payment-methods`,
+  cardsHref = `${localePath(locale, '')}#payment-methods`,
 } = Astro.props;
 const all = t(locale);
 const dict = all.subscriptions;

@@ -1,5 +1,11 @@
 /* Account center pieces on top of @stairno/ui base.css. Colours and type come from its tokens. */
 
+/* Pages toggle sections with the hidden attribute. Class rules below set display, which would
+   otherwise beat the browser's own [hidden] rule and show them all at once. */
+[hidden] {
+  display: none !important;
+}
+
 /* The shared header is white text meant for the night sky. Every account page opens with a night
    band under it, like the hub's hero, so the header reads the same here. */
 .page-head {

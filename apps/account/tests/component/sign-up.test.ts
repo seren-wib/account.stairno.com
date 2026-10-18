@@ -49,6 +49,17 @@ describe('sign-up page', () => {
     }
   });
 
+  it('FR-27 keeps the sign-in link inside the form, so it hides with the form once mail is sent', async () => {
+    const html = await render(SignUp, 'ko', 'sign-up');
+    const form = html.slice(html.indexOf('data-sign-up'), html.indexOf('</form>'));
+    expect(form).toContain('class="form-links"');
+  });
+
+  it('FR-27 puts a space between the sign-in question and its link', async () => {
+    const html = await render(SignIn, 'ko', 'sign-in');
+    expect(html).toMatch(/계정이 없나요\?\s+<a/);
+  });
+
   it('FR-17 keeps the authorization query on the links between sign-in and sign-up', async () => {
     const signUp = await render(SignUp, 'en', 'sign-up', OIDC);
     const signIn = await render(SignIn, 'en', 'sign-in', OIDC);

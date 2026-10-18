@@ -11,6 +11,7 @@ import { apiError } from './http/errors';
 import { createCors } from './middleware/cors';
 import { authenticate } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
+import { removeBillingKeysOf } from './payments/account-deletion';
 import { parsePaymentsMode } from './payments/mode';
 import { createPayPalProvider } from './payments/paypal';
 import { createTossProvider } from './payments/toss';
@@ -97,22 +98,9 @@ let deps: Promise<Deps> | undefined;
 function workerDeps(env: Env): Promise<Deps> {
   deps ??= (async () => {
     const db = createDb(env.DATABASE_URL);
-    const auth = createAuth({
-      db,
-      apiUrl: env.API_URL,
-      accountUrl: env.ACCOUNT_URL,
-      hubUrl: env.HUB_URL,
-      cookieDomain: env.COOKIE_DOMAIN,
-      secret: env.BETTER_AUTH_SECRET,
-      mailer: createMailer({ apiKey: env.RESEND_API_KEY }),
-    });
-    await auth.$context;
     const paymentsMode = parsePaymentsMode(env.PAYMENTS_MODE);
-    return {
+    const payments = {
       db,
-      auth,
-      origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL },
-      paymentsMode,
       billingKeySecret: env.BILLING_KEY_SECRET,
       providers: {
         toss: createTossProvider({ secretKey: env.TOSS_SECRET_KEY, mode: paymentsMode }),
@@ -123,6 +111,23 @@ function workerDeps(env: Env): Promise<Deps> {
           mode: paymentsMode,
         }),
       },
+    };
+    const auth = createAuth({
+      db,
+      apiUrl: env.API_URL,
+      accountUrl: env.ACCOUNT_URL,
+      hubUrl: env.HUB_URL,
+      cookieDomain: env.COOKIE_DOMAIN,
+      secret: env.BETTER_AUTH_SECRET,
+      mailer: createMailer({ apiKey: env.RESEND_API_KEY }),
+      beforeDeleteUser: (userId) => removeBillingKeysOf(payments, userId),
+    });
+    await auth.$context;
+    return {
+      ...payments,
+      auth,
+      origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL },
+      paymentsMode,
     };
   })().catch((error: unknown) => {
     deps = undefined;

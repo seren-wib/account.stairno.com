@@ -1,3 +1,38 @@
+// The two-character card company codes in Toss responses (docs.tosspayments.com/codes/org-codes).
+export const CARD_COMPANY_CODES = [
+  '3K',
+  '46',
+  '71',
+  '30',
+  '31',
+  '51',
+  '38',
+  '41',
+  '62',
+  '36',
+  '33',
+  'W1',
+  '37',
+  '39',
+  '35',
+  '42',
+  '15',
+  '3A',
+  '24',
+  '21',
+  '61',
+  '11',
+  '91',
+  '34',
+  '6D',
+  '4M',
+  '3C',
+  '7A',
+  '4J',
+  '4V',
+] as const;
+export type CardCompanyCode = (typeof CARD_COMPANY_CODES)[number];
+
 // One shape for both languages (FR-76): ko and en are typed `Dictionary`, so a key in one
 // language only fails `astro check`. `{name}` in a string is replaced where it is used.
 export type Dictionary = {
@@ -24,6 +59,7 @@ export type Dictionary = {
       profile: string;
       devices: string;
       connections: string;
+      paymentMethods: string;
       delete: string;
     };
   };
@@ -144,6 +180,29 @@ export type Dictionary = {
     disconnect: string;
     empty: string;
     unavailable: string;
+  };
+  paymentMethods: {
+    heading: string;
+    intro: string;
+    default: string;
+    added: string;
+    makeDefault: string;
+    remove: string;
+    add: string;
+    unknownCard: string;
+    empty: string;
+    verifyFirst: string;
+    addUnavailable: string;
+    registering: string;
+    registered: string;
+    canceled: string;
+    failed: string;
+    refused: string;
+    inUse: string;
+    providerDown: string;
+    unavailable: string;
+    // Toss's card company codes as its responses give them (Toss org codes).
+    cards: Record<CardCompanyCode, string>;
   };
   deleteAccount: {
     heading: string;

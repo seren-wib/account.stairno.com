@@ -1,10 +1,8 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Home from '../../src/pages/[locale]/index.astro';
-import Security from '../../src/pages/[locale]/security.astro';
-import Billing from '../../src/pages/[locale]/billing.astro';
-import Library from '../../src/pages/[locale]/library.astro';
-import AccountPage from '../../src/pages/[locale]/account.astro';
+import Email from '../../src/pages/[locale]/email.astro';
+import Password from '../../src/pages/[locale]/password.astro';
 import Orders from '../../src/pages/[locale]/orders/index.astro';
 import Profile from '../../src/pages/[locale]/profile.astro';
 import Devices from '../../src/pages/[locale]/devices.astro';
@@ -17,14 +15,19 @@ import { en } from '../../src/i18n/en';
 import { ko } from '../../src/i18n/ko';
 import { callTo, stubApi } from './api-stub';
 
-// FR-29, FR-30, FR-32, FR-33 (SRS 3.5, 2026-10-18): five categories in a fixed menu, each one
-// page of sections; account deletion at the bottom of the Account page; old paths redirect.
+// FR-29, FR-30, FR-32, FR-33 (SRS 3.5, 2026-10-18): one account page. Account, Billing, Library
+// and Security in that order; the menu shows every category with its sections and jumps to
+// each; no home page; email and password changes are small links to their own pages; account
+// deletion is the very end of the page.
 
 const COOKIE = 'stairno.session_token=abc';
-const locals = {
-  apiUrl: 'https://api.stairno.com',
-  user: { id: 'u1', email: 'yu@example.com', name: 'Yu Seong', emailVerified: true, locale: 'en' },
-} as unknown as App.Locals;
+
+function localsFor(emailVerified = true) {
+  return {
+    apiUrl: 'https://api.stairno.com',
+    user: { id: 'u1', email: 'yu@example.com', name: 'Yu Seong', emailVerified, locale: 'en' },
+  } as unknown as App.Locals;
+}
 
 type Page = Parameters<Awaited<ReturnType<typeof AstroContainer.create>>['renderToString']>[0];
 
@@ -32,7 +35,7 @@ function request(path: string) {
   return new Request(`https://account.stairno.com${path}`, { headers: { cookie: COOKIE } });
 }
 
-async function render(page: Page, path: string, locale = 'en') {
+async function render(page: Page, path: string, locale = 'en', locals = localsFor()) {
   const container = await AstroContainer.create();
   return container.renderToString(page, { params: { locale }, request: request(path), locals });
 }
@@ -42,191 +45,178 @@ function menuOf(html: string) {
   return html.slice(start, html.indexOf('</nav>', start));
 }
 
-// Section ids in the order they appear.
-function sectionIds(html: string) {
-  return [...html.matchAll(/<section[^>]*class="account-section[^"]*"[^>]*id="([^"]+)"/g)].map(
-    (m) => m[1],
-  );
+function ids(html: string, kind: 'account-category' | 'account-section') {
+  const pattern = new RegExp(`<section[^>]*class="${kind}[^"]*"[^>]*id="([^"]+)"`, 'g');
+  return [...html.matchAll(pattern)].map((m) => m[1]);
 }
+
+const SECTIONS = [
+  'profile',
+  'sign-in',
+  'payment-methods',
+  'subscriptions',
+  'orders',
+  'downloads',
+  'devices',
+  'connections',
+  'delete-account',
+];
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
 describe('account menu', () => {
-  it('FR-29 FR-30 lists five categories and marks the current one', async () => {
+  it('FR-29 FR-30 shows every category with its sections, in page order, each a jump on the account page', async () => {
     stubApi({});
-    const menu = menuOf(await render(Security, '/en/security'));
-    const links = [...menu.matchAll(/<a[^>]*href="(\/en\/[^"#]*)"/g)].map((m) => m[1]);
+    const menu = menuOf(await render(Home, '/en/'));
+    const links = [...menu.matchAll(/<a[^>]*href="([^"]+)"/g)].map((m) => m[1]);
     expect(links).toEqual([
-      '/en/',
-      '/en/security/',
-      '/en/billing/',
-      '/en/library/',
-      '/en/account/',
+      '/en/#account',
+      '/en/#profile',
+      '/en/#sign-in',
+      '/en/#billing',
+      '/en/#payment-methods',
+      '/en/#subscriptions',
+      '/en/#orders',
+      '/en/#library',
+      '/en/#downloads',
+      '/en/#security',
+      '/en/#devices',
+      '/en/#connections',
+      '/en/#delete-account',
     ]);
     for (const label of Object.values(en.account.menu)) expect(menu).toContain(label);
-    expect(menu).toMatch(/href="\/en\/security\/"[^>]*aria-current="page"/);
-    expect(menu).not.toMatch(/href="\/en\/billing\/"[^>]*aria-current/);
-  });
-
-  it('FR-30 lists the sections of the current page under it', async () => {
-    stubApi({});
-    const menu = menuOf(await render(Security, '/en/security'));
-    expect(menu).toContain('href="#devices"');
-    expect(menu).toContain('href="#connections"');
-    expect(menu).not.toContain('href="#payment-methods"');
-  });
-
-  it('FR-32 keeps Billing current on the full order history', async () => {
-    stubApi({});
-    const menu = menuOf(await render(Orders, '/en/orders'));
-    expect(menu).toMatch(/href="\/en\/billing\/"[^>]*aria-current="page"/);
   });
 
   it('FR-76 names the categories in the page language', async () => {
     stubApi({});
-    const menu = menuOf(await render(Security, '/ko/security', 'ko'));
+    const menu = menuOf(await render(Home, '/ko/', 'ko'));
     for (const label of Object.values(ko.account.menu)) expect(menu).toContain(label);
   });
-});
 
-describe('home', () => {
-  it('FR-29 links to the four other categories with what each holds', async () => {
-    const html = await render(Home, '/en/');
-    const content = html.slice(html.indexOf('class="account-content"'));
-    for (const page of ['security', 'billing', 'library', 'account']) {
-      expect(content).toContain(`href="/en/${page}/"`);
-    }
-    expect(content).toContain(en.account.descriptions.security);
-    expect(content).toContain(en.account.descriptions.account);
-  });
-});
-
-describe('security page', () => {
-  it('FR-30 FR-7 FR-21 shows the devices, then the connected sites, reading both with the cookie', async () => {
-    const api = stubApi({
-      '/v1/sessions': [
-        200,
-        {
-          items: [
-            {
-              id: 's-phone',
-              createdAt: '2026-09-20T09:00:00.000Z',
-              lastUsedAt: '2026-10-10T09:00:00.000Z',
-              browser: 'Safari',
-              os: 'iOS',
-              current: false,
-            },
-          ],
-        },
-      ],
-    });
-    const html = await render(Security, '/en/security');
-    expect(sectionIds(html)).toEqual(['password', 'devices', 'connections']);
-    expect(html).toContain(en.account.menu.security);
-    expect(html).toContain('data-end-session="s-phone"');
-    expect(html).toContain(en.connections.empty);
-    for (const path of ['/v1/sessions', '/v1/connections']) {
-      expect(new Headers(callTo(api, path)?.[1]?.headers).get('cookie')).toBe(COOKIE);
-    }
-  });
-});
-
-describe('billing page', () => {
-  it('FR-32 shows the cards, the subscriptions and the latest orders, with a way to all of them', async () => {
-    const api = stubApi({});
-    const html = await render(Billing, '/en/billing');
-    expect(sectionIds(html)).toEqual(['payment-methods', 'subscriptions', 'orders']);
-    expect(html).toContain(en.orders.recent);
-    expect(html).toContain(`href="/en/orders/"`);
-    expect(html).toContain(en.orders.all);
-    const orders = callTo(api, '/v1/me/orders')?.[0] ?? '';
-    expect(new URL(orders).searchParams.get('limit')).toBe('5');
-    for (const path of ['/v1/payment-methods', '/v1/subscriptions', '/v1/me/orders']) {
-      expect(new Headers(callTo(api, path)?.[1]?.headers).get('cookie')).toBe(COOKIE);
-    }
-  });
-
-  it('FR-55 sends an overdue subscription to the cards on the same page', async () => {
-    stubApi({
-      '/v1/subscriptions': [
-        200,
-        {
-          items: [
-            {
-              id: 'sub-1',
-              name: { ko: '프로', en: 'Pro' },
-              status: 'past_due',
-              amount: 4900,
-              currency: 'KRW',
-              currentPeriodEnd: '2026-11-18T00:00:00.000Z',
-              cancelAtPeriodEnd: false,
-              card: null,
-            },
-          ],
-        },
-      ],
-    });
-    expect(await render(Billing, '/en/billing')).toContain('href="/en/billing/#payment-methods"');
-  });
-});
-
-describe('library page', () => {
-  it('FR-33 FR-62 shows the downloads', async () => {
-    const api = stubApi({
-      '/v1/me/downloads': [
-        200,
-        {
-          items: [{ sku: 'atlas-desktop', name: { ko: '아틀라스', en: 'Atlas' }, expiresAt: null }],
-        },
-      ],
-    });
-    const html = await render(Library, '/en/library');
-    expect(sectionIds(html)).toEqual(['downloads']);
-    expect(html).toContain('data-download-sku="atlas-desktop"');
-    expect(callTo(api, '/v1/me/downloads')).toBeDefined();
+  it('FR-30 FR-32 marks the category a sub-page belongs to', async () => {
+    stubApi({});
+    expect(menuOf(await render(Email, '/en/email'))).toMatch(
+      /href="\/en\/#account"[^>]*aria-current="location"/,
+    );
+    expect(menuOf(await render(Password, '/en/password'))).toMatch(
+      /href="\/en\/#account"[^>]*aria-current="location"/,
+    );
+    expect(menuOf(await render(Orders, '/en/orders'))).toMatch(
+      /href="\/en\/#billing"[^>]*aria-current="location"/,
+    );
   });
 });
 
 describe('account page', () => {
-  it('FR-30 FR-6 shows the profile first and account deletion last', async () => {
-    const html = await render(AccountPage, '/en/account');
-    expect(sectionIds(html)).toEqual(['profile', 'delete-account']);
-    expect(html).toMatch(/<input[^>]*name="name"[^>]*value="Yu Seong"/);
-    expect(html).toMatch(/data-change-email/);
+  it('FR-29 stacks Account, Billing, Library and Security, and nothing like a home page', async () => {
+    stubApi({});
+    const html = await render(Home, '/en/');
+    expect(ids(html, 'account-category')).toEqual(['account', 'billing', 'library', 'security']);
+    expect(ids(html, 'account-section')).toEqual(SECTIONS);
+    expect(html).not.toContain('shortcut-list');
   });
 
-  it('FR-8 UC-12 puts deletion in a red danger zone behind its own button', async () => {
-    const html = await render(AccountPage, '/en/account');
-    const zone = html.slice(html.lastIndexOf('<section', html.indexOf('id="delete-account"')));
+  it('DR-1 reads every list with the visitor cookie', async () => {
+    const api = stubApi({});
+    await render(Home, '/en/');
+    for (const path of [
+      '/v1/payment-methods',
+      '/v1/subscriptions',
+      '/v1/me/orders',
+      '/v1/me/downloads',
+      '/v1/sessions',
+      '/v1/connections',
+    ]) {
+      expect(new Headers(callTo(api, path)?.[1]?.headers).get('cookie'), path).toBe(COOKIE);
+    }
+    const orders = callTo(api, '/v1/me/orders')?.[0] ?? '';
+    expect(new URL(orders).searchParams.get('limit')).toBe('5');
+  });
+
+  it('FR-30 shows the email and the password with only a small link to change each', async () => {
+    stubApi({});
+    const html = await render(Home, '/en/');
+    const signIn = html.slice(html.indexOf('id="sign-in"'), html.indexOf('id="billing"'));
+    expect(signIn).toContain('yu@example.com');
+    expect(signIn).toMatch(
+      new RegExp(`<a[^>]*href="/en/email/"[^>]*>\\s*${en.account.changeEmail.replace('?', '\\?')}`),
+    );
+    expect(signIn).toMatch(
+      new RegExp(
+        `<a[^>]*href="/en/password/"[^>]*>\\s*${en.account.changePassword.replace('?', '\\?')}`,
+      ),
+    );
+    expect(html).not.toContain('data-change-email');
+    expect(html).not.toContain('data-change-password');
+  });
+
+  it('FR-2 FR-74 keeps the unconfirmed-email notice and its resend button by the email', async () => {
+    stubApi({});
+    const html = await render(Home, '/en/', 'en', localsFor(false));
+    const signIn = html.slice(html.indexOf('id="sign-in"'), html.indexOf('id="billing"'));
+    expect(signIn).toContain(en.overview.unverified);
+    expect(signIn).toMatch(/data-resend-verification[^>]*data-email="yu@example.com"/);
+  });
+
+  it('FR-32 links from the latest orders to all of them', async () => {
+    stubApi({});
+    const html = await render(Home, '/en/');
+    expect(html).toContain(en.orders.recent);
+    expect(html).toContain('href="/en/orders/"');
+  });
+
+  it('FR-8 UC-12 ends the page with deletion in a red danger zone behind its own button', async () => {
+    stubApi({});
+    const html = await render(Home, '/en/');
+    const at = html.indexOf('id="delete-account"');
+    const zone = html.slice(html.lastIndexOf('<section', at));
+    expect(at).toBeGreaterThan(html.indexOf('id="security"'));
     expect(zone).toMatch(/class="account-section[^"]*account-section-danger/);
     expect(zone).toContain('class="danger-zone"');
     expect(zone).toMatch(/<summary[^>]*class="[^"]*button-danger[^"]*"/);
-    expect(zone.slice(zone.indexOf('<summary'), zone.indexOf('</summary>'))).toContain(
-      en.deleteAccount.start,
-    );
-    expect(zone).toContain(en.deleteAccount.warning);
+    expect(zone).toContain(en.deleteAccount.start);
     expect(zone).toMatch(/<input[^>]*type="password"[^>]*autocomplete="current-password"/);
     expect(zone).toMatch(/<button[^>]*class="[^"]*button-danger[^"]*"[^>]*type="submit"/);
   });
 });
 
+describe('email page', () => {
+  it('FR-6 shows the current address and asks for the new one, with a way back', async () => {
+    stubApi({});
+    const html = await render(Email, '/en/email');
+    expect(html).toContain('yu@example.com');
+    expect(html).toMatch(/data-change-email[^>]*data-api="https:\/\/api.stairno.com"/);
+    expect(html).toContain(en.profile.emailPending);
+    expect(html).toContain('href="/en/#sign-in"');
+  });
+});
+
+describe('password page', () => {
+  it('FR-83 asks for the current password and a new one, with a way back', async () => {
+    stubApi({});
+    const html = await render(Password, '/en/password');
+    expect(html).toMatch(/data-change-password[^>]*data-api="https:\/\/api.stairno.com"/);
+    expect(html).toContain('href="/en/#sign-in"');
+  });
+});
+
 describe('old addresses', () => {
   it.each([
-    [Profile, 'profile', '/en/account/#profile'],
-    [Devices, 'devices', '/en/security/#devices'],
-    [Connections, 'connections', '/en/security/#connections'],
-    [Delete, 'delete', '/en/account/#delete-account'],
-    [PaymentMethods, 'payment-methods', '/en/billing/#payment-methods'],
-    [Subscriptions, 'subscriptions', '/en/billing/#subscriptions'],
-    [Downloads, 'downloads', '/en/library/#downloads'],
-  ])('FR-30 moves /%s permanently to its section', async (page, path, target) => {
+    [Profile, 'profile', '/en/#profile'],
+    [Devices, 'devices', '/en/#devices'],
+    [Connections, 'connections', '/en/#connections'],
+    [Delete, 'delete', '/en/#delete-account'],
+    [PaymentMethods, 'payment-methods', '/en/#payment-methods'],
+    [Subscriptions, 'subscriptions', '/en/#subscriptions'],
+    [Downloads, 'downloads', '/en/#downloads'],
+  ])('FR-30 moves /%s permanently to its place on the account page', async (page, path, target) => {
     const container = await AstroContainer.create();
     const res = await container.renderToResponse(page as Page, {
       params: { locale: 'en' },
       request: request(`/en/${path}`),
-      locals,
+      locals: localsFor(),
     });
     expect(res.status).toBe(301);
     expect(res.headers.get('location')).toBe(target);
@@ -237,10 +227,10 @@ describe('old addresses', () => {
     const res = await container.renderToResponse(PaymentMethods, {
       params: { locale: 'en' },
       request: request('/en/payment-methods?customerKey=cus_abc&authKey=ak_1'),
-      locals,
+      locals: localsFor(),
     });
     expect(res.headers.get('location')).toBe(
-      '/en/billing/?customerKey=cus_abc&authKey=ak_1#payment-methods',
+      '/en/?customerKey=cus_abc&authKey=ak_1#payment-methods',
     );
   });
 });

@@ -1,6 +1,6 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Billing from '../../src/pages/[locale]/billing.astro';
+import Home from '../../src/pages/[locale]/index.astro';
 import { en } from '../../src/i18n/en';
 import { ko } from '../../src/i18n/ko';
 import { callTo, stubApi as stub } from './api-stub';
@@ -50,9 +50,9 @@ function stubApi(status = 200, body: unknown = cards) {
 
 async function render(locale = 'en', locals = localsFor()) {
   const container = await AstroContainer.create();
-  return container.renderToString(Billing, {
+  return container.renderToString(Home, {
     params: { locale },
-    request: new Request(`https://account.stairno.com/${locale}/billing`, {
+    request: new Request(`https://account.stairno.com/${locale}/`, {
       headers: { cookie: COOKIE },
     }),
     locals,
@@ -107,7 +107,12 @@ describe('payment methods page', () => {
 
   it('DR-4 has no field for a card number, expiry or CVC', async () => {
     stubApi();
-    expect(await render()).not.toMatch(/<input/);
+    const html = await render();
+    const cardsSection = html.slice(
+      html.indexOf('id="payment-methods"'),
+      html.indexOf('id="subscriptions"'),
+    );
+    expect(cardsSection).not.toMatch(/<input/);
   });
 
   it('FR-2 asks for a verified email before a card can be added', async () => {

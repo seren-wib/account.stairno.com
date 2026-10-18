@@ -1,6 +1,6 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Security from '../../src/pages/[locale]/security.astro';
+import Home from '../../src/pages/[locale]/index.astro';
 import { apiGet } from '../../src/lib/api';
 import { en } from '../../src/i18n/en';
 import { stubApi as stub } from './api-stub';
@@ -43,9 +43,9 @@ function stubApi(status = 200, body: unknown = sessions) {
 
 async function render() {
   const container = await AstroContainer.create();
-  return container.renderToString(Security, {
+  return container.renderToString(Home, {
     params: { locale: 'en' },
-    request: new Request('https://account.stairno.com/en/security', {
+    request: new Request('https://account.stairno.com/en/', {
       headers: { cookie: COOKIE },
     }),
     locals,

@@ -39,6 +39,15 @@ describe('auth card', () => {
     expect(html).toMatch(/<div class="card">/);
   });
 
+  it('FR-82 FR-79 shows the signed-out account menu on auth pages', async () => {
+    const html = await render(SignIn, 'sign-in');
+    const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
+    expect(header).toMatch(/data-account-menu[^>]*data-state="signed-out"/);
+    expect(header).toContain('href="/ko/sign-in/"');
+    expect(header).toContain('href="/ko/sign-up/"');
+    expect(header).not.toContain('data-session-url');
+  });
+
   it('FR-27 leaves pages without a card alone', async () => {
     const html = await render(Home, '');
     expect(html).not.toContain('class="card"');

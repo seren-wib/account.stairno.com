@@ -67,4 +67,21 @@ describe('sign-up page', () => {
     expect(signIn).toContain(`href="/en/sign-up/${OIDC.replaceAll('&', '&amp;')}"`);
     expect(attr(signUp, 'data-oauth')).toBe(OIDC.slice(1));
   });
+
+  it.each([
+    ['sign-in', SignIn],
+    ['sign-up', SignUp],
+  ])('FR-81 lets %s return to the hub', async (path, page) => {
+    const html = await render(page, 'ko', path, '?redirect=https%3A%2F%2Fstairno.com%2Fko%2F');
+    expect(attr(html, 'data-next')).toBe('https://stairno.com/ko/');
+  });
+
+  it.each([
+    'https://stairno.com.evil.example/ko/',
+    'http://stairno.com/ko/',
+    'https://evil.example/?https://stairno.com/',
+  ])('FR-81 does not mistake %s for the hub', async (target) => {
+    const html = await render(SignIn, 'ko', 'sign-in', `?redirect=${encodeURIComponent(target)}`);
+    expect(attr(html, 'data-next')).toBe('/ko/');
+  });
 });

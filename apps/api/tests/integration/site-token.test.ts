@@ -59,7 +59,9 @@ describe('site access token', () => {
       { grant_type: 'client_credentials', resource: API_URL },
     );
 
-    expect(res.status).toBe(401);
+    // RFC 6749 §5.2: 400 invalid_client for credentials sent in the body.
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'invalid_client' });
   });
 
   it('FR-13 is not a user', async () => {

@@ -22,6 +22,13 @@ export const ko = {
     action: '새 주소 확인',
     note: '요청한 적이 없다면 이 메일은 무시해도 됩니다. 이메일은 바뀌지 않습니다.',
   },
+  passwordChanged: {
+    subject: 'Stairno 비밀번호가 변경되었습니다',
+    heading: '비밀번호 변경',
+    body: '{name}님, Stairno 계정의 비밀번호가 방금 바뀌었습니다. 안전을 위해 이 변경을 한 기기를 뺀 모든 기기에서 로그아웃했습니다.',
+    action: '비밀번호 재설정',
+    note: '직접 바꾼 것이 아니라면 바로 위 버튼으로 비밀번호를 다시 정하고 contact@stairno.com으로 알려 주세요.',
+  },
   receipt: {
     subject: 'Stairno 결제 영수증',
     heading: '결제 완료',

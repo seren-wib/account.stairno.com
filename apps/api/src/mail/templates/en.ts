@@ -22,6 +22,13 @@ export const en = {
     action: 'Confirm new address',
     note: 'If you did not ask for this, you can ignore this email. Your email stays the same.',
   },
+  passwordChanged: {
+    subject: 'Your Stairno password was changed',
+    heading: 'Password changed',
+    body: 'Hi {name}, the password of your Stairno account was just changed. To be safe, every device except the one that made the change was signed out.',
+    action: 'Reset password',
+    note: 'If you did not make this change, reset your password with the button above and tell us at contact@stairno.com.',
+  },
   receipt: {
     subject: 'Your Stairno receipt',
     heading: 'Payment received',

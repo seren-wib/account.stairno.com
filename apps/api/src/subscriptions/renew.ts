@@ -1,6 +1,7 @@
 import type { Deps } from '../deps';
 import { decryptBillingKey } from '../payments/billing-keys';
 import { failPendingOrder, insertOrder } from '../payments/order-store';
+import { sendOrderMail } from '../payments/order-mail';
 import { ProviderError } from '../payments/provider';
 import { applyProviderResult, giveBack } from '../payments/settle';
 import {
@@ -18,7 +19,10 @@ import {
 // at most `limit` per run; the rest wait for the next day. One subscription failing never stops
 // the others. Logs carry ids only (NFR-21).
 
-type RenewDeps = Pick<Deps, 'db' | 'providers' | 'billingKeySecret' | 'origins' | 'paymentsMode'>;
+type RenewDeps = Pick<
+  Deps,
+  'db' | 'providers' | 'billingKeySecret' | 'origins' | 'paymentsMode' | 'mailer'
+>;
 
 export interface RenewalSummary {
   renewed: number;
@@ -105,13 +109,16 @@ async function renewOne(deps: RenewDeps, sub: DueSubscription): Promise<Result> 
       return 'skipped';
     }
     console.info('subscription renewed', { subscriptionId: sub.id, orderId: order.id });
+    await sendOrderMail(deps, { orderId: order.id, template: 'receipt' });
     return 'renewed';
   }
 
   // A decline, or an approval for another amount that is given back (FR-37, FR-55).
   await applyProviderResult(db, providers.toss, { providerId: 'toss', order, result });
   console.warn('renewal declined', { subscriptionId: sub.id, orderId: order.id });
-  return fail(db, sub.id);
+  const outcome = await fail(db, sub.id);
+  await sendOrderMail(deps, { orderId: order.id, template: 'renewalFailed' });
+  return outcome;
 }
 
 export async function renewDueSubscriptions(

@@ -14,6 +14,7 @@ import {
   type OrderRow,
   type PaymentRow,
 } from '../payments/order-store';
+import { sendOrderMail } from '../payments/order-mail';
 import { ProviderError } from '../payments/provider';
 import { applyProviderResult, giveBack } from '../payments/settle';
 import {
@@ -138,6 +139,7 @@ async function startSubscriptionOrder(
       return apiError(c, 409, 'invalid_transition', 'The order closed while it was being paid.');
     }
     console.info('subscription started', { orderId: order.id, subscriptionId: subscription.id });
+    await sendOrderMail(c.var.deps, { orderId: order.id, template: 'receipt' });
   } else {
     // A decline, or an approval for another amount: settled like a confirm (FR-37, FR-55).
     const outcome = await applyProviderResult(db, providers.toss, {

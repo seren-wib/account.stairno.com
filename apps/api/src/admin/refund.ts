@@ -1,6 +1,7 @@
 import type { Deps } from '../deps';
 import { findPaymentForOrder, readOrder, refundOrder } from '../payments/order-store';
 import { allowedFrom } from '../payments/orders';
+import { sendOrderMail } from '../payments/order-mail';
 import { endRefundedSubscription, resolveRefundRequest } from '../payments/refund-store';
 
 // FR-64, FR-66 (SDD §6.7). The operator decides a refund; the API never judges the policy. A
@@ -9,7 +10,7 @@ import { endRefundedSubscription, resolveRefundRequest } from '../payments/refun
 // for ended, and the open request resolved. A provider failure throws and changes nothing here.
 // The provider's webhook for the cancel then finds the order refunded already (FR-48).
 
-type RefundDeps = Pick<Deps, 'db' | 'providers'>;
+type RefundDeps = Pick<Deps, 'db' | 'providers' | 'mailer' | 'origins'>;
 
 export type RefundResult =
   { kind: 'refunded' } | { kind: 'not_found' } | { kind: 'not_refundable'; status: string };
@@ -45,11 +46,13 @@ export async function refund(
     orderId: order.id,
     paymentKey: payment.provider_payment_key,
   });
+  // FR-65: the buyer hears the outcome.
+  await sendOrderMail(deps, { orderId: order.id, template: 'refunded' });
   return { kind: 'refunded' };
 }
 
 export async function rejectRefund(
-  deps: Pick<Deps, 'db'>,
+  deps: Pick<Deps, 'db' | 'mailer' | 'origins'>,
   input: { orderId: string },
 ): Promise<{ kind: 'rejected' } | { kind: 'no_request' }> {
   if (!UUID.test(input.orderId)) return { kind: 'no_request' };
@@ -57,6 +60,9 @@ export async function rejectRefund(
     orderId: input.orderId,
     status: 'rejected',
   });
-  if (rejected) console.info('refund request rejected', { orderId: input.orderId });
+  if (rejected) {
+    console.info('refund request rejected', { orderId: input.orderId });
+    await sendOrderMail(deps, { orderId: input.orderId, template: 'refundRejected' });
+  }
   return rejected ? { kind: 'rejected' } : { kind: 'no_request' };
 }

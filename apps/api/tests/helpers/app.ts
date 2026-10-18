@@ -53,6 +53,7 @@ export async function createTestApp(
     auth,
     origins,
     paymentsMode: 'test',
+    billingKeySecret: 'test-billing-key-secret-not-used-anywhere-else',
     ...rest,
     providers: { toss: createFakeProvider(), paypal: createFakeProvider(), ...providers },
   };

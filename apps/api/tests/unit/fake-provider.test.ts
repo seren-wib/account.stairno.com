@@ -47,6 +47,18 @@ describe('fake payment provider', () => {
     await expect(confirm(fake)).resolves.toMatchObject({ status: 'done', amount: 1000 });
   });
 
+  it('NFR-16 plays scripted answers in the order they were given', async () => {
+    const fake = createFakeProvider();
+    fake.willApproveAmount(1000);
+    fake.willThrow();
+
+    await expect(confirm(fake)).resolves.toMatchObject({ status: 'done', amount: 1000 });
+    await expect(
+      fake.cancel({ providerPaymentKey: 'fake_pay_1', reason: 'amount mismatch' }),
+    ).rejects.toBeInstanceOf(ProviderError);
+    await expect(confirm(fake, 'fake_pay_2')).resolves.toMatchObject({ amount: 12000 });
+  });
+
   it('NFR-16 can fail like an unreachable provider', async () => {
     const fake = createFakeProvider();
     fake.willThrow();

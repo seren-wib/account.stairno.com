@@ -177,12 +177,72 @@ describe('Toss adapter', () => {
     await expect(confirm(toss)).rejects.toBeInstanceOf(ProviderError);
     expect(sent).toEqual([]);
   });
+});
 
-  it('FR-70 trusts no webhook until the webhook route reads payments back', async () => {
-    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch: stub().fetch });
+// Toss's PAYMENT_STATUS_CHANGED carries no signature (only payout and seller events are signed),
+// so the adapter believes the payment it reads back from Toss, not the body (FR-70).
+describe('Toss webhook check', () => {
+  const createdAt = '2026-10-18T10:00:00.000000';
 
-    await expect(
-      toss.verifyWebhook(new Request('https://api.stairno.com/webhooks/toss', { method: 'POST' })),
-    ).resolves.toBeNull();
+  function webhook(body: unknown) {
+    return new Request('https://api.stairno.com/webhooks/toss', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: typeof body === 'string' ? body : JSON.stringify(body),
+    });
+  }
+
+  const statusChanged = {
+    eventType: 'PAYMENT_STATUS_CHANGED',
+    createdAt,
+    data: { ...done, status: 'DONE' },
+  };
+
+  it('FR-48 FR-70 reads the payment back and takes its state from Toss, not the body', async () => {
+    const { fetch, sent } = stub(json(200, { ...done, status: 'CANCELED' }));
+    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+
+    const event = await toss.verifyWebhook(webhook(statusChanged));
+
+    expect(sent).toEqual([
+      expect.objectContaining({
+        url: 'https://api.tosspayments.com/v1/payments/tgen_20261018_abc',
+        method: 'GET',
+      }),
+    ]);
+    expect(event).toMatchObject({
+      eventId: `tgen_20261018_abc:DONE:${createdAt}`,
+      eventType: 'PAYMENT_STATUS_CHANGED',
+      providerPaymentKey: 'tgen_20261018_abc',
+      status: 'canceled',
+      orderRef: order.id,
+      payment: { status: 'canceled', amount: 12000, currency: 'KRW' },
+    });
+  });
+
+  it.each([
+    ['a body that is not JSON', 'not json'],
+    ['another event type', { ...statusChanged, eventType: 'payout.changed' }],
+    ['no payment key', { ...statusChanged, data: { status: 'DONE' } }],
+  ])('FR-70 does not trust %s and asks Toss nothing', async (_, body) => {
+    const { fetch, sent } = stub();
+    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+
+    await expect(toss.verifyWebhook(webhook(body))).resolves.toBeNull();
+    expect(sent).toEqual([]);
+  });
+
+  it('FR-70 does not trust a payment Toss does not know', async () => {
+    const { fetch } = stub(json(404, { code: 'NOT_FOUND_PAYMENT', message: '없음' }));
+    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+
+    await expect(toss.verifyWebhook(webhook(statusChanged))).resolves.toBeNull();
+  });
+
+  it('FR-69 fails like the provider when the lookup cannot be made, so Toss sends it again', async () => {
+    const { fetch } = stub(json(500, { code: 'FAILED_INTERNAL_SYSTEM_PROCESSING', message: '' }));
+    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+
+    await expect(toss.verifyWebhook(webhook(statusChanged))).rejects.toBeInstanceOf(ProviderError);
   });
 });

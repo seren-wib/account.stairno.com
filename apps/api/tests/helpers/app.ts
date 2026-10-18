@@ -52,5 +52,6 @@ export async function createTestApp(
     providers: { toss: createFakeProvider() },
     ...overrides,
   };
-  return { app: createApp(async () => deps), db, auth, mailbox };
+  // `deps` is the object every request reads, so a test may swap a part of it afterwards.
+  return { app: createApp(async () => deps), db, auth, mailbox, deps };
 }

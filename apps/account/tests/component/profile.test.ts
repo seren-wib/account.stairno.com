@@ -38,6 +38,27 @@ describe('profile', () => {
     expect(html).toMatch(/data-profile[^>]*data-api="https:\/\/api.stairno.com"/);
   });
 
+  it('FR-85 shows the photo, with a way to change it and to remove it', async () => {
+    const image = 'https://api.stairno.com/v1/avatars/u1/0123456789abcdef.webp';
+    const html = await render(Home, '', 'en', {
+      ...locals,
+      user: { ...locals.user, image },
+    } as unknown as App.Locals);
+    const photo = html.slice(html.indexOf('data-photo'), html.indexOf('data-profile'));
+    expect(photo).toContain(`src="${image}"`);
+    expect(photo).toMatch(/<input[^>]*type="file"[^>]*accept="image\/png,image\/jpeg,image\/webp"/);
+    expect(photo).toContain('data-photo-remove');
+    expect(photo).toContain('data-api="https://api.stairno.com"');
+  });
+
+  it('FR-85 shows the first letter of the name without a photo, and nothing to remove', async () => {
+    const html = await render(Home, '', 'en');
+    const photo = html.slice(html.indexOf('data-photo'), html.indexOf('data-profile'));
+    expect(photo).toMatch(/data-photo-initial[^>]*>\s*Y\s*</);
+    expect(photo).not.toContain('<img');
+    expect(photo).not.toContain('data-photo-remove');
+  });
+
   it('FR-84 offers the country and the time zone, both optional, with the current ones chosen', async () => {
     const html = await render(Home, '', 'ko', {
       ...locals,

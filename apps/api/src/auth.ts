@@ -63,9 +63,11 @@ function idTokenClaims({
   };
 }
 
-// FR-84: the country, and the time zone as the standard `zoneinfo` claim, only when set.
+// FR-84, FR-85: the country, the time zone as the standard `zoneinfo` claim and the photo as
+// `picture`, only when set.
 function region(user: Record<string, unknown>) {
   return {
+    ...(user.image ? { picture: user.image } : {}),
     ...(user.country ? { country: user.country } : {}),
     ...(user.timezone ? { zoneinfo: user.timezone } : {}),
   };

@@ -123,7 +123,7 @@ describe('security page', () => {
       ],
     });
     const html = await render(Security, '/en/security');
-    expect(sectionIds(html)).toEqual(['devices', 'connections']);
+    expect(sectionIds(html)).toEqual(['password', 'devices', 'connections']);
     expect(html).toContain(en.account.menu.security);
     expect(html).toContain('data-end-session="s-phone"');
     expect(html).toContain(en.connections.empty);

@@ -15,6 +15,8 @@ export interface Env {
   BETTER_AUTH_SECRET: string;
   // Unset locally and until the stairno.com domain is verified in Resend: mail is skipped.
   RESEND_API_KEY?: string;
+  // Encrypts billing keys at rest and derives customerKeys; at least 32 characters (FR-45, DR-4)
+  BILLING_KEY_SECRET?: string;
   // Toss secret key, test_sk_... until business registration (FR-43). Unset means Toss is off.
   TOSS_SECRET_KEY?: string;
   // PayPal REST app (sandbox until business registration) and its webhook's id (FR-49, FR-52)

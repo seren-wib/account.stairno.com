@@ -14,6 +14,8 @@ export interface Deps {
   paymentsMode: PaymentsMode;
   // NFR-13: the only way routes reach a payment provider. Tests pass the fake (NFR-16).
   providers: { toss: PaymentProvider; paypal: PaymentProvider };
+  // Encrypts billing keys and derives customerKeys (FR-45, DR-4). Unset means no cards.
+  billingKeySecret: string | undefined;
 }
 
 export type AuthSession = Auth['$Infer']['Session'];

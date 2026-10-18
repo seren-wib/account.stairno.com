@@ -86,6 +86,18 @@ export interface PaymentProvider {
   verifyWebhook(req: Request): Promise<WebhookEvent | null>;
 }
 
+// The provider looked at the request and said no for the buyer's reasons (a card refused at
+// registration, FR-45). Routes answer 422; this is not the provider failing.
+export class PaymentRefused extends Error {
+  constructor(
+    readonly provider: ProviderId,
+    readonly reason: string,
+  ) {
+    super(`${provider} refused: ${reason}`);
+    this.name = 'PaymentRefused';
+  }
+}
+
 // The provider could not be reached or answered with something we cannot use. Routes turn it
 // into 502 provider_error (SDD §8); a decline is a PaymentResult with status 'failed', not this.
 export class ProviderError extends Error {

@@ -16,6 +16,7 @@ import { createPayPalProvider } from './payments/paypal';
 import { createTossProvider } from './payments/toss';
 import { meRoutes } from './routes/me';
 import { orderRoutes } from './routes/orders';
+import { paymentMethodRoutes } from './routes/payment-methods';
 import { paymentRoutes } from './routes/payments';
 import { productRoutes } from './routes/products';
 import { sessionRoutes } from './routes/sessions';
@@ -68,6 +69,7 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   app.route('/v1/connections', connectionRoutes);
   app.route('/v1/me', meRoutes);
   app.route('/v1/orders', orderRoutes);
+  app.route('/v1/payment-methods', paymentMethodRoutes);
   app.route('/v1/payments', paymentRoutes);
   app.route('/v1/products', productRoutes);
   app.route('/v1/sessions', sessionRoutes);
@@ -111,6 +113,7 @@ function workerDeps(env: Env): Promise<Deps> {
       auth,
       origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL },
       paymentsMode,
+      billingKeySecret: env.BILLING_KEY_SECRET,
       providers: {
         toss: createTossProvider({ secretKey: env.TOSS_SECRET_KEY, mode: paymentsMode }),
         paypal: createPayPalProvider({

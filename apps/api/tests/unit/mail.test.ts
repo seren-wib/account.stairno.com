@@ -26,6 +26,7 @@ describe('mail dictionaries', () => {
     expect([...flatten(en).keys()].sort()).toEqual([...flatten(ko).keys()].sort());
     expect(Object.keys(ko).sort()).toEqual([
       'changeEmail',
+      'passwordChanged',
       'receipt',
       'refundRejected',
       'refunded',

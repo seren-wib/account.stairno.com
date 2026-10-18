@@ -143,6 +143,7 @@ function workerDeps(env: Env): Promise<Deps> {
     return {
       ...payments,
       auth,
+      apiUrl: env.API_URL,
       origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL },
       paymentsMode,
       tossClientKey: env.TOSS_CLIENT_KEY,

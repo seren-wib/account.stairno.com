@@ -13,7 +13,7 @@ import { describeEntitlement, readEntitlement } from '../payments/entitlement-st
 const LINK_MINUTES = 10;
 
 export const downloadRoutes = new Hono<AppEnv>().use(requireUser).post('/', async (c) => {
-  const { db, downloads, downloadSecret } = c.var.deps;
+  const { db, downloads, downloadSecret, apiUrl } = c.var.deps;
   const parsed = downloadInputSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return validationError(c, parsed.error);
 
@@ -38,7 +38,7 @@ export const downloadRoutes = new Hono<AppEnv>().use(requireUser).post('/', asyn
   console.info('download link issued', { sku: row.sku });
   return c.json(
     {
-      url: `${new URL(c.req.url).origin}/v1/downloads/${token}`,
+      url: `${apiUrl}/v1/downloads/${token}`,
       expiresAt: new Date(expiresAt).toISOString(),
     },
     201,

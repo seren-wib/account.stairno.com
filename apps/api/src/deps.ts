@@ -18,6 +18,8 @@ export interface Deps {
   // Only what the routes need, so tests can pass a PGlite database or a failing stub.
   db: { execute(query: SQL): Promise<unknown> };
   auth: Auth;
+  // The API's own public address (API_URL), for links it hands out such as downloads (FR-62).
+  apiUrl: string;
   // Browser origins the API answers besides registered sites (FR-26, FR-80).
   origins: { account: string; hub: string };
   // FR-42, read once from PAYMENTS_MODE.

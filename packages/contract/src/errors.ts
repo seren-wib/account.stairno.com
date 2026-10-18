@@ -11,6 +11,8 @@ export const errorCodes = [
   'invalid_transition',
   'amount_mismatch',
   'provider_error',
+  // A subscription needs a saved card first; the site sends the buyer to the account center.
+  'payment_method_required',
   // Anything unexpected; the message never carries the cause (NFR-21).
   'internal_error',
 ] as const;

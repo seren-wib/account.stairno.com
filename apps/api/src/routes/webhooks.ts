@@ -23,6 +23,9 @@ async function applyEvent(deps: Deps, providerId: ProviderName, event: WebhookEv
   if (!payment || !event.orderRef || !UUID.test(event.orderRef)) return;
   const order = await readOrder(db, { id: event.orderRef });
   if (!order || order.provider !== providerId) return;
+  // A subscription order is charged by the API itself (the order route, the renewal cron), which
+  // settles it with the subscription; settled here, it would get a permanent entitlement (FR-46).
+  if (order.kind === 'subscription' && order.status === 'pending') return;
   const paymentKey = payment.providerPaymentKey;
 
   switch (payment.status) {

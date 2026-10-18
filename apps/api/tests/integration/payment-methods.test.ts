@@ -23,10 +23,17 @@ afterEach(() => {
 type Ctx = Awaited<ReturnType<typeof createTestApp>>;
 
 const SECRET = 'test-billing-key-secret-0123456789abcdef';
+// Toss's client key is public by design: it goes to the browser that opens the card window.
+const TOSS_CLIENT_KEY = 'test_ck_not_a_real_key';
 
-async function setup() {
+async function setup(overrides: { tossClientKey?: string | undefined } = {}) {
   const toss = createFakeProvider();
-  const ctx = await createTestApp({ providers: { toss }, billingKeySecret: SECRET });
+  const ctx = await createTestApp({
+    providers: { toss },
+    billingKeySecret: SECRET,
+    tossClientKey: TOSS_CLIENT_KEY,
+    ...overrides,
+  });
   const buyer = await signUp(ctx.app);
   await ctx.db.execute(sql`update "user" set email_verified = true where email = ${buyer.email}`);
   const send = (method: string, path: string, body?: unknown, origin = ACCOUNT_URL) =>
@@ -77,8 +84,18 @@ describe('GET /v1/payment-methods', () => {
     expect(first).toEqual({
       items: [],
       customerKey: expect.stringMatching(/^[A-Za-z0-9_\-=.@]{2,50}$/),
+      clientKey: TOSS_CLIENT_KEY,
     });
     expect(again.customerKey).toBe(first.customerKey);
+  });
+
+  it('FR-45 gives no client key while Toss is not set up, and still lists the cards', async () => {
+    const ctx = await setup({ tossClientKey: undefined });
+
+    const res = await get(ctx.app, '/v1/payment-methods', ctx.buyer.cookie);
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ items: [], clientKey: null });
   });
 });
 

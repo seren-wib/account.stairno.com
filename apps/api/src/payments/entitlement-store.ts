@@ -8,6 +8,8 @@ type Db = Deps['db'];
 export interface EntitlementRow {
   sku: string;
   kind: string;
+  // The R2 key of its file, for desktop products (FR-62)
+  download_key: string | null;
   // Every price of the product is 0: the free plan with a card on file (FR-58)
   free: boolean;
   has_card: boolean;
@@ -31,7 +33,7 @@ export async function readEntitlement(
   const [row] = await rows<EntitlementRow>(
     db,
     sql`
-      select p.sku, p.kind,
+      select p.sku, p.kind, p.download_key,
              coalesce((select bool_and(pp.amount = 0) from product_price pp
                        where pp.product_id = p.id), false) as free,
              exists (select 1 from payment_method pm
@@ -43,4 +45,28 @@ export async function readEntitlement(
       where p.sku = ${input.sku} and ${ofSite}`,
   );
   return row;
+}
+
+export type EntitlementStatus =
+  'active' | 'expired' | 'revoked' | 'none' | 'requires_payment_method';
+
+// What the row means for the user now (FR-58, FR-61).
+export function describeEntitlement(row: EntitlementRow) {
+  // FR-58: the free plan is the card on file; there is nothing to buy and no row.
+  const freePlan = row.kind === 'subscription' && row.free;
+  let status: EntitlementStatus;
+  if (freePlan) status = row.has_card ? 'active' : 'requires_payment_method';
+  else if (row.status === null) status = 'none';
+  else if (row.status === 'revoked') status = 'revoked';
+  else status = row.unexpired ? 'active' : 'expired';
+  return {
+    sku: row.sku,
+    status,
+    active: status === 'active',
+    expiresAt:
+      !freePlan && row.status !== null && row.expires_at
+        ? new Date(row.expires_at).toISOString()
+        : null,
+    downloadable: status === 'active' && Boolean(row.downloadable),
+  };
 }

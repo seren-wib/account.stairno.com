@@ -19,6 +19,9 @@ export interface Env {
   BILLING_KEY_SECRET?: string;
   // Toss secret key, test_sk_... until business registration (FR-43). Unset means Toss is off.
   TOSS_SECRET_KEY?: string;
+  // Its client key, test_ck_..., which the account center's card window needs (FR-45). Public,
+  // but kept as a secret with its pair so the two cannot drift apart.
+  TOSS_CLIENT_KEY?: string;
   // PayPal REST app (sandbox until business registration) and its webhook's id (FR-49, FR-52)
   PAYPAL_CLIENT_ID?: string;
   PAYPAL_CLIENT_SECRET?: string;

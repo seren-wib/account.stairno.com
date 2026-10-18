@@ -55,7 +55,9 @@ export const paymentMethodRoutes = new Hono<AppEnv>()
       return notSetUp(c);
     }
     const items = await listPaymentMethods(c.var.deps.db, c.var.user.id);
-    return c.json({ items: items.map(paymentMethodJson), customerKey });
+    // The card window opens with this public key; null means it cannot open yet.
+    const clientKey = c.var.deps.tossClientKey ?? null;
+    return c.json({ items: items.map(paymentMethodJson), customerKey, clientKey });
   })
   .post('/toss', async (c) => {
     const { db, providers, billingKeySecret } = c.var.deps;

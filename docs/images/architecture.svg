@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="380" viewBox="0 0 860 380" role="img" aria-label="Architecture: the browser uses the account center at account.stairno.com and calls the API at api.stairno.com; the account center server checks the session with the API; the API stores data in Neon PostgreSQL and sends mail through Resend; Stairno sites sign people in through the API's OpenID Connect provider.">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#57606a"/>
+    </marker>
+    <style>
+      .t { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: #1f2328; }
+      .h { font-size: 15px; font-weight: 700; }
+      .s { font-size: 12px; fill: #57606a; }
+      .l { font-size: 11.5px; fill: #57606a; }
+      .box { fill: #ffffff; stroke: #d0d7de; stroke-width: 1.5; }
+      .key { fill: #ffffff; stroke: #1f2328; stroke-width: 2; }
+      .line { stroke: #57606a; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="1" y="1" width="858" height="378" rx="16" fill="#f6f8fa" stroke="#d0d7de"/>
+
+  <!-- Browser -->
+  <rect class="box" x="30" y="150" width="140" height="70" rx="10"/>
+  <text class="t h" x="100" y="180" text-anchor="middle">Browser</text>
+  <text class="t s" x="100" y="200" text-anchor="middle">a person</text>
+
+  <!-- Account center -->
+  <rect class="key" x="260" y="40" width="230" height="86" rx="10"/>
+  <text class="t h" x="375" y="70" text-anchor="middle">account.stairno.com</text>
+  <text class="t s" x="375" y="90" text-anchor="middle">Astro SSR Worker · @stairno/ui</text>
+  <text class="t s" x="375" y="108" text-anchor="middle">sign-in, sign-up, devices, profile</text>
+
+  <!-- API -->
+  <rect class="key" x="260" y="230" width="230" height="100" rx="10"/>
+  <text class="t h" x="375" y="260" text-anchor="middle">api.stairno.com</text>
+  <text class="t s" x="375" y="280" text-anchor="middle">Hono Worker · Better Auth</text>
+  <text class="t s" x="375" y="298" text-anchor="middle">/auth (sessions, OIDC provider)</text>
+  <text class="t s" x="375" y="316" text-anchor="middle">/v1 (me, sessions, connections)</text>
+
+  <!-- Neon -->
+  <rect class="box" x="600" y="200" width="220" height="60" rx="10"/>
+  <text class="t h" x="710" y="226" text-anchor="middle">Neon PostgreSQL</text>
+  <text class="t s" x="710" y="245" text-anchor="middle">Drizzle, HTTP driver</text>
+
+  <!-- Resend -->
+  <rect class="box" x="600" y="290" width="220" height="56" rx="10"/>
+  <text class="t h" x="710" y="315" text-anchor="middle">Resend</text>
+  <text class="t s" x="710" y="333" text-anchor="middle">verification and reset mail</text>
+
+  <!-- Sites -->
+  <rect class="box" x="600" y="40" width="220" height="86" rx="10"/>
+  <text class="t h" x="710" y="70" text-anchor="middle">Stairno sites</text>
+  <text class="t s" x="710" y="90" text-anchor="middle">Works · Games · Labs</text>
+  <text class="t s" x="710" y="108" text-anchor="middle">OIDC clients</text>
+
+  <!-- Browser to account center -->
+  <path class="line" d="M170 168 C 210 140, 225 105, 258 90"/>
+  <text class="t l" x="182" y="118">pages</text>
+
+  <!-- Browser to API -->
+  <path class="line" d="M170 202 C 210 230, 225 262, 258 272"/>
+  <text class="t l" x="150" y="262">fetch with the</text>
+  <text class="t l" x="150" y="277">session cookie</text>
+
+  <!-- Account center server to API -->
+  <path class="line" d="M375 126 L375 228"/>
+  <text class="t l" x="385" y="172">server checks the session,</text>
+  <text class="t l" x="385" y="187">forwarding the Cookie</text>
+
+  <!-- API to Neon and Resend -->
+  <path class="line" d="M490 262 L598 236"/>
+  <path class="line" d="M490 300 L598 316"/>
+
+  <!-- Sites to API -->
+  <path class="line" d="M640 126 C 620 170, 540 200, 492 238"/>
+  <text class="t l" x="660" y="155">sign in (OIDC, PKCE),</text>
+  <text class="t l" x="660" y="170">Bearer tokens for /v1</text>
+</svg>

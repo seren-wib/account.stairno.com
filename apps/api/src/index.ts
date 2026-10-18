@@ -128,6 +128,7 @@ function workerDeps(env: Env): Promise<Deps> {
       auth,
       origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL },
       paymentsMode,
+      tossClientKey: env.TOSS_CLIENT_KEY,
     };
   })().catch((error: unknown) => {
     deps = undefined;

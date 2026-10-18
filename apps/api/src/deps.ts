@@ -16,6 +16,8 @@ export interface Deps {
   providers: { toss: PaymentProvider; paypal: PaymentProvider };
   // Encrypts billing keys and derives customerKeys (FR-45, DR-4). Unset means no cards.
   billingKeySecret: string | undefined;
+  // Toss's public client key, the pair of TOSS_SECRET_KEY, for the card window (FR-45).
+  tossClientKey?: string | undefined;
 }
 
 export type AuthSession = Auth['$Infer']['Session'];

@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import {
+  allowedFrom,
   InvalidTransition,
   orderEvents,
   orderStatuses,
@@ -92,6 +93,14 @@ describe('order state machine', () => {
     transition(before, 'confirm', now);
 
     expect(before.status).toBe('pending');
+  });
+
+  // SDD §6.2: the SQL that applies a move guards on the statuses the table allows for that event,
+  // so the database and transition() never disagree.
+  it.each(orderEvents)('FR-36 names the statuses %s may leave from', (event) => {
+    const expected = allowed.filter(([, e]) => e === event).map(([from]) => from);
+
+    expect(allowedFrom(event).sort()).toEqual(expected.sort());
   });
 
   it('NFR-13 the state machine knows no payment provider', async () => {

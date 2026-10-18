@@ -1,9 +1,13 @@
 name: ci
 
+# Git Flow (CONTRIBUTING.md): the gate is the pull request into main (release and hotfix), which
+# the ruleset requires. A push to develop runs the same checks for information; nothing waits for
+# it. Feature pull requests into develop and the merge into main do not run it again.
 on:
   pull_request:
-  push:
     branches: [main]
+  push:
+    branches: [develop]
 
 concurrency:
   group: ci-${{ github.ref }}

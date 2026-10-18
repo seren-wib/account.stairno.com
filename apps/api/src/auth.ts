@@ -59,16 +59,16 @@ function idTokenClaims({
 export function createAuth(config: AuthConfig) {
   const secure = config.apiUrl.startsWith('https://');
 
-  // Auth mails link to an account center page in the user's language, which hands the token
-  // to the API (SDD §7.3). The user object carries the additional `locale` field.
-  async function sendAuthMail(
+  // Account mails link to an account center page in the user's language (SDD §7.3). The user
+  // object carries the additional `locale` field.
+  async function sendAccountMail(
     template: TemplateName,
     page: string,
     user: { id: string; email: string; name: string },
-    token: string,
+    query = '',
   ) {
     const locale = resolveLocale((user as { locale?: string }).locale);
-    const url = `${config.accountUrl}/${locale}/${page}?token=${encodeURIComponent(token)}`;
+    const url = `${config.accountUrl}/${locale}/${page}${query}`;
     const entry = { userId: user.id, template, locale, to: user.email };
     // FR-74: a failed send never fails the request. It is recorded, and the user can ask again.
     try {
@@ -87,6 +87,14 @@ export function createAuth(config: AuthConfig) {
       await config.db.insert(mailLog).values({ ...entry, status: 'failed', error: message });
     }
   }
+
+  // The page hands the token to the API.
+  const sendAuthMail = (
+    template: TemplateName,
+    page: string,
+    user: { id: string; email: string; name: string },
+    token: string,
+  ) => sendAccountMail(template, page, user, `?token=${encodeURIComponent(token)}`);
 
   return betterAuth({
     baseURL: config.apiUrl,
@@ -202,6 +210,15 @@ export function createAuth(config: AuthConfig) {
       },
     },
     hooks: {
+      // FR-83: a changed password is announced to the account address, with the way back if it
+      // was not the owner (NIST SP 800-63B-4 asks for a notice after the change).
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== '/change-password') return;
+        const returned = ctx.context.returned as
+          { user?: { id: string; email: string; name: string } } | APIError | undefined;
+        if (!returned || returned instanceof APIError || !returned.user) return;
+        await sendAccountMail('passwordChanged', 'forgot-password', returned.user);
+      }),
       before: createAuthMiddleware(async (ctx) => {
         // FR-8: deleting always asks for the password again. Better Auth alone would also
         // accept a session younger than a day without it.

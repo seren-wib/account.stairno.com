@@ -22,9 +22,17 @@ const message = {
 };
 
 describe('mail dictionaries', () => {
-  it('FR-72 FR-73 ko and en have the same keys and every first-phase template', () => {
+  it('FR-72 FR-73 ko and en have the same keys and every template of both phases', () => {
     expect([...flatten(en).keys()].sort()).toEqual([...flatten(ko).keys()].sort());
-    expect(Object.keys(ko).sort()).toEqual(['changeEmail', 'resetPassword', 'verifyEmail']);
+    expect(Object.keys(ko).sort()).toEqual([
+      'changeEmail',
+      'receipt',
+      'refundRejected',
+      'refunded',
+      'renewalFailed',
+      'resetPassword',
+      'verifyEmail',
+    ]);
     for (const value of [...flatten(ko).values(), ...flatten(en).values()]) {
       expect(value.trim()).not.toBe('');
     }
@@ -45,6 +53,19 @@ describe('renderMail', () => {
     const mail = renderMail('verifyEmail', 'en', vars);
     expect(mail.subject).toBe(en.verifyEmail.subject);
     expect(mail.text).toContain(vars.url);
+  });
+
+  it('FR-72 fills the product and the amount of a payment mail, escaped in HTML', () => {
+    const mail = renderMail('receipt', 'en', {
+      name: 'Yu',
+      url: 'https://account.stairno.com/en/orders',
+      product: 'Atlas <Pro>',
+      amount: '₩4,900',
+    });
+    expect(mail.text).toContain('Atlas <Pro>');
+    expect(mail.text).toContain('₩4,900');
+    expect(mail.html).toContain('Atlas &lt;Pro&gt;');
+    expect(mail.text).not.toMatch(/\{(product|amount|name)\}/);
   });
 
   it('FR-73 falls back to ko for an unsupported locale', () => {

@@ -23,9 +23,12 @@ Stairno 계정 센터(account.stairno.com)와 공용 API(api.stairno.com). Stair
 
 - 개발 방식은 TDD. 실패하는 테스트를 먼저 쓰고, 통과시키고, 정리한다. 테스트 없는 구현 커밋은 올리지 않는다. 테스트 이름에 SRS ID를 넣는다(`FR-3 returns the same body for an unknown email and a wrong password`)
 - 브랜치, 커밋, PR, 머지, 마이그레이션 규칙은 `CONTRIBUTING.md`
-- `main`에 직접 커밋하지 않는다. 모든 변경은 PR이고 CI가 통과해야 머지한다. 열린 PR은 하나만
-- 푸시 전 로컬에서는 바꾼 테스트 파일과 `format:check`, `check`, `db:check`만 돌린다. 전체 테스트는 CI가 한다. CI와 배포를 기다리는 동안 다음 이슈, 브랜치, 실패하는 테스트를 미리 준비한다. 다음 PR은 앞 PR이 배포된 뒤에 연다(2026-10-18)
-- 이슈와 PR은 기능 하나에 하나다. 문서, DB 연결, 인증, 화면, 테스트, CI를 한 PR에 묶지 않는다
+- 브랜치는 깃플로우다(2026-10-18). `main`은 출시본, `develop`은 다음 출시를 만드는 곳(기본 브랜치). `feature/*`는 develop에서 따서 develop으로, `release/vX.Y.Z`는 develop에서 따서 main과 develop으로, `hotfix/vX.Y.Z`는 main에서 따서 main과 develop으로 간다. 절차는 `CONTRIBUTING.md`
+- `main`에는 release와 hotfix의 PR만 들어간다. CI가 통과해야 하고 merge commit으로 머지한다. 머지하면 배포된다. main으로 가는 열린 PR은 하나만
+- `develop`에는 문서와 작은 수정을 바로 푸시한다. 기능은 feature 브랜치에서 PR로 develop에 넣되 CI를 기다리지 않는다(develop 푸시의 CI는 참고용)
+- 푸시 전 로컬에서는 바꾼 테스트 파일과 `format:check`, `check`, `db:check`만 돌린다. 전체 테스트는 CI가 한다. 작업 블록이 끝나면 release 브랜치를 따서 main으로 PR을 열고, 배포까지 확인해 보고한 뒤 멈춘다(2026-10-18)
+- 기능 하나가 브랜치 하나다. 그 기능의 API, 화면, 테스트, 문서 수정을 같이 넣는다. 그 기능에만 쓰이는 어댑터나 하다가 찾은 작은 수정은 같은 브랜치의 커밋으로 넣고, 다른 기능에도 걸리는 변경만 따로 둔다. 크기는 테스트 포함 300~800줄쯤, 1000줄이 넘으면 나눌 곳을 찾는다(2026-10-18)
+- 커밋은 기능의 조각마다 `test` → `feat` 한 쌍이다. 동작이 그대로인 이동과 정리는 그 쌍 앞에 `refactor` 커밋으로 따로 둔다. 커밋 하나는 혼자 되돌릴 수 있는 크기다(2026-10-18)
 - DB는 `apps/api`만 만진다(DR-1). `apps/account`는 Better Auth나 Drizzle을 import하지 않고 API를 HTTP로 부른다. 서버 렌더링 때는 들어온 `Cookie` 헤더를 그대로 전달한다
 - 결제사는 `apps/api/src/payments/provider.ts`의 `PaymentProvider` 어댑터 뒤에만 있다. 주문 상태 기계와 라우트는 토스페이먼츠, PayPal을 직접 부르지 않는다. 테스트는 가짜 어댑터로 돈다(NFR-13, NFR-16)
 - 금액은 정수 최소 단위와 통화 코드 쌍이다. 실수로 계산하지 않고 통화를 섞어 더하지 않는다(DR-9)
@@ -52,10 +55,10 @@ npm run format
 
 ## 배포
 
-`main`에 머지되면 `.github/workflows/deploy.yml`이 마이그레이션(Neon) → `apps/api` → `apps/account` 순서로 Workers에 올린다. 마이그레이션이 실패하면 배포하지 않는다. 시크릿과 설치 절차는 테스트와 배포 문서 7절.
+`main`에 release나 hotfix가 머지되면 `.github/workflows/deploy.yml`이 테스트 → 마이그레이션(Neon) → `apps/api` → `apps/account` 순서로 Workers에 올린다. 머지 커밋에 `vX.Y.Z` 태그를 찍고 main을 develop에 다시 합친다. 기능 블록은 MINOR, 핫픽스는 PATCH를 올린다(2026-10-18). 마이그레이션이 실패하면 배포하지 않는다. 시크릿과 설치 절차는 테스트와 배포 문서 7절.
 
 ## GitHub
 
-- 원격 `github.com/seren-wib/account.stairno.com` (public), 기본 브랜치 `main`
-- 룰셋: `main`은 PR 필수, CI 통과 필수, 삭제와 force push 금지
-- 머지는 rebase merge. feature 브랜치는 머지 직후 삭제
+- 원격 `github.com/seren-wib/account.stairno.com` (public), 기본 브랜치 `develop`
+- 룰셋: `main`은 PR 필수, CI(`verify`, `e2e`) 통과 필수, merge commit만, 삭제와 force push 금지. `develop`은 삭제와 force push 금지
+- feature → develop은 rebase merge, release·hotfix → main은 merge commit. 브랜치는 머지 직후 삭제

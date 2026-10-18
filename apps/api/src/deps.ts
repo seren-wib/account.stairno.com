@@ -1,6 +1,7 @@
 import type { SQL } from 'drizzle-orm';
 import type { Auth } from './auth';
 import type { Env } from './env';
+import type { Mailer } from './mail';
 import type { PaymentsMode } from './payments/mode';
 import type { PaymentProvider } from './payments/provider';
 
@@ -30,6 +31,8 @@ export interface Deps {
   // FR-62: the files, and the secret download links are signed with. No bucket, no downloads.
   downloads?: DownloadBucket | undefined;
   downloadSecret: string;
+  // Payment mails (FR-65, FR-72); the auth mails get the same mailer through createAuth.
+  mailer: Mailer;
 }
 
 export type AuthSession = Auth['$Infer']['Session'];

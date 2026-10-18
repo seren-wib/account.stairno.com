@@ -58,6 +58,7 @@ export async function createTestApp(
     paymentsMode: 'test',
     billingKeySecret: 'test-billing-key-secret-not-used-anywhere-else',
     downloadSecret: 'test-download-secret-not-used-anywhere-else',
+    mailer: mailer ?? mailbox,
     ...rest,
     providers: { toss: createFakeProvider(), paypal: createFakeProvider(), ...providers },
   };

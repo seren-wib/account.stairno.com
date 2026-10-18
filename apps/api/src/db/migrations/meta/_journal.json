@@ -43,6 +43,13 @@
       "when": 1792315483411,
       "tag": "0005_order_provider_order_id",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792326408457,
+      "tag": "0006_mail_log_order",
+      "breakpoints": true
     }
   ]
 }

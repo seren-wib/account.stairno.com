@@ -111,6 +111,7 @@ function workerDeps(env: Env): Promise<Deps> {
   deps ??= (async () => {
     const db = createDb(env.DATABASE_URL);
     const paymentsMode = parsePaymentsMode(env.PAYMENTS_MODE);
+    const mailer = createMailer({ apiKey: env.RESEND_API_KEY });
     const payments = {
       db,
       billingKeySecret: env.BILLING_KEY_SECRET,
@@ -131,7 +132,7 @@ function workerDeps(env: Env): Promise<Deps> {
       hubUrl: env.HUB_URL,
       cookieDomain: env.COOKIE_DOMAIN,
       secret: env.BETTER_AUTH_SECRET,
-      mailer: createMailer({ apiKey: env.RESEND_API_KEY }),
+      mailer,
       beforeDeleteUser: (userId) => removeBillingKeysOf(payments, userId),
     });
     await auth.$context;
@@ -144,6 +145,7 @@ function workerDeps(env: Env): Promise<Deps> {
       downloads: env.DOWNLOADS,
       // Download links are signed under a key derived from this, never with it directly.
       downloadSecret: env.BETTER_AUTH_SECRET,
+      mailer,
     };
   })().catch((error: unknown) => {
     deps = undefined;

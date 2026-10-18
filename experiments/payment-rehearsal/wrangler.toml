@@ -1,0 +1,12 @@
+name = "stairno-payment-rehearsal"
+main = "src/index.mjs"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+# Public settings. CLIENT_ID, CLIENT_SECRET and TOSS_CLIENT_KEY are Wrangler secrets (README).
+[vars]
+API_URL = "https://api.stairno.com"
+ACCOUNT_URL = "https://account.stairno.com"
+
+[observability]
+enabled = true

@@ -40,6 +40,21 @@ describe('legal documents', () => {
       expect(all).not.toContain(word);
     }
   });
+
+  // Until live payments the documents name a privacy desk, not a person (PIPA allows a department
+  // and its contact). The representative's name returns with business registration.
+  it('FR-31 names the privacy desk and its contact instead of a person', () => {
+    const all = [legal.ko.terms, legal.ko.privacy, legal.en.terms, legal.en.privacy]
+      .map(text)
+      .join('\n');
+    expect(all).not.toMatch(/남유성|YooSung|Nam\b/);
+    const officer = (locale: 'ko' | 'en') =>
+      legal[locale].privacy.sections.find((s) => s.heading.startsWith('12.'))?.body.join(' ') ?? '';
+    expect(officer('ko')).toContain('Stairno 개인정보 보호 담당');
+    expect(officer('ko')).toContain('contact@stairno.com');
+    expect(officer('en')).toContain('Stairno privacy desk');
+    expect(officer('en')).toContain('contact@stairno.com');
+  });
 });
 
 describe('terms and privacy pages', () => {

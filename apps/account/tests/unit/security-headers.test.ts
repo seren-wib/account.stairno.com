@@ -1,6 +1,6 @@
 import type { APIContext } from 'astro';
 import { describe, expect, it, vi } from 'vitest';
-import { connectSrc, createSecurityHeaders } from '../../src/lib/security-headers';
+import { connectSrc, createSecurityHeaders, imgSrc } from '../../src/lib/security-headers';
 
 describe('security headers', () => {
   it('NFR-7 lets pages call only the API besides their own origin', () => {
@@ -14,6 +14,11 @@ describe('security headers', () => {
     expect(connectSrc('https://api.stairno.com', ['https://*.tosspayments.com'])).toBe(
       "connect-src 'self' https://api.stairno.com https://*.tosspayments.com",
     );
+  });
+
+  it('NFR-7 FR-85 shows images from the page and the API (profile photos) only', () => {
+    expect(imgSrc('https://api.stairno.com')).toBe("img-src 'self' data: https://api.stairno.com");
+    expect(imgSrc(undefined)).toBe("img-src 'self' data:");
   });
 
   it('NFR-7 sends HSTS, nosniff, the referrer policy and no framing', async () => {

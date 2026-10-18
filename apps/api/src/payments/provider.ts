@@ -77,10 +77,13 @@ export interface PaymentProvider {
   // Billing keys are Toss only (FR-45, FR-46, FR-53)
   issueBillingKey?(input: { customerKey: string; authKey: string }): Promise<BillingKey>;
   deleteBillingKey?(billingKey: string): Promise<void>;
+  // A decline is a 'failed' result (FR-55 retries it); only the provider failing throws.
   chargeBillingKey?(input: {
     billingKey: string;
     customerKey: string;
     order: OrderRef;
+    // What the buyer's statement shows; Toss requires it
+    orderName: string;
   }): Promise<PaymentResult>;
   // null when the request cannot be trusted
   verifyWebhook(req: Request): Promise<WebhookEvent | null>;

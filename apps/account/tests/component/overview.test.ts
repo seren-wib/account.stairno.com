@@ -30,7 +30,7 @@ describe('overview', () => {
     const html = await render(true);
     expect(html).toContain('Yu Seong');
     expect(html).toContain('yu@example.com');
-    for (const page of ['profile', 'devices', 'connections', 'payment-methods']) {
+    for (const page of ['profile', 'devices', 'connections', 'payment-methods', 'subscriptions']) {
       expect(html).toContain(`href="/en/${page}/"`);
     }
   });
@@ -59,6 +59,7 @@ describe('signed-in frame', () => {
       'devices/',
       'connections/',
       'payment-methods/',
+      'subscriptions/',
       'delete/',
     ]) {
       expect(menu).toContain(`href="/en/${page}"`);

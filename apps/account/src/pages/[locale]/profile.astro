@@ -1,13 +1,9 @@
 ---
-import Profile from '../../components/sections/Profile.astro';
-import Account from '../../layouts/Account.astro';
-import { isLocale, t } from '../../i18n';
+import { isLocale } from '../../i18n';
+import { movedTo } from '../../lib/moved';
 
+// FR-30: this page is now a section of a category page (SRS 3.5, 2026-10-18).
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
-const dict = t(locale).profile;
+return Astro.redirect(movedTo(locale, 'profile', Astro.url.search), 301);
 ---
-
-<Account locale={locale} page="profile" heading={dict.heading}>
-  <Profile locale={locale} />
-</Account>

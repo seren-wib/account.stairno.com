@@ -10,10 +10,13 @@ interface Props {
   orders: Order[] | null;
   /** The next page of the full history, or a link to it from a shorter list. */
   more?: string | null;
+  /** The words on that link. */
+  moreLabel?: string;
 }
 
 const { locale, orders, more = null } = Astro.props;
 const dict = t(locale).orders;
+const moreLabel = Astro.props.moreLabel ?? dict.more;
 ---
 
 <div class="page-stack">
@@ -52,7 +55,7 @@ const dict = t(locale).orders;
   )}
   {more && (
     <a class="button form-submit" href={more}>
-      {dict.more}
+      {moreLabel}
     </a>
   )}
 </div>

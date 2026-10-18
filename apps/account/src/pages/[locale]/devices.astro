@@ -1,18 +1,9 @@
 ---
-import Devices from '../../components/sections/Devices.astro';
-import Account from '../../layouts/Account.astro';
-import { isLocale, t } from '../../i18n';
-import { apiGet } from '../../lib/api';
-import type { Session } from '../../lib/account-data';
+import { isLocale } from '../../i18n';
+import { movedTo } from '../../lib/moved';
 
+// FR-30: this page is now a section of a category page (SRS 3.5, 2026-10-18).
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
-const dict = t(locale).devices;
-
-// FR-7
-const list = await apiGet<{ items: Session[] }>(Astro.locals, Astro.request, '/v1/sessions');
+return Astro.redirect(movedTo(locale, 'devices', Astro.url.search), 301);
 ---
-
-<Account locale={locale} page="devices" heading={dict.heading}>
-  <Devices locale={locale} sessions={list?.items ?? null} />
-</Account>

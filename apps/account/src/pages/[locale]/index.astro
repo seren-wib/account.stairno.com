@@ -11,9 +11,11 @@ const messages = JSON.stringify({
   tooMany: dict.overview.tooMany,
   unavailable: dict.overview.unavailable,
 });
+// FR-29: the other four categories, each with what it holds.
+const categories = ['security', 'billing', 'library', 'account'] as const;
 ---
 
-<Account locale={locale} page="overview" heading={user?.name ?? dict.overview.heading}>
+<Account locale={locale} page="home" heading={user?.name ?? dict.overview.heading}>
   <dl class="detail-list">
     <div>
       <dt>{dict.overview.email}</dt>
@@ -42,27 +44,12 @@ const messages = JSON.stringify({
 
   <h2 class="section-title">{dict.overview.shortcuts}</h2>
   <ul class="shortcut-list">
-    <li>
-      <a href={localePath(locale, 'profile')}>{dict.account.menu.profile}</a>
-    </li>
-    <li>
-      <a href={localePath(locale, 'devices')}>{dict.account.menu.devices}</a>
-    </li>
-    <li>
-      <a href={localePath(locale, 'connections')}>{dict.account.menu.connections}</a>
-    </li>
-    <li>
-      <a href={localePath(locale, 'payment-methods')}>{dict.account.menu.paymentMethods}</a>
-    </li>
-    <li>
-      <a href={localePath(locale, 'orders')}>{dict.account.menu.orders}</a>
-    </li>
-    <li>
-      <a href={localePath(locale, 'subscriptions')}>{dict.account.menu.subscriptions}</a>
-    </li>
-    <li>
-      <a href={localePath(locale, 'downloads')}>{dict.account.menu.downloads}</a>
-    </li>
+    {categories.map((page) => (
+      <li>
+        <a href={localePath(locale, page)}>{dict.account.menu[page]}</a>
+        <span class="shortcut-note">{dict.account.descriptions[page]}</span>
+      </li>
+    ))}
   </ul>
 </Account>
 

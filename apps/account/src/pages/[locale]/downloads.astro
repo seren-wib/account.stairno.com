@@ -1,18 +1,9 @@
 ---
-import Downloads from '../../components/sections/Downloads.astro';
-import Account from '../../layouts/Account.astro';
-import { isLocale, t } from '../../i18n';
-import { apiGet } from '../../lib/api';
-import type { Download } from '../../lib/account-data';
+import { isLocale } from '../../i18n';
+import { movedTo } from '../../lib/moved';
 
+// FR-30: this page is now a section of a category page (SRS 3.5, 2026-10-18).
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
-const dict = t(locale).downloads;
-
-// FR-62: what the user may download now. The link itself is made on the click, so it is fresh.
-const list = await apiGet<{ items: Download[] }>(Astro.locals, Astro.request, '/v1/me/downloads');
+return Astro.redirect(movedTo(locale, 'downloads', Astro.url.search), 301);
 ---
-
-<Account locale={locale} page="downloads" heading={dict.heading}>
-  <Downloads locale={locale} downloads={list?.items ?? null} />
-</Account>

@@ -54,17 +54,10 @@ export type Dictionary = {
   footer: { heading: string; hub: string; source: string };
   account: {
     menuLabel: string;
-    menu: {
-      overview: string;
-      profile: string;
-      devices: string;
-      connections: string;
-      paymentMethods: string;
-      orders: string;
-      subscriptions: string;
-      downloads: string;
-      delete: string;
-    };
+    // The five categories (SRS 3.5): each one page, its own heading.
+    menu: { home: string; security: string; billing: string; library: string; account: string };
+    // What each category holds, for the shortcuts on the home page.
+    descriptions: { security: string; billing: string; library: string; account: string };
   };
   overview: {
     heading: string;
@@ -232,6 +225,9 @@ export type Dictionary = {
     decidedOn: string;
     back: string;
     notFound: string;
+    // On the billing page
+    recent: string;
+    all: string;
   };
   downloads: {
     heading: string;
@@ -264,6 +260,8 @@ export type Dictionary = {
   deleteAccount: {
     heading: string;
     warning: string;
+    /** The red button that opens the form. */
+    start: string;
     password: string;
     confirm: string;
     submit: string;

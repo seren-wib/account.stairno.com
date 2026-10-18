@@ -93,6 +93,8 @@ describe('POST /v1/downloads', () => {
     expect(minutes).toBeLessThanOrEqual(10);
     expect(url).not.toContain(ctx.user.email);
     expect(url).not.toContain('atlas-1.0.zip');
+    // The API's own address from its configuration, not whatever host the request came in on.
+    expect(url.startsWith(`${API_URL}/v1/downloads/`)).toBe(true);
 
     const file = await ctx.fetchLink(url);
     expect(file.status).toBe(200);

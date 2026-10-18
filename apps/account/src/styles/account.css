@@ -581,3 +581,56 @@ html[data-theme='dark'] {
     transform: none;
   }
 }
+
+/* FR-85: the profile photo, or the first letter of the name, beside its buttons. */
+.photo-row {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.avatar {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-initial {
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.photo-actions {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.photo-actions p {
+  margin: 0;
+}
+
+.photo-change {
+  display: inline-flex;
+  align-items: center;
+}
+
+.photo-change:focus-within {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -26,7 +26,7 @@ export const ko: LegalDocuments = {
       {
         heading: '제3조 운영자와 약관의 게시',
         body: [
-          '계정 서비스는 Stairno가 운영합니다. 운영자: 남유성, 연락처: contact@stairno.com.',
+          '계정 서비스는 Stairno가 운영합니다. 연락처: contact@stairno.com.',
           '이 약관은 가입 화면과 계정 센터의 이용약관 페이지에서 언제든 볼 수 있습니다.',
         ],
       },
@@ -192,8 +192,8 @@ export const ko: LegalDocuments = {
       {
         heading: '12. 개인정보 보호책임자',
         body: [
-          '개인정보 처리에 관한 업무를 총괄하고 문의와 불만을 처리하는 보호책임자는 다음과 같습니다.',
-          '성명: 남유성, 연락처: contact@stairno.com',
+          '개인정보 처리에 관한 업무를 총괄하고 문의와 불만을 처리하는 담당 부서는 다음과 같습니다.',
+          '담당: Stairno 개인정보 보호 담당, 연락처: contact@stairno.com',
         ],
       },
       {

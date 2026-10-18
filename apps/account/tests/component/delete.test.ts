@@ -1,6 +1,7 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
-import { describe, expect, it } from 'vitest';
-import Delete from '../../src/pages/[locale]/delete.astro';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import Home from '../../src/pages/[locale]/index.astro';
+import { stubApi } from './api-stub';
 import { deleteError } from '../../src/lib/delete-form';
 import { en } from '../../src/i18n/en';
 
@@ -9,11 +10,16 @@ const locals = {
   user: { id: 'u1', email: 'yu@example.com', name: 'Yu', emailVerified: true, locale: 'en' },
 } as unknown as App.Locals;
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 async function render() {
+  stubApi({});
   const container = await AstroContainer.create();
-  return container.renderToString(Delete, {
+  return container.renderToString(Home, {
     params: { locale: 'en' },
-    request: new Request('https://account.stairno.com/en/delete'),
+    request: new Request('https://account.stairno.com/en/'),
     locals,
   });
 }

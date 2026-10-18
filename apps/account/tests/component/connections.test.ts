@@ -1,7 +1,8 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Connections from '../../src/pages/[locale]/connections.astro';
+import Home from '../../src/pages/[locale]/index.astro';
 import { en } from '../../src/i18n/en';
+import { stubApi as stub } from './api-stub';
 
 const locals = {
   apiUrl: 'https://api.stairno.com',
@@ -13,17 +14,14 @@ afterEach(() => {
 });
 
 function stubApi(status: number, items: unknown[] = []) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async () => Response.json({ items, nextCursor: null }, { status })),
-  );
+  stub({ '/v1/connections': [status, { items, nextCursor: null }] });
 }
 
 async function render() {
   const container = await AstroContainer.create();
-  return container.renderToString(Connections, {
+  return container.renderToString(Home, {
     params: { locale: 'en' },
-    request: new Request('https://account.stairno.com/en/connections', {
+    request: new Request('https://account.stairno.com/en/', {
       headers: { cookie: 'stairno.session_token=abc' },
     }),
     locals,

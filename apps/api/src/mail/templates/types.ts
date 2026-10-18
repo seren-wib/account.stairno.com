@@ -14,6 +14,8 @@ export interface MailDictionary {
   verifyEmail: MailTemplate;
   resetPassword: MailTemplate;
   changeEmail: MailTemplate;
+  // FR-83: after a signed-in password change.
+  passwordChanged: MailTemplate;
   receipt: MailTemplate;
   renewalFailed: MailTemplate;
   refunded: MailTemplate;

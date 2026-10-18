@@ -54,17 +54,15 @@ export type Dictionary = {
   footer: { heading: string; hub: string; source: string };
   account: {
     menuLabel: string;
-    menu: {
-      overview: string;
-      profile: string;
-      devices: string;
-      connections: string;
-      paymentMethods: string;
-      orders: string;
-      subscriptions: string;
-      downloads: string;
-      delete: string;
-    };
+    // The five categories (SRS 3.5): each one page, its own heading.
+    // The four categories of the account page, top to bottom (SRS 3.5).
+    menu: { account: string; billing: string; library: string; security: string };
+    // Sign-in details in the Account category.
+    signIn: string;
+    password: string;
+    changeEmail: string;
+    changePassword: string;
+    back: string;
   };
   overview: {
     heading: string;
@@ -75,7 +73,6 @@ export type Dictionary = {
     resent: string;
     tooMany: string;
     unavailable: string;
-    shortcuts: string;
   };
   signIn: {
     heading: string;
@@ -154,6 +151,18 @@ export type Dictionary = {
     name: string;
     language: string;
     languages: { ko: string; en: string };
+    // FR-85
+    photo: string;
+    photoChange: string;
+    photoRemove: string;
+    photoHint: string;
+    photoTooBig: string;
+    photoType: string;
+    photoFailed: string;
+    // FR-84
+    country: string;
+    timezone: string;
+    notSet: string;
     save: string;
     saved: string;
     emailHeading: string;
@@ -163,6 +172,22 @@ export type Dictionary = {
     emailPending: string;
     emailSent: string;
     errors: { name: string; email: string; unavailable: string; tooMany: string };
+  };
+  password: {
+    heading: string;
+    current: string;
+    new: string;
+    hint: string;
+    submit: string;
+    done: string;
+    errors: {
+      currentMissing: string;
+      current: string;
+      passwordLength: string;
+      passwordBreached: string;
+      tooMany: string;
+      unavailable: string;
+    };
   };
   devices: {
     heading: string;
@@ -232,6 +257,9 @@ export type Dictionary = {
     decidedOn: string;
     back: string;
     notFound: string;
+    // On the billing page
+    recent: string;
+    all: string;
   };
   downloads: {
     heading: string;
@@ -264,6 +292,8 @@ export type Dictionary = {
   deleteAccount: {
     heading: string;
     warning: string;
+    /** The red button that opens the form. */
+    start: string;
     password: string;
     confirm: string;
     submit: string;

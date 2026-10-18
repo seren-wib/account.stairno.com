@@ -1,0 +1,112 @@
+---
+import { t, type Locale } from '../../i18n';
+import { formatDate } from '../../lib/api';
+import type { Session } from '../../lib/account-data';
+
+interface Props {
+  locale: Locale;
+  /** null when the list could not be read. */
+  sessions: Session[] | null;
+}
+
+const { locale, sessions } = Astro.props;
+const dict = t(locale).devices;
+const label = (s: Session) => [s.browser, s.os].filter(Boolean).join(' · ') || dict.unknown;
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
+---
+
+{sessions === null ? (
+  <p class="form-error">{dict.unavailable}</p>
+) : (
+  <>
+    <ul
+      class="item-list"
+      data-devices
+      data-api={Astro.locals.apiUrl}
+      data-unavailable={dict.unavailable}
+    >
+      {sessions.map((session) => (
+        <li class="item">
+          <div>
+            <p class="item-title">
+              {label(session)}
+              {session.current && <span class="badge">{dict.current}</span>}
+            </p>
+            <p class="item-meta">
+              {dict.signedIn} {formatDate(session.createdAt, locale, tz)} · {dict.lastUsed}{' '}
+              {formatDate(session.lastUsedAt, locale, tz)}
+            </p>
+          </div>
+          {!session.current && (
+            <button class="item-action" type="button" data-end-session={session.id}>
+              {dict.end}
+            </button>
+          )}
+        </li>
+      ))}
+    </ul>
+    {sessions.length > 1 && (
+      <div class="notice">
+        <p>{dict.othersBody}</p>
+        <button
+          class="button form-submit"
+          type="button"
+          data-sign-out-others
+          data-api={Astro.locals.apiUrl}
+        >
+          {dict.signOutOthers}
+        </button>
+      </div>
+    )}
+    <p class="form-error" role="alert" data-devices-error hidden />
+  </>
+)}
+
+<script>
+  const list = document.querySelector<HTMLElement>('[data-devices]');
+  const error = document.querySelector<HTMLElement>('[data-devices-error]');
+
+  // Runs the request; on success the server renders the new list.
+  async function act(button: HTMLButtonElement, request: () => Promise<Response>) {
+    button.disabled = true;
+    try {
+      if ((await request()).ok) {
+        window.location.reload();
+        return;
+      }
+    } catch {
+      // The API is unreachable.
+    }
+    if (error) {
+      error.textContent = list?.dataset.unavailable ?? '';
+      error.hidden = false;
+    }
+    button.disabled = false;
+  }
+
+  // FR-7: end one other session.
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-end-session]')) {
+    button.addEventListener('click', () =>
+      act(button, () =>
+        fetch(`${list?.dataset.api}/v1/sessions/${button.dataset.endSession}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        }),
+      ),
+    );
+  }
+
+  // FR-4: every session but this one.
+  const others = document.querySelector<HTMLButtonElement>('[data-sign-out-others]');
+  others?.addEventListener('click', () =>
+    act(others, () =>
+      fetch(`${others.dataset.api}/auth/revoke-other-sessions`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      }),
+    ),
+  );
+</script>

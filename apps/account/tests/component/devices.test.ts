@@ -1,8 +1,9 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Devices from '../../src/pages/[locale]/devices.astro';
+import Home from '../../src/pages/[locale]/index.astro';
 import { apiGet } from '../../src/lib/api';
 import { en } from '../../src/i18n/en';
+import { stubApi as stub } from './api-stub';
 
 const COOKIE = 'stairno.session_token=abc';
 const locals = {
@@ -37,16 +38,16 @@ afterEach(() => {
 });
 
 function stubApi(status = 200, body: unknown = sessions) {
-  const api = vi.fn(async (_url: string, _init?: RequestInit) => Response.json(body, { status }));
-  vi.stubGlobal('fetch', api);
-  return api;
+  return stub({ '/v1/sessions': [status, body] });
 }
 
 async function render() {
   const container = await AstroContainer.create();
-  return container.renderToString(Devices, {
+  return container.renderToString(Home, {
     params: { locale: 'en' },
-    request: new Request('https://account.stairno.com/en/devices', { headers: { cookie: COOKIE } }),
+    request: new Request('https://account.stairno.com/en/', {
+      headers: { cookie: COOKIE },
+    }),
     locals,
   });
 }
@@ -69,7 +70,9 @@ describe('apiGet', () => {
 
   it('returns null when the API fails', async () => {
     stubApi(500, { error: { code: 'internal_error', message: 'x' } });
-    expect(await apiGet(locals, new Request('https://account.stairno.com/'), '/v1/me')).toBeNull();
+    expect(
+      await apiGet(locals, new Request('https://account.stairno.com/'), '/v1/sessions'),
+    ).toBeNull();
   });
 });
 

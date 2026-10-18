@@ -1,0 +1,86 @@
+---
+import { localePath, t, type Locale } from '../../i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+// FR-30: the email and the password, each with only a small link to the page that changes it.
+// FR-2, FR-74: an unconfirmed address keeps its notice and resend button here.
+const { locale } = Astro.props;
+const dict = t(locale);
+const user = Astro.locals.user;
+const messages = JSON.stringify({
+  resent: dict.overview.resent,
+  tooMany: dict.overview.tooMany,
+  unavailable: dict.overview.unavailable,
+});
+---
+
+<dl class="detail-list sign-in-list">
+  <div>
+    <dt>{dict.overview.email}</dt>
+    <dd>
+      <span class="sign-in-value">{user?.email}</span>
+      <a class="change-link" href={localePath(locale, 'email')}>
+        {dict.account.changeEmail}
+      </a>
+    </dd>
+  </div>
+  <div>
+    <dt>{dict.account.password}</dt>
+    <dd>
+      <span class="sign-in-value" aria-hidden="true">
+        ••••••••
+      </span>
+      <a class="change-link" href={localePath(locale, 'password')}>
+        {dict.account.changePassword}
+      </a>
+    </dd>
+  </div>
+</dl>
+
+{user?.emailVerified ? (
+  <p class="status">{dict.overview.verified}</p>
+) : (
+  <div class="notice">
+    <p>{dict.overview.unverified}</p>
+    <button
+      class="button form-submit"
+      type="button"
+      data-resend-verification
+      data-email={user?.email}
+      data-api={Astro.locals.apiUrl}
+      data-messages={messages}
+    >
+      {dict.overview.resend}
+    </button>
+    <p class="form-note" role="status" data-resend-result />
+  </div>
+)}
+
+<script>
+  // FR-74: once a minute; the API answers 429 to a second request.
+  const button = document.querySelector<HTMLButtonElement>('[data-resend-verification]');
+  button?.addEventListener('click', async () => {
+    const { api = '', email = '', messages = '{}' } = button.dataset;
+    const text = JSON.parse(messages) as Record<'resent' | 'tooMany' | 'unavailable', string>;
+    const result = document.querySelector<HTMLElement>('[data-resend-result]');
+    button.disabled = true;
+    let message = text.unavailable;
+    try {
+      const res = await fetch(`${api}/auth/send-verification-email`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) message = text.resent;
+      else if (res.status === 429) message = text.tooMany;
+    } catch {
+      // The API is unreachable.
+    }
+    if (result) result.textContent = message;
+    button.disabled = false;
+  });
+</script>

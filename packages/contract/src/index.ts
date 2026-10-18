@@ -13,5 +13,6 @@ export {
 } from './payments';
 export { pageQuerySchema, type PageQuery } from './pages';
 export { profileUpdateSchema, type ProfileUpdate } from './profile';
+export { countries, countrySchema, timeZoneSchema, type Country } from './region';
 export { signUpInputSchema, type SignUpInput } from './sign-up';
 export { termsVersion, termsVersionSchema } from './terms';

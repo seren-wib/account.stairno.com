@@ -1,8 +1,8 @@
 ---
+import Orders from '../../../components/sections/Orders.astro';
 import Account from '../../../layouts/Account.astro';
 import { isLocale, localePath, t } from '../../../i18n';
-import { apiGet, formatDate } from '../../../lib/api';
-import { formatMoney } from '../../../lib/money';
+import { apiGet } from '../../../lib/api';
 import type { Order } from '../../../lib/orders';
 
 const { locale } = Astro.params;
@@ -16,51 +16,11 @@ const list = await apiGet<{ items: Order[]; nextCursor: string | null }>(
   Astro.request,
   `/v1/me/orders${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`,
 );
-const orders = list?.items ?? null;
 const next = list?.nextCursor
   ? `${localePath(locale, 'orders')}?cursor=${encodeURIComponent(list.nextCursor)}`
   : null;
 ---
 
-<Account locale={locale} page="orders" heading={dict.heading}>
-  <div class="page-stack">
-    <p class="form-note">{dict.intro}</p>
-    {orders === null ? (
-      <p class="form-error">{dict.unavailable}</p>
-    ) : orders.length === 0 ? (
-      <p class="status">{dict.empty}</p>
-    ) : (
-      <ul class="item-list">
-        {orders.map((order) => (
-          <li class="item">
-            <div>
-              <p class="item-title">
-                {order.name[locale]}
-                <span class="badge">
-                  {dict.statuses[order.status as keyof typeof dict.statuses] ?? order.status}
-                </span>
-                {order.refundRequest && (
-                  <span class="badge">
-                    {dict.refund[order.refundRequest.status as keyof typeof dict.refund]}
-                  </span>
-                )}
-              </p>
-              <p class="item-meta">
-                {formatDate(order.createdAt, locale)} ·{' '}
-                {formatMoney(order.amount, order.currency, locale)}
-              </p>
-            </div>
-            <a class="item-action" href={localePath(locale, `orders/${order.id}`)}>
-              {dict.open}
-            </a>
-          </li>
-        ))}
-      </ul>
-    )}
-    {next && (
-      <a class="button form-submit" href={next}>
-        {dict.more}
-      </a>
-    )}
-  </div>
+<Account locale={locale} current="orders" path="orders" heading={dict.heading}>
+  <Orders locale={locale} orders={list?.items ?? null} more={next} />
 </Account>

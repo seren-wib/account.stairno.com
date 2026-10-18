@@ -40,6 +40,41 @@ describe('profile', () => {
     expect((await sessionUser(app, cookie))?.locale).toBe('en');
   });
 
+  it('FR-84 sets the country and the time zone, and clears them', async () => {
+    const { app, cookie } = await setup();
+
+    const set = await post(
+      app,
+      '/auth/update-user',
+      { country: 'KR', timezone: 'Asia/Seoul' },
+      cookie,
+    );
+    expect(set.status).toBe(200);
+    expect(await sessionUser(app, cookie)).toMatchObject({ country: 'KR', timezone: 'Asia/Seoul' });
+
+    const cleared = await post(app, '/auth/update-user', { country: null, timezone: null }, cookie);
+    expect(cleared.status).toBe(200);
+    expect(await sessionUser(app, cookie)).toMatchObject({ country: null, timezone: null });
+  });
+
+  it('FR-84 refuses an unknown country or time zone and keeps what was there', async () => {
+    const { app, cookie } = await setup();
+    await post(app, '/auth/update-user', { country: 'KR', timezone: 'Asia/Seoul' }, cookie);
+
+    expect((await post(app, '/auth/update-user', { country: 'XX' }, cookie)).status).toBe(400);
+    expect((await post(app, '/auth/update-user', { timezone: 'Mars/Base' }, cookie)).status).toBe(
+      400,
+    );
+    expect(await sessionUser(app, cookie)).toMatchObject({ country: 'KR', timezone: 'Asia/Seoul' });
+  });
+
+  it('FR-84 starts with neither: both are optional', async () => {
+    const { app, cookie } = await setup();
+    const user = await sessionUser(app, cookie);
+    expect(user?.country ?? null).toBeNull();
+    expect(user?.timezone ?? null).toBeNull();
+  });
+
   it('FR-78 rejects a language other than ko and en on sign-up', async () => {
     const { app } = await createTestApp();
     expect((await signUp(app, { locale: 'fr' })).res.status).toBe(400);

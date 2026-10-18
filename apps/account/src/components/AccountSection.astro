@@ -1,0 +1,22 @@
+---
+// One section inside a category of the account page (SDD §7.1). The id is the menu's anchor.
+interface Props {
+  id: string;
+  title: string;
+  /** The danger zone at the very end of the page. */
+  danger?: boolean;
+}
+
+const { id, title, danger = false } = Astro.props;
+---
+
+<section
+  class:list={['account-section', { 'account-section-danger': danger }]}
+  id={id}
+  aria-labelledby={`${id}-title`}
+>
+  <h3 class="section-title" id={`${id}-title`}>
+    {title}
+  </h3>
+  <slot />
+</section>

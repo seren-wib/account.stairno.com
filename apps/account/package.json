@@ -1,6 +1,6 @@
 {
   "name": "@stairno-account/account",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.0",
-    "@stairno-account/contract": "^0.4.0",
+    "@stairno-account/contract": "^0.4.1",
     "@stairno/ui": "github:seren-wib/stairno-ui#v0.2.2",
     "astro": "^7.4.0"
   }

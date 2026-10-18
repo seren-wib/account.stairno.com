@@ -11,6 +11,11 @@ export function connectSrc(
   return `connect-src ${["'self'", ...(apiUrl ? [apiUrl] : []), ...extra].join(' ')}`;
 }
 
+// FR-85: images come from the page itself and from the API, where profile photos live.
+export function imgSrc(apiUrl: string | undefined): `img-src ${string}` {
+  return `img-src ${["'self'", 'data:', ...(apiUrl ? [apiUrl] : [])].join(' ')}`;
+}
+
 // Headers a <meta> policy cannot carry, on every response.
 export function createSecurityHeaders() {
   return async (_context: APIContext, next: MiddlewareNext) => {

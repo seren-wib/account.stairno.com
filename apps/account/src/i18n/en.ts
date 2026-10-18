@@ -6,7 +6,7 @@ export const en: Dictionary = {
     description: 'One Stairno account for every Stairno project.',
   },
   nav: {
-    overview: 'Overview',
+    overview: 'Home',
     switchLocale: '한국어',
     theme: {
       light: 'Switch to light mode',
@@ -25,17 +25,12 @@ export const en: Dictionary = {
   footer: { heading: 'Stairno', hub: 'stairno.com', source: 'Source code' },
   account: {
     menuLabel: 'Account menu',
-    menu: {
-      overview: 'Overview',
-      profile: 'Profile',
-      devices: 'Signed-in devices',
-      connections: 'Connected sites',
-      paymentMethods: 'Payment methods',
-      orders: 'Orders',
-      subscriptions: 'Subscriptions',
-      downloads: 'Downloads',
-      delete: 'Delete account',
-    },
+    menu: { account: 'Account', billing: 'Billing', library: 'Library', security: 'Security' },
+    signIn: 'Sign-in details',
+    password: 'Password',
+    changeEmail: 'Change your email?',
+    changePassword: 'Change your password?',
+    back: 'Back to your account',
   },
   overview: {
     heading: 'Account',
@@ -46,7 +41,6 @@ export const en: Dictionary = {
     resent: 'We sent the verification mail again.',
     tooMany: 'The verification mail can be sent once a minute.',
     unavailable: 'This is not possible right now. Please try again shortly.',
-    shortcuts: 'Shortcuts',
   },
   signIn: {
     heading: 'Sign in',
@@ -66,7 +60,7 @@ export const en: Dictionary = {
     name: 'Name',
     email: 'Email',
     password: 'Password',
-    passwordHint: '8 to 128 characters',
+    passwordHint: 'At least 8 characters',
     terms: 'Terms of Service',
     privacy: 'Privacy Policy',
     accept: 'I am 14 or older and agree to the {terms} and the {privacy} (version {version})',
@@ -81,7 +75,7 @@ export const en: Dictionary = {
     errors: {
       name: 'Please enter your name.',
       email: 'Please check the email address.',
-      passwordLength: 'Choose a password of 8 to 128 characters.',
+      passwordLength: 'Choose a password of at least 8 characters.',
       passwordBreached: 'This password has appeared in a data breach. Please choose another.',
       emailTaken: 'This email already has an account. Please sign in.',
       terms:
@@ -106,7 +100,7 @@ export const en: Dictionary = {
   resetPassword: {
     heading: 'New password',
     password: 'New password',
-    passwordHint: '8 to 128 characters',
+    passwordHint: 'At least 8 characters',
     submit: 'Change password',
     done: 'Password changed',
     doneBody:
@@ -116,7 +110,7 @@ export const en: Dictionary = {
     noscript: 'Turn on JavaScript to change the password.',
     errors: {
       expired: 'This link has expired or was already used. Please get a new one.',
-      passwordLength: 'Choose a password of 8 to 128 characters.',
+      passwordLength: 'Choose a password of at least 8 characters.',
       passwordBreached: 'This password has appeared in a data breach. Please choose another.',
       tooMany: 'Too many tries. Please try again in a minute.',
       unavailable: 'This is not possible right now. Please try again shortly.',
@@ -127,6 +121,16 @@ export const en: Dictionary = {
     name: 'Name',
     language: 'Language',
     languages: { ko: '한국어', en: 'English' },
+    photo: 'Photo',
+    photoChange: 'Change photo',
+    photoRemove: 'Remove photo',
+    photoHint: 'PNG, JPEG or WebP. The centre is cut to a square.',
+    photoTooBig: 'The photo is too large. Please choose another.',
+    photoType: 'Only PNG, JPEG and WebP photos can be used.',
+    photoFailed: 'The photo could not be changed. Please try again shortly.',
+    country: 'Country or region',
+    timezone: 'Time zone',
+    notSet: 'Not set',
     save: 'Save',
     saved: 'Saved.',
     emailHeading: 'Email',
@@ -141,6 +145,22 @@ export const en: Dictionary = {
       email: 'Please check the email address.',
       unavailable: 'This could not be saved right now. Please try again shortly.',
       tooMany: 'Too many tries. Please try again in a minute.',
+    },
+  },
+  password: {
+    heading: 'Password',
+    current: 'Current password',
+    new: 'New password',
+    hint: 'At least 8 characters. Changing it signs you out on every other device.',
+    submit: 'Change password',
+    done: 'Your password is changed. Every other device was signed out.',
+    errors: {
+      currentMissing: 'Please enter your current password.',
+      current: 'The current password is not right.',
+      passwordLength: 'Choose a password of at least 8 characters.',
+      passwordBreached: 'This password has appeared in a data breach. Please choose another.',
+      tooMany: 'Too many tries. Please try again in a minute.',
+      unavailable: 'The password could not be changed right now. Please try again shortly.',
     },
   },
   devices: {
@@ -233,6 +253,8 @@ export const en: Dictionary = {
     decidedOn: 'Decided',
     back: 'Back to orders',
     notFound: 'There is no such order.',
+    recent: 'Recent orders',
+    all: 'See all orders',
   },
   downloads: {
     heading: 'Downloads',
@@ -280,6 +302,7 @@ export const en: Dictionary = {
   },
   deleteAccount: {
     heading: 'Delete account',
+    start: 'Delete this account',
     warning:
       'Deleting the account removes your sign-in details, the sign-ins on every device and the connected sites at once. This cannot be undone. You can sign up again with the same email, but it will be a new account.',
     password: 'Password',
@@ -314,9 +337,10 @@ export const en: Dictionary = {
     done: 'Email confirmed',
     doneBody: 'Every part of your Stairno account now works with this address.',
     expired: 'This link has expired or was already used.',
-    expiredBody: 'Sign in and ask for a new verification mail on the account overview.',
-    overview: 'Go to the overview',
+    expiredBody:
+      'Sign in and ask for a new verification mail under sign-in details on your account page.',
+    overview: 'Go to your account',
   },
   legal: { version: 'Version' },
-  notFound: { heading: 'Page not found', home: 'Back to the overview' },
+  notFound: { heading: 'Page not found', home: 'Back to your account' },
 };

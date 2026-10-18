@@ -7,6 +7,7 @@ import { createApp, type Deps } from '../../src/index';
 import * as schema from '../../src/db/schema';
 import type { Mailer } from '../../src/mail';
 import { removeBillingKeysOf } from '../../src/payments/account-deletion';
+import { removeAvatarsOf } from '../../src/avatars/store';
 import { createFakeProvider } from '../../src/payments/fake';
 import { createMemoryMailbox } from './mailbox';
 
@@ -46,7 +47,10 @@ export async function createTestApp(
     cookieDomain: 'stairno.com',
     secret: 'test-secret-not-used-anywhere-else-0123456789',
     // Reads `deps` only when an account is deleted, after it exists, and sees what a test swapped.
-    beforeDeleteUser: (userId) => removeBillingKeysOf(deps, userId),
+    beforeDeleteUser: async (userId) => {
+      await removeBillingKeysOf(deps, userId);
+      await removeAvatarsOf(deps, userId);
+    },
     ...urls,
   });
   const origins = { account: urls.accountUrl ?? ACCOUNT_URL, hub: urls.hubUrl ?? HUB_URL };

@@ -1,57 +1,80 @@
 ---
-// The frame of every signed-in page (SDD §7.1): the page menu beside the content. The header's
-// account menu (FR-82) comes from Base, which reads the user the session guard put in locals.
+// The frame of every signed-in page (SDD §7.1): the account page's four categories and their
+// sections beside the content. Every link points at the account page, so on it a click scrolls to
+// the place and elsewhere it goes there. The menu stays below the header while the page scrolls
+// and marks the one section in view. The header's account menu (FR-82) comes from Base.
 import Base from './Base.astro';
 import { localePath, t, type Locale } from '../i18n';
 
-export type AccountPage =
-  | 'overview'
-  | 'profile'
-  | 'devices'
-  | 'connections'
-  | 'paymentMethods'
-  | 'orders'
-  | 'subscriptions'
-  | 'downloads'
-  | 'delete';
+export type AccountCategory = 'account' | 'billing' | 'library' | 'security';
 
 interface Props {
   locale: Locale;
-  page: AccountPage;
   heading: string;
+  /** On a sub-page, the section it belongs to. The account page marks the one in view. */
+  current?: string;
+  /** Path below the locale prefix, for the locale switch. */
+  path?: string;
   /** Passed to Base: hosts this page's browser code calls besides the API (NFR-7). */
   connect?: string[];
 }
 
-const { locale, page, heading, connect } = Astro.props;
-const dict = t(locale).account;
+const { locale, heading, current, path = '', connect } = Astro.props;
+const all = t(locale);
+const dict = all.account;
+const home = localePath(locale, '');
 
-const items: { page: AccountPage; path: string }[] = [
-  { page: 'overview', path: '' },
-  { page: 'profile', path: 'profile' },
-  { page: 'devices', path: 'devices' },
-  { page: 'connections', path: 'connections' },
-  { page: 'paymentMethods', path: 'payment-methods' },
-  { page: 'orders', path: 'orders' },
-  { page: 'subscriptions', path: 'subscriptions' },
-  { page: 'downloads', path: 'downloads' },
-  { page: 'delete', path: 'delete' },
+// SRS 3.5: the page order, top to bottom.
+const categories: { id: AccountCategory; sections: { id: string; label: string }[] }[] = [
+  {
+    id: 'account',
+    sections: [
+      { id: 'profile', label: all.profile.heading },
+      { id: 'sign-in', label: dict.signIn },
+    ],
+  },
+  {
+    id: 'billing',
+    sections: [
+      { id: 'payment-methods', label: all.paymentMethods.heading },
+      { id: 'subscriptions', label: all.subscriptions.heading },
+      { id: 'orders', label: all.orders.recent },
+    ],
+  },
+  { id: 'library', sections: [{ id: 'downloads', label: all.downloads.heading }] },
+  {
+    id: 'security',
+    sections: [
+      { id: 'devices', label: all.devices.heading },
+      { id: 'connections', label: all.connections.heading },
+      { id: 'delete-account', label: all.deleteAccount.heading },
+    ],
+  },
 ];
-const current = items.find((item) => item.page === page);
 ---
 
-<Base locale={locale} path={current?.path ?? ''} heading={heading} connect={connect}>
+<Base locale={locale} path={path} heading={heading} connect={connect}>
   <div class="account-grid">
     <nav class="account-menu" aria-label={dict.menuLabel}>
       <ul>
-        {items.map((item) => (
+        {categories.map((category) => (
           <li>
-            <a
-              href={localePath(locale, item.path)}
-              aria-current={item.page === page ? 'page' : undefined}
-            >
-              {dict.menu[item.page]}
+            <a href={`${home}#${category.id}`} data-category-link={category.id}>
+              {dict.menu[category.id]}
             </a>
+            <ul class="account-submenu">
+              {category.sections.map((section) => (
+                <li>
+                  <a
+                    href={`${home}#${section.id}`}
+                    data-section-link={section.id}
+                    aria-current={section.id === current ? 'location' : undefined}
+                  >
+                    {section.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </li>
         ))}
       </ul>
@@ -61,3 +84,67 @@ const current = items.find((item) => item.page === page);
     </div>
   </div>
 </Base>
+
+<script>
+  // On the account page, mark the one section in view (only that link, not its category).
+  // Without this script the links still work.
+  const links = document.querySelectorAll<HTMLAnchorElement>('[data-section-link]');
+  const sections = [...document.querySelectorAll<HTMLElement>('.account-section')];
+  if (sections.length > 0) {
+    const mark = (section: HTMLElement) => {
+      for (const link of links) {
+        if (link.dataset.sectionLink === section.id) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      }
+    };
+    // The section in view is the last one whose top has passed the line under the fixed header,
+    // the same line a menu jump stops it at (its scroll-margin-top). So a jump lights the link
+    // that was clicked, even for a short section. At the very bottom the last section wins,
+    // since a short last section never reaches that line.
+    const atBottom = () =>
+      window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+    const update = () => {
+      let current = sections[0];
+      for (const section of sections) {
+        const line = parseFloat(getComputedStyle(section).scrollMarginTop) + 4;
+        if (section.getBoundingClientRect().top <= line) current = section;
+      }
+      if (atBottom()) current = sections.at(-1) ?? current;
+      if (current) mark(current);
+    };
+    // A clicked link stays lit until its jump ends: near the bottom the page cannot scroll far
+    // enough for the line rule to reach it.
+    let jumping = false;
+    let jumpTimer: number | undefined;
+    const endJump = () => {
+      jumping = false;
+      window.clearTimeout(jumpTimer);
+    };
+    for (const link of links) {
+      const section = sections.find((s) => s.id === link.dataset.sectionLink);
+      link.addEventListener('click', () => {
+        if (!section) return;
+        mark(section);
+        jumping = true;
+        window.clearTimeout(jumpTimer);
+        jumpTimer = window.setTimeout(endJump, 1500);
+      });
+    }
+    window.addEventListener('scrollend', endJump);
+    let queued = false;
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (jumping || queued) return;
+        queued = true;
+        requestAnimationFrame(() => {
+          queued = false;
+          update();
+        });
+      },
+      { passive: true },
+    );
+    window.addEventListener('resize', update);
+    update();
+  }
+</script>

@@ -1,0 +1,134 @@
+---
+import { localePath, t, type Locale } from '../../i18n';
+import { formatDate } from '../../lib/api';
+import type { Subscription } from '../../lib/account-data';
+import { cardLabel } from '../../lib/cards';
+import { formatMoney } from '../../lib/money';
+
+interface Props {
+  locale: Locale;
+  /** null when the list could not be read. */
+  subscriptions: Subscription[] | null;
+  /** Where an overdue subscription sends the user to check the card. */
+  cardsHref?: string;
+}
+
+const {
+  locale,
+  subscriptions,
+  cardsHref = `${localePath(locale, '')}#payment-methods`,
+} = Astro.props;
+const all = t(locale);
+const dict = all.subscriptions;
+
+const live = (s: Subscription) => s.status === 'active' || s.status === 'past_due';
+
+const messages = JSON.stringify({
+  unavailable: dict.unavailable,
+  invalidTransition: dict.invalidTransition,
+});
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
+---
+
+<div class="page-stack">
+  <p class="form-note">{dict.intro}</p>
+  <p
+    class="form-error"
+    role="alert"
+    data-subscriptions-error
+    data-api={Astro.locals.apiUrl}
+    data-messages={messages}
+    hidden
+  ></p>
+  {subscriptions === null ? (
+    <p class="form-error">{dict.unavailable}</p>
+  ) : subscriptions.length === 0 ? (
+    <p class="status">{dict.empty}</p>
+  ) : (
+    <ul class="item-list">
+      {subscriptions.map((s) => (
+        <li class="item">
+          <div>
+            <p class="item-title">
+              {s.name[locale]}
+              <span class="badge">{dict.statuses[s.status]}</span>
+            </p>
+            <p class="item-meta">
+              {s.status === 'active' && !s.cancelAtPeriodEnd && s.amount !== null
+                ? dict.renews
+                    .replace('{amount}', formatMoney(s.amount, s.currency, locale))
+                    .replace('{date}', formatDate(s.currentPeriodEnd, locale, tz))
+                : `${live(s) ? dict.endsOn : dict.endedOn} ${formatDate(s.currentPeriodEnd, locale, tz)}`}
+            </p>
+            {live(s) && (
+              <p class="item-meta">
+                {dict.card} {s.card ? cardLabel(all.paymentMethods, s.card) : dict.noCard}
+              </p>
+            )}
+            {s.status === 'past_due' && (
+              <p class="item-meta">
+                {dict.overdue} <a href={cardsHref}>{dict.cards}</a>
+              </p>
+            )}
+          </div>
+          {live(s) &&
+            (s.cancelAtPeriodEnd ? (
+              <button class="item-action" type="button" data-resume-subscription={s.id}>
+                {dict.resume}
+              </button>
+            ) : (
+              <button class="item-action" type="button" data-cancel-subscription={s.id}>
+                {dict.cancel}
+              </button>
+            ))}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
+<script>
+  const error = document.querySelector<HTMLElement>('[data-subscriptions-error]');
+  const api = error?.dataset.api;
+  const messages = JSON.parse(error?.dataset.messages ?? '{}') as {
+    unavailable: string;
+    invalidTransition: string;
+  };
+
+  // FR-56: the API answers with the subscription as it now is; the page shows it again.
+  async function change(button: HTMLButtonElement, id: string, action: 'cancel' | 'resume') {
+    button.disabled = true;
+    try {
+      const res = await fetch(`${api}/v1/subscriptions/${id}/${action}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        window.location.reload();
+        return;
+      }
+      if (error) {
+        error.textContent = res.status === 409 ? messages.invalidTransition : messages.unavailable;
+        error.hidden = false;
+      }
+    } catch {
+      if (error) {
+        error.textContent = messages.unavailable;
+        error.hidden = false;
+      }
+    }
+    button.disabled = false;
+  }
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-cancel-subscription]')) {
+    button.addEventListener('click', () =>
+      change(button, button.dataset.cancelSubscription ?? '', 'cancel'),
+    );
+  }
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-resume-subscription]')) {
+    button.addEventListener('click', () =>
+      change(button, button.dataset.resumeSubscription ?? '', 'resume'),
+    );
+  }
+</script>

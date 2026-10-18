@@ -4,7 +4,13 @@ import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import { jwt } from 'better-auth/plugins/jwt';
 import { oauthProvider } from '@better-auth/oauth-provider';
-import { localeSchema, termsVersion, termsVersionSchema } from '@stairno-account/contract';
+import {
+  countrySchema,
+  localeSchema,
+  termsVersion,
+  termsVersionSchema,
+  timeZoneSchema,
+} from '@stairno-account/contract';
 import * as schema from './db/schema';
 import { mailLog } from './db/schema';
 import { renderMail, resolveLocale, type Mailer, type TemplateName } from './mail';
@@ -51,7 +57,19 @@ function idTokenClaims({
 }) {
   return {
     ...(scopes.includes('email') ? { email: user.email, email_verified: user.emailVerified } : {}),
-    ...(scopes.includes('profile') ? { name: user.name, locale: user.locale } : {}),
+    ...(scopes.includes('profile')
+      ? { name: user.name, locale: user.locale, ...region(user) }
+      : {}),
+  };
+}
+
+// FR-84, FR-85: the country, the time zone as the standard `zoneinfo` claim and the photo as
+// `picture`, only when set.
+function region(user: Record<string, unknown>) {
+  return {
+    ...(user.image ? { picture: user.image } : {}),
+    ...(user.country ? { country: user.country } : {}),
+    ...(user.timezone ? { zoneinfo: user.timezone } : {}),
   };
 }
 
@@ -59,16 +77,16 @@ function idTokenClaims({
 export function createAuth(config: AuthConfig) {
   const secure = config.apiUrl.startsWith('https://');
 
-  // Auth mails link to an account center page in the user's language, which hands the token
-  // to the API (SDD §7.3). The user object carries the additional `locale` field.
-  async function sendAuthMail(
+  // Account mails link to an account center page in the user's language (SDD §7.3). The user
+  // object carries the additional `locale` field.
+  async function sendAccountMail(
     template: TemplateName,
     page: string,
     user: { id: string; email: string; name: string },
-    token: string,
+    query = '',
   ) {
     const locale = resolveLocale((user as { locale?: string }).locale);
-    const url = `${config.accountUrl}/${locale}/${page}?token=${encodeURIComponent(token)}`;
+    const url = `${config.accountUrl}/${locale}/${page}${query}`;
     const entry = { userId: user.id, template, locale, to: user.email };
     // FR-74: a failed send never fails the request. It is recorded, and the user can ask again.
     try {
@@ -87,6 +105,14 @@ export function createAuth(config: AuthConfig) {
       await config.db.insert(mailLog).values({ ...entry, status: 'failed', error: message });
     }
   }
+
+  // The page hands the token to the API.
+  const sendAuthMail = (
+    template: TemplateName,
+    page: string,
+    user: { id: string; email: string; name: string },
+    token: string,
+  ) => sendAccountMail(template, page, user, `?token=${encodeURIComponent(token)}`);
 
   return betterAuth({
     baseURL: config.apiUrl,
@@ -149,6 +175,17 @@ export function createAuth(config: AuthConfig) {
           validator: { input: termsVersionSchema },
         },
         termsAcceptedAt: { type: 'date', required: false, input: false },
+        // FR-84: optional; null clears them.
+        country: {
+          type: 'string',
+          required: false,
+          validator: { input: countrySchema.nullable() },
+        },
+        timezone: {
+          type: 'string',
+          required: false,
+          validator: { input: timeZoneSchema.nullable() },
+        },
       },
     },
     // NFR-4, FR-74: per client IP and path, in the database so every Worker isolate sees one count.
@@ -202,6 +239,15 @@ export function createAuth(config: AuthConfig) {
       },
     },
     hooks: {
+      // FR-83: a changed password is announced to the account address, with the way back if it
+      // was not the owner (NIST SP 800-63B-4 asks for a notice after the change).
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== '/change-password') return;
+        const returned = ctx.context.returned as
+          { user?: { id: string; email: string; name: string } } | APIError | undefined;
+        if (!returned || returned instanceof APIError || !returned.user) return;
+        await sendAccountMail('passwordChanged', 'forgot-password', returned.user);
+      }),
       before: createAuthMiddleware(async (ctx) => {
         // FR-8: deleting always asks for the password again. Better Auth alone would also
         // accept a session younger than a day without it.
@@ -212,6 +258,11 @@ export function createAuth(config: AuthConfig) {
         // FR-9: no account without accepting the current terms.
         if (ctx.path === '/sign-up/email' && body?.termsVersion !== termsVersion) {
           throw new APIError('BAD_REQUEST', { message: 'The current terms must be accepted' });
+        }
+        // FR-83: a new password ends every other session, as a reset does (FR-5), whatever the
+        // client sends. Better Auth then opens a fresh session for this browser.
+        if (ctx.path === '/change-password' && ctx.body) {
+          return { context: { ...ctx, body: { ...ctx.body, revokeOtherSessions: true } } };
         }
       }),
     },
@@ -242,7 +293,7 @@ export function createAuth(config: AuthConfig) {
         refreshTokenExpiresIn: 60 * 60 * 24 * 90,
         customIdTokenClaims: idTokenClaims,
         customUserInfoClaims: ({ user, scopes }) =>
-          scopes.includes('profile') ? { locale: user.locale } : {},
+          scopes.includes('profile') ? { locale: user.locale, ...region(user) } : {},
       }),
     ],
   });

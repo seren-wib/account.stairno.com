@@ -1,0 +1,17 @@
+---
+import Profile from '../../components/sections/Profile.astro';
+import Account from '../../layouts/Account.astro';
+import { isLocale, localePath, t } from '../../i18n';
+
+// FR-6, FR-30: the account page links here from the email under sign-in details.
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale);
+---
+
+<Account locale={locale} current="sign-in" path="email" heading={dict.profile.emailHeading}>
+  <div class="page-stack">
+    <Profile locale={locale} part="email" />
+    <a href={`${localePath(locale, '')}#sign-in`}>{dict.account.back}</a>
+  </div>
+</Account>

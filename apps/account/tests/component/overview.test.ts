@@ -1,7 +1,12 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import Overview from '../../src/pages/[locale]/index.astro';
 import { en } from '../../src/i18n/en';
+import { stubApi } from './api-stub';
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 function locals(emailVerified: boolean) {
   return {
@@ -17,6 +22,7 @@ function locals(emailVerified: boolean) {
 }
 
 async function render(emailVerified: boolean, locale = 'en') {
+  stubApi({});
   const container = await AstroContainer.create();
   return container.renderToString(Overview, {
     params: { locale },
@@ -25,24 +31,7 @@ async function render(emailVerified: boolean, locale = 'en') {
   });
 }
 
-describe('overview', () => {
-  it('FR-29 shows the name, the email and shortcuts to the account pages', async () => {
-    const html = await render(true);
-    expect(html).toContain('Yu Seong');
-    expect(html).toContain('yu@example.com');
-    for (const page of [
-      'profile',
-      'devices',
-      'connections',
-      'payment-methods',
-      'orders',
-      'subscriptions',
-      'downloads',
-    ]) {
-      expect(html).toContain(`href="/en/${page}/"`);
-    }
-  });
-
+describe('email confirmation', () => {
   it('FR-29 FR-2 says the email is confirmed and offers no resend', async () => {
     const html = await render(true);
     expect(html).toContain(en.overview.verified);
@@ -57,26 +46,6 @@ describe('overview', () => {
 });
 
 describe('signed-in frame', () => {
-  it('FR-29 NFR-18 lists the account pages and marks the current one', async () => {
-    const html = await render(true);
-    const start = html.indexOf('class="account-menu"');
-    const menu = html.slice(start, html.indexOf('</nav>', start));
-    for (const page of [
-      '',
-      'profile/',
-      'devices/',
-      'connections/',
-      'payment-methods/',
-      'orders/',
-      'subscriptions/',
-      'downloads/',
-      'delete/',
-    ]) {
-      expect(menu).toContain(`href="/en/${page}"`);
-    }
-    expect(menu).toMatch(/href="\/en\/"[^>]*aria-current="page"/);
-  });
-
   it('FR-82 FR-79 puts the signed-in account menu in the header', async () => {
     const html = await render(true);
     const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));

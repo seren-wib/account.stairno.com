@@ -1,4 +1,4 @@
-import type { DownloadBucket } from './deps';
+import type { AvatarBucket, DownloadBucket } from './deps';
 
 // Bindings and secrets of the API Worker (SDD §10). Secrets come from Wrangler secrets
 // in production and from .dev.vars locally; nothing here is ever committed with a value.
@@ -14,6 +14,7 @@ export interface Env {
   PAYMENTS_MODE?: string;
   // bindings: the R2 bucket of desktop builds (FR-62)
   DOWNLOADS?: DownloadBucket;
+  AVATARS?: AvatarBucket;
   // secrets
   DATABASE_URL: string;
   BETTER_AUTH_SECRET: string;

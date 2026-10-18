@@ -1,0 +1,79 @@
+---
+import { t, type Locale } from '../../i18n';
+import { formatDate } from '../../lib/api';
+import type { Connection } from '../../lib/account-data';
+
+interface Props {
+  locale: Locale;
+  /** null when the list could not be read. */
+  connections: Connection[] | null;
+}
+
+const { locale, connections } = Astro.props;
+const dict = t(locale).connections;
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
+---
+
+<p class="form-note">{dict.intro}</p>
+{connections === null ? (
+  <p class="form-error">{dict.unavailable}</p>
+) : connections.length === 0 ? (
+  <p>{dict.empty}</p>
+) : (
+  <>
+    <ul
+      class="item-list"
+      data-connections
+      data-api={Astro.locals.apiUrl}
+      data-unavailable={dict.unavailable}
+    >
+      {connections.map((site) => (
+        <li class="item">
+          <div>
+            <p class="item-title">{site.name}</p>
+            <p class="item-meta">
+              {dict.connected} {formatDate(site.connectedAt, locale, tz)} · {dict.lastUsed}{' '}
+              {formatDate(site.lastUsedAt, locale, tz)}
+            </p>
+          </div>
+          <button class="item-action" type="button" data-disconnect={site.clientId}>
+            {dict.disconnect}
+          </button>
+        </li>
+      ))}
+    </ul>
+    <p class="form-error" role="alert" data-connections-error hidden />
+  </>
+)}
+
+<script>
+  // FR-21: the site's refresh tokens stop working; it asks for sign-in next time.
+  const list = document.querySelector<HTMLElement>('[data-connections]');
+  const error = document.querySelector<HTMLElement>('[data-connections-error]');
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-disconnect]')) {
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        const res = await fetch(
+          `${list?.dataset.api}/v1/connections/${button.dataset.disconnect}`,
+          {
+            method: 'DELETE',
+            credentials: 'include',
+          },
+        );
+        if (res.ok || res.status === 404) {
+          window.location.reload();
+          return;
+        }
+      } catch {
+        // The API is unreachable.
+      }
+      if (error) {
+        error.textContent = list?.dataset.unavailable ?? '';
+        error.hidden = false;
+      }
+      button.disabled = false;
+    });
+  }
+</script>

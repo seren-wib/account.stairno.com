@@ -151,6 +151,14 @@ export type Dictionary = {
     name: string;
     language: string;
     languages: { ko: string; en: string };
+    // FR-85
+    photo: string;
+    photoChange: string;
+    photoRemove: string;
+    photoHint: string;
+    photoTooBig: string;
+    photoType: string;
+    photoFailed: string;
     // FR-84
     country: string;
     timezone: string;

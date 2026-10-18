@@ -11,6 +11,8 @@ export interface SessionUser {
   // FR-84: optional, null until the user picks them.
   country?: string | null;
   timezone?: string | null;
+  // FR-85: the public address of the photo, or null.
+  image?: string | null;
 }
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;

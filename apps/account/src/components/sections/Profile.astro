@@ -20,7 +20,46 @@ const countryOptions = countries
 const zones = Intl.supportedValuesOf('timeZone');
 const timeZones = zones.includes('UTC') ? zones : ['UTC', ...zones];
 const messages = JSON.stringify({ saved: dict.saved, emailSent: dict.emailSent, ...dict.errors });
+// FR-85: the photo, or the first letter of the name (as the header's account menu shows it).
+const initial = Array.from((user?.name || user?.email || '').trim())[0]?.toLocaleUpperCase(locale);
+const photoMessages = JSON.stringify({
+  photoTooBig: dict.photoTooBig,
+  photoType: dict.photoType,
+  photoFailed: dict.photoFailed,
+});
 ---
+
+{part === 'profile' && (
+  <div class="photo-row" data-photo data-api={api} data-messages={photoMessages}>
+    {user?.image ? (
+      <img class="avatar" src={user.image} alt={dict.photo} width="72" height="72" />
+    ) : (
+      <span class="avatar avatar-initial" data-photo-initial aria-hidden="true">
+        {initial}
+      </span>
+    )}
+    <div class="photo-actions">
+      <div class="button-row">
+        <label class="item-action photo-change">
+          {dict.photoChange}
+          <input
+            class="visually-hidden"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            data-photo-input
+          />
+        </label>
+        {user?.image && (
+          <button class="item-action" type="button" data-photo-remove>
+            {dict.photoRemove}
+          </button>
+        )}
+      </div>
+      <p class="field-hint">{dict.photoHint}</p>
+      <p class="form-error" role="alert" data-photo-error hidden></p>
+    </div>
+  </div>
+)}
 
 {part === 'profile' && (
   <form class="form" data-profile data-api={api} data-messages={messages} novalidate>
@@ -109,6 +148,67 @@ const messages = JSON.stringify({ saved: dict.saved, emailSent: dict.emailSent, 
 
 <script>
   import { profileUpdateSchema } from '@stairno-account/contract';
+  import { PHOTO_SIZE, PHOTO_TYPES, photoError, squareCrop } from '../../lib/photo-form';
+
+  // FR-85: the browser cuts the picture to its centred square at 256 px and sends that; the
+  // page reloads to show it. WebP where the browser can write it, PNG otherwise.
+  const photo = document.querySelector<HTMLElement>('[data-photo]');
+  if (photo) {
+    const { api = '', messages = '{}' } = photo.dataset;
+    const text = JSON.parse(messages) as Record<ReturnType<typeof photoError>, string>;
+    const error = photo.querySelector<HTMLElement>('[data-photo-error]');
+    const fail = (message: string) => {
+      if (!error) return;
+      error.textContent = message;
+      error.hidden = false;
+    };
+    const blobOf = (canvas: HTMLCanvasElement, type: string) =>
+      new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.9));
+
+    async function send(init: RequestInit) {
+      error?.setAttribute('hidden', '');
+      try {
+        const res = await fetch(`${api}/v1/me/image`, { credentials: 'include', ...init });
+        if (res.ok) {
+          window.location.reload();
+          return;
+        }
+        fail(text[photoError(res.status)]);
+      } catch {
+        fail(text.photoFailed);
+      }
+    }
+
+    const input = photo.querySelector<HTMLInputElement>('[data-photo-input]');
+    input?.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      input.value = '';
+      if (!file) return;
+      if (!(PHOTO_TYPES as readonly string[]).includes(file.type)) return fail(text.photoType);
+      try {
+        const bitmap = await createImageBitmap(file);
+        const { x, y, size } = squareCrop(bitmap.width, bitmap.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = PHOTO_SIZE;
+        canvas.height = PHOTO_SIZE;
+        canvas.getContext('2d')?.drawImage(bitmap, x, y, size, size, 0, 0, PHOTO_SIZE, PHOTO_SIZE);
+        let blob = await blobOf(canvas, 'image/webp');
+        if (!blob || blob.type !== 'image/webp') blob = await blobOf(canvas, 'image/png');
+        if (!blob) return fail(text.photoFailed);
+        await send({ method: 'PUT', headers: { 'content-type': blob.type }, body: blob });
+      } catch {
+        fail(text.photoType);
+      }
+    });
+
+    const remove = photo.querySelector<HTMLButtonElement>('[data-photo-remove]');
+    remove?.addEventListener('click', () => {
+      remove.disabled = true;
+      void send({ method: 'DELETE' }).finally(() => {
+        remove.disabled = false;
+      });
+    });
+  }
 
   type Messages = Record<
     'saved' | 'emailSent' | 'name' | 'email' | 'unavailable' | 'tooMany',

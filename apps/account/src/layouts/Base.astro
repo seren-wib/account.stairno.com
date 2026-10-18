@@ -8,7 +8,7 @@ import '@stairno/ui/base.css';
 import '../styles/account.css';
 import { localePath, t, type Locale } from '../i18n';
 import { HUB_ORIGIN } from '../lib/redirect';
-import { connectSrc } from '../lib/security-headers';
+import { connectSrc, imgSrc } from '../lib/security-headers';
 
 interface Props {
   locale: Locale;
@@ -26,6 +26,8 @@ const { locale, path = '', heading, card = false, connect = [] } = Astro.props;
 const dict = t(locale);
 // NFR-7: browser code on these pages calls the API, and a page's own hosts, and nothing else.
 Astro.csp?.insertDirective(connectSrc(Astro.locals.apiUrl, connect));
+// FR-85: profile photos are served by the API.
+Astro.csp?.insertDirective(imgSrc(Astro.locals.apiUrl));
 const title = heading === dict.meta.title ? heading : `${heading} · ${dict.meta.title}`;
 // FR-82: the session guard puts the user in locals on signed-in pages; elsewhere the menu is
 // signed out (auth and legal pages never call the API for it).

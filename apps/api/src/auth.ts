@@ -8,6 +8,7 @@ import { localeSchema, termsVersion, termsVersionSchema } from '@stairno-account
 import * as schema from './db/schema';
 import { mailLog } from './db/schema';
 import { renderMail, resolveLocale, type Mailer, type TemplateName } from './mail';
+import { ProviderError } from './payments/provider';
 
 export interface AuthConfig {
   // Drizzle database (neon-http in Workers, PGlite in tests). Typed loosely so both fit.
@@ -19,6 +20,8 @@ export interface AuthConfig {
   cookieDomain: string;
   secret: string;
   mailer: Mailer;
+  // FR-8: runs after the password check and before the user is deleted; a throw stops it.
+  beforeDeleteUser?: (userId: string) => Promise<void>;
 }
 
 // The verification token is a JWT; Better Auth marks the one for a new address with
@@ -120,8 +123,22 @@ export function createAuth(config: AuthConfig) {
     user: {
       // FR-6: the new address is verified first; the old one stays until then.
       changeEmail: { enabled: true },
-      // FR-8: deleted at once, no confirmation mail. Orders and billing keys join in 2차.
-      deleteUser: { enabled: true },
+      // FR-8: deleted at once, no confirmation mail. Billing keys are removed at the provider
+      // first; when it cannot be reached the deletion waits for the next try (502).
+      deleteUser: {
+        enabled: true,
+        beforeDelete: async (user) => {
+          try {
+            await config.beforeDeleteUser?.(user.id);
+          } catch (error) {
+            if (!(error instanceof ProviderError)) throw error;
+            throw new APIError('BAD_GATEWAY', {
+              code: 'PROVIDER_ERROR',
+              message: 'A card could not be removed at the payment provider. Please try again.',
+            });
+          }
+        },
+      },
       additionalFields: {
         // FR-78: only the languages the account center and the mails have.
         locale: { type: 'string', defaultValue: 'ko', validator: { input: localeSchema } },

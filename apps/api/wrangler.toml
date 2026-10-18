@@ -25,3 +25,8 @@ enabled = true
 # FR-57: subscription renewals, once a day at 00:00 UTC (09:00 KST).
 [triggers]
 crons = ["0 0 * * *"]
+
+# FR-62: desktop builds, streamed through signed download links (SDD §6.8).
+[[r2_buckets]]
+binding = "DOWNLOADS"
+bucket_name = "stairno-downloads"

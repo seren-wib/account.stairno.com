@@ -11,6 +11,7 @@ import { apiError } from './http/errors';
 import { createCors } from './middleware/cors';
 import { authenticate } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
+import { downloadFileRoutes, downloadRoutes } from './routes/downloads';
 import { entitlementRoutes } from './routes/entitlements';
 import { removeBillingKeysOf } from './payments/account-deletion';
 import { parsePaymentsMode } from './payments/mode';
@@ -67,10 +68,15 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   app.use('/webhooks/*', withDeps);
   app.route('/webhooks', webhookRoutes);
 
+  // FR-62: a signed download link carries its own permission; no session.
+  app.use('/downloads/*', withDeps);
+  app.route('/downloads', downloadFileRoutes);
+
   app.use('/v1/*', withDeps);
   // Every /v1 route has a caller first (SDD §8); each group then says which kind it takes.
   app.use('/v1/*', authenticate);
   app.route('/v1/connections', connectionRoutes);
+  app.route('/v1/downloads', downloadRoutes);
   app.route('/v1/entitlements', entitlementRoutes);
   app.route('/v1/me', meRoutes);
   app.route('/v1/orders', orderRoutes);
@@ -134,6 +140,9 @@ function workerDeps(env: Env): Promise<Deps> {
       origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL },
       paymentsMode,
       tossClientKey: env.TOSS_CLIENT_KEY,
+      downloads: env.DOWNLOADS,
+      // Download links are signed under a key derived from this, never with it directly.
+      downloadSecret: env.BETTER_AUTH_SECRET,
     };
   })().catch((error: unknown) => {
     deps = undefined;

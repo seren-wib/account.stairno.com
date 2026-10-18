@@ -4,6 +4,15 @@ import type { Env } from './env';
 import type { PaymentsMode } from './payments/mode';
 import type { PaymentProvider } from './payments/provider';
 
+// The R2 bucket of desktop builds (FR-62), as much of R2's binding as the API uses.
+export interface DownloadBucket {
+  get(key: string): Promise<{
+    body: ReadableStream;
+    size: number;
+    httpMetadata?: { contentType?: string };
+  } | null>;
+}
+
 export interface Deps {
   // Only what the routes need, so tests can pass a PGlite database or a failing stub.
   db: { execute(query: SQL): Promise<unknown> };
@@ -18,6 +27,9 @@ export interface Deps {
   billingKeySecret: string | undefined;
   // Toss's public client key, the pair of TOSS_SECRET_KEY, for the card window (FR-45).
   tossClientKey?: string | undefined;
+  // FR-62: the files, and the secret download links are signed with. No bucket, no downloads.
+  downloads?: DownloadBucket | undefined;
+  downloadSecret: string;
 }
 
 export type AuthSession = Auth['$Infer']['Session'];

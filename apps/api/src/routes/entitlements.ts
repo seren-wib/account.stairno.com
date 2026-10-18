@@ -3,35 +3,11 @@ import { entitlementQuerySchema } from '@stairno-account/contract';
 import type { AppEnv } from '../deps';
 import { apiError, validationError } from '../http/errors';
 import { requireUser } from '../middleware/session';
-import { readEntitlement, type EntitlementRow } from '../payments/entitlement-store';
+import { describeEntitlement, readEntitlement } from '../payments/entitlement-store';
 
 // FR-58 to FR-61 (SDD §6.8): a site asks, with its user's access token, what the user may use of
 // one of its products. A token sees only the products of the site it was issued to; the account
 // center's session sees any. The site may keep the answer for a minute, for that user only.
-
-type Status = 'active' | 'expired' | 'revoked' | 'none' | 'requires_payment_method';
-
-function answer(row: EntitlementRow) {
-  let status: Status;
-  if (row.kind === 'subscription' && row.free) {
-    // FR-58: the free plan is the card on file; there is nothing to buy and no row.
-    status = row.has_card ? 'active' : 'requires_payment_method';
-  } else if (row.status === null) {
-    status = 'none';
-  } else if (row.status === 'revoked') {
-    status = 'revoked';
-  } else {
-    status = row.unexpired ? 'active' : 'expired';
-  }
-  const kept = row.status !== null && !(row.kind === 'subscription' && row.free);
-  return {
-    sku: row.sku,
-    status,
-    active: status === 'active',
-    expiresAt: kept && row.expires_at ? new Date(row.expires_at).toISOString() : null,
-    downloadable: status === 'active' && Boolean(row.downloadable),
-  };
-}
 
 export const entitlementRoutes = new Hono<AppEnv>().use(requireUser).get('/', async (c) => {
   const parsed = entitlementQuerySchema.safeParse({ sku: c.req.query('sku') });
@@ -45,5 +21,5 @@ export const entitlementRoutes = new Hono<AppEnv>().use(requireUser).get('/', as
   if (!row) return apiError(c, 404, 'not_found', 'There is no such product.');
 
   c.header('cache-control', 'private, max-age=60');
-  return c.json(answer(row));
+  return c.json(describeEntitlement(row));
 });

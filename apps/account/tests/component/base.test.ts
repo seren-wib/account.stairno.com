@@ -13,6 +13,12 @@ describe('Base layout', () => {
     expect(await render('en')).toContain('<html lang="en"');
   });
 
+  it('FR-27 links the Stairno icon so browsers stop asking for /favicon.ico', async () => {
+    expect(await render('ko')).toMatch(
+      /<link rel="icon" href="\/favicon\.svg" type="image\/svg\+xml"/,
+    );
+  });
+
   it('FR-77 runs the @stairno/ui theme script before anything else in <head>', async () => {
     const html = await render('ko');
     const head = html.slice(html.indexOf('<head>'), html.indexOf('</head>'));

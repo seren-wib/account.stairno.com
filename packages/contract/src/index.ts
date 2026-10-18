@@ -11,6 +11,7 @@ export {
   type ConfirmTossPaymentInput,
   type PayPalOrderInput,
 } from './payments';
+export { pageQuerySchema, type PageQuery } from './pages';
 export { profileUpdateSchema, type ProfileUpdate } from './profile';
 export { signUpInputSchema, type SignUpInput } from './sign-up';
 export { termsVersion, termsVersionSchema } from './terms';

@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { confirmTossPaymentInputSchema } from '../src';
+import { confirmTossPaymentInputSchema, paypalOrderInputSchema } from '../src';
+
+describe('PayPal order input', () => {
+  it('FR-49 takes only our order id; the PayPal order id stays with the API', () => {
+    const orderId = '6f1c2c47-0d1e-4c1b-9f0a-3b0b6a0f0c11';
+
+    expect(paypalOrderInputSchema.parse({ orderId, paypalOrderId: 'SWAPPED' })).toEqual({
+      orderId,
+    });
+    expect(paypalOrderInputSchema.safeParse({ orderId: 'order-1' }).success).toBe(false);
+  });
+});
 
 const valid = {
   paymentKey: 'tgen_20261018_abc',

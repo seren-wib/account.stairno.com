@@ -59,6 +59,29 @@ describe('fake payment provider', () => {
     await expect(confirm(fake, 'fake_pay_2')).resolves.toMatchObject({ amount: 12000 });
   });
 
+  it('FR-49 creates a checkout the payer is sent to', async () => {
+    const fake = createFakeProvider();
+
+    await expect(
+      fake.createCheckout!({
+        order,
+        returnUrl: 'https://x.invalid/done',
+        cancelUrl: 'https://x.invalid/done',
+      }),
+    ).resolves.toEqual({
+      providerOrderId: `fake_order_${order.id}`,
+      approvalUrl: `https://fake.invalid/approve/fake_order_${order.id}`,
+    });
+  });
+
+  it('FR-49 can answer that the payer has not approved yet', async () => {
+    const fake = createFakeProvider();
+    fake.willWaitForPayer();
+
+    await expect(confirm(fake)).resolves.toMatchObject({ status: 'pending' });
+    await expect(confirm(fake)).resolves.toMatchObject({ status: 'done' });
+  });
+
   it('NFR-16 can fail like an unreachable provider', async () => {
     const fake = createFakeProvider();
     fake.willThrow();

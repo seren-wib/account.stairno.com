@@ -13,6 +13,14 @@ export const en: Dictionary = {
       dark: 'Switch to dark mode',
       toggle: 'Toggle theme',
     },
+    accountMenu: {
+      signedIn: 'Account menu',
+      signedOut: 'Sign-in menu',
+      manage: 'Manage account',
+      signOut: 'Sign out',
+      signIn: 'Sign in',
+      signUp: 'Sign up',
+    },
   },
   footer: { heading: 'Stairno', hub: 'stairno.com', source: 'Source code' },
   account: {
@@ -24,7 +32,6 @@ export const en: Dictionary = {
       connections: 'Connected sites',
       delete: 'Delete account',
     },
-    signOut: 'Sign out',
   },
   overview: {
     heading: 'Account',

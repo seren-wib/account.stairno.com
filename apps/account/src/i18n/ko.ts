@@ -13,6 +13,14 @@ export const ko: Dictionary = {
       dark: '다크 모드로 전환',
       toggle: '테마 전환',
     },
+    accountMenu: {
+      signedIn: '계정 메뉴',
+      signedOut: '로그인 메뉴',
+      manage: '계정 관리',
+      signOut: '로그아웃',
+      signIn: '로그인',
+      signUp: '가입',
+    },
   },
   footer: { heading: 'Stairno', hub: 'stairno.com', source: '소스 코드' },
   account: {
@@ -24,7 +32,6 @@ export const ko: Dictionary = {
       connections: '연결된 사이트',
       delete: '계정 삭제',
     },
-    signOut: '로그아웃',
   },
   overview: {
     heading: '계정',

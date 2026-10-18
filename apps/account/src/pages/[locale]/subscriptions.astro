@@ -3,6 +3,7 @@ import Account from '../../layouts/Account.astro';
 import { isLocale, localePath, t } from '../../i18n';
 import { apiGet, formatDate } from '../../lib/api';
 import { cardLabel } from '../../lib/cards';
+import { formatMoney } from '../../lib/money';
 
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
@@ -30,8 +31,6 @@ const list = await apiGet<{ items: Subscription[] }>(
 );
 const subscriptions = list?.items ?? null;
 
-const money = (amount: number, currency: string) =>
-  new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amount);
 const live = (s: Subscription) => s.status === 'active' || s.status === 'past_due';
 
 const messages = JSON.stringify({
@@ -67,7 +66,7 @@ const messages = JSON.stringify({
               <p class="item-meta">
                 {s.status === 'active' && !s.cancelAtPeriodEnd && s.amount !== null
                   ? dict.renews
-                      .replace('{amount}', money(s.amount, s.currency))
+                      .replace('{amount}', formatMoney(s.amount, s.currency, locale))
                       .replace('{date}', formatDate(s.currentPeriodEnd, locale))
                   : `${live(s) ? dict.endsOn : dict.endedOn} ${formatDate(s.currentPeriodEnd, locale)}`}
               </p>

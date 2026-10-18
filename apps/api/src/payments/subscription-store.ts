@@ -231,3 +231,66 @@ export async function failRenewal(db: Db, id: string): Promise<'past_due' | 'exp
   );
   return row?.status ?? 'past_due';
 }
+
+// FR-32: a user's subscriptions as the account center shows them, live ones first. The amount is
+// what the next renewal charges (the plan's KRW price now) and the card is the one it charges.
+export interface UserSubscriptionRow extends SubscriptionRow {
+  sku: string;
+  name_ko: string;
+  name_en: string;
+  interval: string;
+  amount: number | null;
+  card_company: string | null;
+  card_last4: string | null;
+  has_card: boolean;
+}
+
+function userSubscriptions(db: Db, userId: string, only: SQL = sql`true`) {
+  return rows<UserSubscriptionRow>(
+    db,
+    sql`
+      select s.id, s.status, s.current_period_start, s.current_period_end,
+             s.cancel_at_period_end, p.sku, p.name_ko, p.name_en, p.interval, pp.amount,
+             pm.card_company, pm.card_last4, pm.id is not null as has_card
+      from subscription s
+      join product p on p.id = s.product_id
+      left join product_price pp on pp.product_id = p.id and pp.currency = 'KRW'
+      left join payment_method pm on pm.id = s.payment_method_id and pm.deleted_at is null
+      where s.user_id = ${userId} and ${only}
+      order by s.status in ('active', 'past_due') desc, s.created_at desc`,
+  );
+}
+
+export const listUserSubscriptions = (db: Db, userId: string) => userSubscriptions(db, userId);
+
+export async function readUserSubscription(db: Db, input: { userId: string; id: string }) {
+  const [row] = await userSubscriptions(db, input.userId, sql`s.id = ${input.id}`);
+  return row;
+}
+
+// FR-56: cancel at the period end. A past_due subscription's period is already over, so it ends
+// now. false when the subscription is not the user's or is over already.
+export async function cancelSubscription(db: Db, input: { userId: string; id: string }) {
+  const changed = await rows<{ id: string }>(
+    db,
+    sql`
+      update subscription set
+        cancel_at_period_end = (status = 'active'),
+        status = case when status = 'past_due' then 'canceled' else status end
+      where id = ${input.id} and user_id = ${input.userId} and status in ('active', 'past_due')
+      returning id`,
+  );
+  return changed.length > 0;
+}
+
+// FR-56: take the cancel back while the period still runs.
+export async function resumeSubscription(db: Db, input: { userId: string; id: string }) {
+  const changed = await rows<{ id: string }>(
+    db,
+    sql`
+      update subscription set cancel_at_period_end = false
+      where id = ${input.id} and user_id = ${input.userId} and status = 'active'
+      returning id`,
+  );
+  return changed.length > 0;
+}

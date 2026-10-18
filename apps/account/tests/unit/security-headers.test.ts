@@ -10,6 +10,12 @@ describe('security headers', () => {
     expect(connectSrc(undefined)).toBe("connect-src 'self'");
   });
 
+  it('NFR-7 adds the sources one page asks for, and only on that page', () => {
+    expect(connectSrc('https://api.stairno.com', ['https://*.tosspayments.com'])).toBe(
+      "connect-src 'self' https://api.stairno.com https://*.tosspayments.com",
+    );
+  });
+
   it('NFR-7 sends HSTS, nosniff, the referrer policy and no framing', async () => {
     const next = vi.fn(async () => new Response('<html></html>', { status: 200 }));
     const res = await createSecurityHeaders()({} as APIContext, next);

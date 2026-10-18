@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { cardWindowResult, TOSS_SDK_URL } from '../../src/lib/toss';
+import { cardWindowResult, TOSS_CONNECT_SRC, TOSS_SDK_URL } from '../../src/lib/toss';
 
 // UC-5: Toss sends the visitor back to this page with the result in the query (Toss billing guide).
 
 describe('Toss card window', () => {
   it('NFR-7 loads SDK v2 standard from Toss only', () => {
     expect(TOSS_SDK_URL).toBe('https://js.tosspayments.com/v2/standard');
+  });
+
+  it('NFR-7 lets the SDK reach Toss hosts and nothing else', () => {
+    expect(TOSS_CONNECT_SRC).toEqual(['https://*.tosspayments.com']);
   });
 
   it('FR-45 reads authKey and customerKey after a registration', () => {

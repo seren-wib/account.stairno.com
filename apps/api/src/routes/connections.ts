@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { sql, type SQL } from 'drizzle-orm';
 import type { AppEnv, Deps } from '../deps';
 import { apiError } from '../http/errors';
-import { requireCookieSession } from '../middleware/session';
+import { requireCookieSession, requireUser } from '../middleware/session';
 
 interface ConnectionRow {
   client_id: string;
@@ -33,6 +33,7 @@ function liveTokens(userId: string) {
 }
 
 export const connectionRoutes = new Hono<AppEnv>()
+  .use(requireUser)
   .use(requireCookieSession)
   .get('/', async (c) => {
     const items = await rows<ConnectionRow>(

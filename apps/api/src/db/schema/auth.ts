@@ -26,6 +26,9 @@ export const user = pgTable('user', {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
   locale: text('locale').default('ko').notNull(),
+  // FR-84: optional, null until the user picks them.
+  country: text('country'),
+  timezone: text('timezone'),
   termsVersion: text('terms_version'),
   termsAcceptedAt: timestamp('terms_accepted_at'),
 });

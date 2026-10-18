@@ -8,6 +8,8 @@ export interface Env {
   HUB_URL: string;
   // Parent domain shared by account and api for the session cookie (FR-10). Empty locally.
   COOKIE_DOMAIN: string;
+  // test, live or off (FR-42). Anything else, or unset, means off.
+  PAYMENTS_MODE?: string;
   // secrets
   DATABASE_URL: string;
   BETTER_AUTH_SECRET: string;

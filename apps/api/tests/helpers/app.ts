@@ -43,6 +43,6 @@ export async function createTestApp(
     ...urls,
   });
   const origins = { account: urls.accountUrl ?? ACCOUNT_URL, hub: urls.hubUrl ?? HUB_URL };
-  const deps: Deps = { db, auth, origins, ...overrides };
+  const deps: Deps = { db, auth, origins, paymentsMode: 'test', ...overrides };
   return { app: createApp(async () => deps), db, auth, mailbox };
 }

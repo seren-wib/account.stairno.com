@@ -158,6 +158,9 @@ export function createAuth(config: AuthConfig) {
         ? { enabled: true, domain: config.cookieDomain }
         : { enabled: false },
       database: { generateId: 'uuid' },
+      // NFR-5: Better Auth switches its origin check off when it detects a test run. Pinning it
+      // on makes the tests refuse foreign and missing origins exactly as production does.
+      disableOriginCheck: false,
     },
     // NFR-5: state-changing requests from these origins pass the origin check. CORS decides which
     // paths each may read (middleware/cors.ts); the hub only gets get-session and sign-out.

@@ -323,9 +323,9 @@ export const ko: Dictionary = {
     done: '이메일을 확인했습니다',
     doneBody: '이제 이 주소로 Stairno 계정의 모든 기능을 쓸 수 있습니다.',
     expired: '링크가 만료됐거나 이미 쓰였습니다.',
-    expiredBody: '로그인한 뒤 계정 홈에서 인증 메일을 다시 받을 수 있습니다.',
-    overview: '계정 홈으로',
+    expiredBody: '로그인한 뒤 계정 페이지의 로그인 정보에서 인증 메일을 다시 받을 수 있습니다.',
+    overview: '계정으로 돌아가기',
   },
   legal: { version: '버전' },
-  notFound: { heading: '페이지를 찾을 수 없습니다', home: '계정 홈으로' },
+  notFound: { heading: '페이지를 찾을 수 없습니다', home: '계정으로 돌아가기' },
 };

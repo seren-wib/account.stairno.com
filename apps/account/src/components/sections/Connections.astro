@@ -11,6 +11,8 @@ interface Props {
 
 const { locale, connections } = Astro.props;
 const dict = t(locale).connections;
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
 ---
 
 <p class="form-note">{dict.intro}</p>
@@ -31,8 +33,8 @@ const dict = t(locale).connections;
           <div>
             <p class="item-title">{site.name}</p>
             <p class="item-meta">
-              {dict.connected} {formatDate(site.connectedAt, locale)} · {dict.lastUsed}{' '}
-              {formatDate(site.lastUsedAt, locale)}
+              {dict.connected} {formatDate(site.connectedAt, locale, tz)} · {dict.lastUsed}{' '}
+              {formatDate(site.lastUsedAt, locale, tz)}
             </p>
           </div>
           <button class="item-action" type="button" data-disconnect={site.clientId}>

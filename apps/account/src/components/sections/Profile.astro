@@ -1,4 +1,5 @@
 ---
+import { countries } from '@stairno-account/contract';
 import { locales, t, type Locale } from '../../i18n';
 
 interface Props {
@@ -11,6 +12,13 @@ const { locale, part } = Astro.props;
 const dict = t(locale).profile;
 const user = Astro.locals.user;
 const api = Astro.locals.apiUrl;
+// FR-84: countries named in the page language and sorted by that name; IANA time zones.
+const regionNames = new Intl.DisplayNames(locale, { type: 'region' });
+const countryOptions = countries
+  .map((code) => ({ code, name: regionNames.of(code) ?? code }))
+  .sort((a, b) => a.name.localeCompare(b.name, locale));
+const zones = Intl.supportedValuesOf('timeZone');
+const timeZones = zones.includes('UTC') ? zones : ['UTC', ...zones];
 const messages = JSON.stringify({ saved: dict.saved, emailSent: dict.emailSent, ...dict.errors });
 ---
 
@@ -33,6 +41,32 @@ const messages = JSON.stringify({ saved: dict.saved, emailSent: dict.emailSent, 
         {locales.map((option) => (
           <option value={option} selected={user?.locale === option}>
             {dict.languages[option]}
+          </option>
+        ))}
+      </select>
+    </label>
+    <label class="field">
+      <span>{dict.country}</span>
+      <select name="country" autocomplete="country">
+        <option value="" selected={!user?.country}>
+          {dict.notSet}
+        </option>
+        {countryOptions.map((option) => (
+          <option value={option.code} selected={user?.country === option.code}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+    </label>
+    <label class="field">
+      <span>{dict.timezone}</span>
+      <select name="timezone">
+        <option value="" selected={!user?.timezone}>
+          {dict.notSet}
+        </option>
+        {timeZones.map((zone) => (
+          <option value={zone} selected={user?.timezone === zone}>
+            {zone}
           </option>
         ))}
       </select>
@@ -121,6 +155,9 @@ const messages = JSON.stringify({ saved: dict.saved, emailSent: dict.emailSent, 
     const parsed = profileUpdateSchema.safeParse({
       name: data.get('name'),
       locale: data.get('locale'),
+      // FR-84: "not set" clears the value.
+      country: data.get('country') || null,
+      timezone: data.get('timezone') || null,
     });
     fieldError(profile, 'name', parsed.success ? null : text.name);
     if (!parsed.success) return;

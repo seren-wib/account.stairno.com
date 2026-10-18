@@ -17,6 +17,8 @@ interface Props {
 const { locale, orders, more = null } = Astro.props;
 const dict = t(locale).orders;
 const moreLabel = Astro.props.moreLabel ?? dict.more;
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
 ---
 
 <div class="page-stack">
@@ -42,7 +44,7 @@ const moreLabel = Astro.props.moreLabel ?? dict.more;
               )}
             </p>
             <p class="item-meta">
-              {formatDate(order.createdAt, locale)} ·{' '}
+              {formatDate(order.createdAt, locale, tz)} ·{' '}
               {formatMoney(order.amount, order.currency, locale)}
             </p>
           </div>

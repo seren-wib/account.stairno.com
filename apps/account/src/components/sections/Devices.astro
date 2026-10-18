@@ -12,6 +12,8 @@ interface Props {
 const { locale, sessions } = Astro.props;
 const dict = t(locale).devices;
 const label = (s: Session) => [s.browser, s.os].filter(Boolean).join(' · ') || dict.unknown;
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
 ---
 
 {sessions === null ? (
@@ -32,8 +34,8 @@ const label = (s: Session) => [s.browser, s.os].filter(Boolean).join(' · ') || 
               {session.current && <span class="badge">{dict.current}</span>}
             </p>
             <p class="item-meta">
-              {dict.signedIn} {formatDate(session.createdAt, locale)} · {dict.lastUsed}{' '}
-              {formatDate(session.lastUsedAt, locale)}
+              {dict.signedIn} {formatDate(session.createdAt, locale, tz)} · {dict.lastUsed}{' '}
+              {formatDate(session.lastUsedAt, locale, tz)}
             </p>
           </div>
           {!session.current && (

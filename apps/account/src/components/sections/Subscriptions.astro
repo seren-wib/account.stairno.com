@@ -27,6 +27,8 @@ const messages = JSON.stringify({
   unavailable: dict.unavailable,
   invalidTransition: dict.invalidTransition,
 });
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
 ---
 
 <div class="page-stack">
@@ -56,8 +58,8 @@ const messages = JSON.stringify({
               {s.status === 'active' && !s.cancelAtPeriodEnd && s.amount !== null
                 ? dict.renews
                     .replace('{amount}', formatMoney(s.amount, s.currency, locale))
-                    .replace('{date}', formatDate(s.currentPeriodEnd, locale))
-                : `${live(s) ? dict.endsOn : dict.endedOn} ${formatDate(s.currentPeriodEnd, locale)}`}
+                    .replace('{date}', formatDate(s.currentPeriodEnd, locale, tz))
+                : `${live(s) ? dict.endsOn : dict.endedOn} ${formatDate(s.currentPeriodEnd, locale, tz)}`}
             </p>
             {live(s) && (
               <p class="item-meta">

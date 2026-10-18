@@ -8,6 +8,9 @@ export interface SessionUser {
   name: string;
   emailVerified: boolean;
   locale: string;
+  // FR-84: optional, null until the user picks them.
+  country?: string | null;
+  timezone?: string | null;
 }
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;

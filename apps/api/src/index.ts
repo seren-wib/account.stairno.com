@@ -21,6 +21,7 @@ import { paymentMethodRoutes } from './routes/payment-methods';
 import { paymentRoutes } from './routes/payments';
 import { productRoutes } from './routes/products';
 import { sessionRoutes } from './routes/sessions';
+import { renewDueSubscriptions } from './subscriptions/renew';
 import { webhookRoutes } from './routes/webhooks';
 
 export type { Deps } from './deps';
@@ -137,4 +138,17 @@ function workerDeps(env: Env): Promise<Deps> {
   return deps;
 }
 
-export default createApp(workerDeps);
+const app = createApp(workerDeps);
+
+export default {
+  fetch: app.fetch,
+  // FR-57: the daily renewal run (wrangler.toml [triggers]). Typed by hand so the tests, which
+  // compile with Node's types, can import this module too.
+  async scheduled(
+    _controller: unknown,
+    env: Env,
+    ctx: { waitUntil(promise: Promise<unknown>): void },
+  ) {
+    ctx.waitUntil(workerDeps(env).then((ready) => renewDueSubscriptions(ready)));
+  },
+};

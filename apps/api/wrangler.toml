@@ -21,3 +21,7 @@ PAYMENTS_MODE = "test"
 
 [observability]
 enabled = true
+
+# FR-57: subscription renewals, once a day at 00:00 UTC (09:00 KST).
+[triggers]
+crons = ["0 0 * * *"]

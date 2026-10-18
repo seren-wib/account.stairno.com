@@ -1,11 +1,11 @@
 import type { LegalDocuments } from './types';
 
 // English rendering of ko.ts, section for section. The Korean text governs.
-// 〔확인 필요〕 marks values the operator still has to confirm (plan §8, open items).
+// Operator and privacy officer names and the effective date were confirmed on 2026-10-18.
 export const en: LegalDocuments = {
   terms: {
     title: 'Terms of Service',
-    effective: 'Effective 〔확인 필요〕',
+    effective: 'Effective 18 October 2026',
     sections: [
       {
         heading: 'Article 1. Purpose',
@@ -24,7 +24,7 @@ export const en: LegalDocuments = {
       {
         heading: 'Article 3. Operator and publication',
         body: [
-          'The account service is run by Stairno. Operator: 〔확인 필요: operator name〕, contact: contact@stairno.com.',
+          'The account service is run by Stairno. Operator: YooSung Nam, contact: contact@stairno.com.',
           'These terms can be read at any time on the sign-up screen and on the terms page of the account center.',
         ],
       },
@@ -101,7 +101,7 @@ export const en: LegalDocuments = {
   },
   privacy: {
     title: 'Privacy Policy',
-    effective: 'Effective 〔확인 필요〕',
+    effective: 'Effective 18 October 2026',
     sections: [
       {
         heading: '1. Purposes',
@@ -191,7 +191,7 @@ export const en: LegalDocuments = {
         heading: '12. Privacy officer',
         body: [
           'The privacy officer oversees the processing of personal data and handles questions and complaints.',
-          'Name: 〔확인 필요〕, contact: contact@stairno.com',
+          'Name: YooSung Nam, contact: contact@stairno.com',
         ],
       },
       {

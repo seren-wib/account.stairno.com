@@ -3,11 +3,11 @@ import type { LegalDocuments } from './types';
 // 근거: 개인정보 보호법 제30조(처리방침), 제28조의8(국외 이전), 제31조(보호책임자), 제22조의2
 // (만 14세 미만 아동), 시행령 제31조, 개인정보보호위원회 개인정보 처리방침 작성지침의 항목 순서.
 // 약관은 약관의 규제에 관한 법률(명시·설명 의무)을 따른다.
-// 〔확인 필요〕는 운영자가 확정해야 하는 값이다(계획서 8절 미결).
+// 운영자·보호책임자 성명과 시행일은 2026-10-18 운영자가 확정했다.
 export const ko: LegalDocuments = {
   terms: {
     title: '이용약관',
-    effective: '시행일 〔확인 필요〕',
+    effective: '시행일 2026년 10월 18일',
     sections: [
       {
         heading: '제1조 목적',
@@ -26,7 +26,7 @@ export const ko: LegalDocuments = {
       {
         heading: '제3조 운영자와 약관의 게시',
         body: [
-          '계정 서비스는 Stairno가 운영합니다. 운영자: 〔확인 필요: 운영자 성명〕, 연락처: contact@stairno.com.',
+          '계정 서비스는 Stairno가 운영합니다. 운영자: 남유성, 연락처: contact@stairno.com.',
           '이 약관은 가입 화면과 계정 센터의 이용약관 페이지에서 언제든 볼 수 있습니다.',
         ],
       },
@@ -103,7 +103,7 @@ export const ko: LegalDocuments = {
   },
   privacy: {
     title: '개인정보처리방침',
-    effective: '시행일 〔확인 필요〕',
+    effective: '시행일 2026년 10월 18일',
     sections: [
       {
         heading: '1. 개인정보의 처리 목적',
@@ -193,7 +193,7 @@ export const ko: LegalDocuments = {
         heading: '12. 개인정보 보호책임자',
         body: [
           '개인정보 처리에 관한 업무를 총괄하고 문의와 불만을 처리하는 보호책임자는 다음과 같습니다.',
-          '성명: 〔확인 필요〕, 연락처: contact@stairno.com',
+          '성명: 남유성, 연락처: contact@stairno.com',
         ],
       },
       {

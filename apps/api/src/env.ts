@@ -15,4 +15,6 @@ export interface Env {
   BETTER_AUTH_SECRET: string;
   // Unset locally and until the stairno.com domain is verified in Resend: mail is skipped.
   RESEND_API_KEY?: string;
+  // Toss secret key, test_sk_... until business registration (FR-43). Unset means Toss is off.
+  TOSS_SECRET_KEY?: string;
 }

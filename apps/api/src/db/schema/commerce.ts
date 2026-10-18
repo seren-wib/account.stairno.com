@@ -107,6 +107,8 @@ export const payment = pgTable(
     // Card company and last four digits, as the provider reports them (DR-4)
     methodSummary: text('method_summary'),
     receiptUrl: text('receipt_url'),
+    // The provider's code when it refused the payment, such as REJECT_CARD_PAYMENT
+    failureReason: text('failure_reason'),
     // The provider's response as received
     raw: jsonb('raw'),
     createdAt: createdAt(),

@@ -1,0 +1,151 @@
+import type { PaymentsMode } from './mode';
+import { ProviderError, type PaymentProvider, type PaymentResult } from './provider';
+
+// FR-43, FR-47: Toss Payments behind PaymentProvider (NFR-13). Core API v1 with Basic auth on the
+// secret key (`base64(secretKey + ':')`). Every POST carries an Idempotency-Key, which Toss keeps
+// for 15 days and answers again with the first response.
+
+const BASE_URL = 'https://api.tosspayments.com';
+
+// Toss answers these when the request did not go through for reasons on our side or theirs, not
+// because the buyer's payment was refused. Everything else in 4xx is a refusal (card declines come
+// as 403 or 400, so the code decides, not the status).
+const NOT_A_DECLINE = new Set([
+  'UNAUTHORIZED_KEY',
+  'FORBIDDEN_REQUEST',
+  'IDEMPOTENT_REQUEST_PROCESSING',
+  'TOO_MANY_REQUESTS',
+  'PROVIDER_ERROR',
+]);
+
+interface TossPayment {
+  paymentKey: string;
+  status: string;
+  totalAmount: number;
+  currency: string;
+  method?: string | null;
+  card?: { number?: string | null } | null;
+  receipt?: { url?: string | null } | null;
+}
+
+interface TossError {
+  code?: string;
+  message?: string;
+}
+
+export interface TossConfig {
+  secretKey: string | undefined;
+  mode: PaymentsMode;
+  fetch?: typeof globalThis.fetch;
+}
+
+function toResult(payment: TossPayment): PaymentResult {
+  const status =
+    payment.status === 'DONE'
+      ? 'done'
+      : payment.status === 'CANCELED' || payment.status === 'PARTIAL_CANCELED'
+        ? 'canceled'
+        : 'failed';
+  // DR-4: Toss sends the card number masked; we keep only that.
+  const methodSummary = [payment.method, payment.card?.number].filter(Boolean).join(' ');
+  return {
+    status,
+    providerPaymentKey: payment.paymentKey,
+    amount: payment.totalAmount,
+    currency: payment.currency,
+    ...(methodSummary ? { methodSummary } : {}),
+    ...(payment.receipt?.url ? { receiptUrl: payment.receipt.url } : {}),
+    ...(status === 'failed' ? { failureReason: payment.status } : {}),
+    raw: payment,
+  };
+}
+
+export function createTossProvider({
+  secretKey,
+  mode,
+  fetch = globalThis.fetch,
+}: TossConfig): PaymentProvider {
+  // Test mode only ever talks to Toss with a test key; a live key there is a configuration
+  // mistake, so nothing is sent (FR-42).
+  const usable = Boolean(secretKey) && (mode !== 'test' || secretKey!.startsWith('test_'));
+  const authorization = `Basic ${btoa(`${secretKey ?? ''}:`)}`;
+
+  async function call(
+    path: string,
+    init: { method: 'GET' } | { method: 'POST'; body: unknown; idempotencyKey: string },
+  ): Promise<{ ok: true; payment: TossPayment } | { ok: false; status: number; error: TossError }> {
+    if (!usable) throw new ProviderError('toss', 'Toss is not configured for this payments mode.');
+    let res: Response;
+    try {
+      res = await fetch(`${BASE_URL}${path}`, {
+        method: init.method,
+        headers: {
+          authorization,
+          ...(init.method === 'POST'
+            ? { 'content-type': 'application/json', 'idempotency-key': init.idempotencyKey }
+            : {}),
+        },
+        ...(init.method === 'POST' ? { body: JSON.stringify(init.body) } : {}),
+      });
+    } catch {
+      throw new ProviderError('toss', `Toss could not be reached for ${path}.`);
+    }
+    const body = (await res.json().catch(() => ({}))) as TossPayment & TossError;
+    if (res.ok) return { ok: true, payment: body };
+    if (res.status >= 500 || NOT_A_DECLINE.has(body.code ?? '') || res.status === 401) {
+      throw new ProviderError('toss', `Toss answered ${res.status} ${body.code ?? ''}`.trim());
+    }
+    return { ok: false, status: res.status, error: body };
+  }
+
+  async function read(paymentKey: string): Promise<PaymentResult> {
+    const answer = await call(`/v1/payments/${encodeURIComponent(paymentKey)}`, {
+      method: 'GET',
+    });
+    if (!answer.ok) {
+      throw new ProviderError('toss', `Toss answered ${answer.status} ${answer.error.code ?? ''}`);
+    }
+    return toResult(answer.payment);
+  }
+
+  return {
+    id: 'toss',
+
+    async confirm({ order, providerPaymentKey, amount, currency }) {
+      const answer = await call('/v1/payments/confirm', {
+        method: 'POST',
+        body: { paymentKey: providerPaymentKey, orderId: order.id, amount },
+        idempotencyKey: `confirm-${providerPaymentKey}`,
+      });
+      if (answer.ok) return toResult(answer.payment);
+      // Approved before (another request, or a retry after a lost answer): read it back (FR-38).
+      if (answer.error.code === 'ALREADY_PROCESSED_PAYMENT') return read(providerPaymentKey);
+      return {
+        status: 'failed',
+        providerPaymentKey,
+        amount,
+        currency,
+        failureReason: answer.error.code ?? `HTTP_${answer.status}`,
+        raw: answer.error,
+      };
+    },
+
+    async cancel({ providerPaymentKey, reason }) {
+      const answer = await call(`/v1/payments/${encodeURIComponent(providerPaymentKey)}/cancel`, {
+        method: 'POST',
+        body: { cancelReason: reason },
+        idempotencyKey: `cancel-${providerPaymentKey}`,
+      });
+      if (!answer.ok) {
+        throw new ProviderError('toss', `Toss refused the cancel: ${answer.error.code ?? ''}`);
+      }
+      return toResult(answer.payment);
+    },
+
+    // FR-48, FR-70: the webhook route arrives in its own pull request and will read the payment
+    // back from Toss instead of trusting the body. Until then no webhook is trusted.
+    async verifyWebhook() {
+      return null;
+    },
+  };
+}

@@ -273,6 +273,21 @@ describe('POST /v1/payments/toss/confirm', () => {
     expect((await state(db)).orders).toEqual([{ status: 'expired' }]);
   });
 
+  it('FR-36 FR-37 gives the money back when the order closes while Toss approves', async () => {
+    const slow = createFakeProvider({ delayMs: 300 });
+    const { db, send } = await withOrder({ providers: { toss: slow } });
+
+    const pending = send();
+    while (calls(slow, 'confirm').length === 0) await new Promise((r) => setTimeout(r, 5));
+    await db.execute(sql`update "order" set status = 'expired'`);
+    const res = await pending;
+
+    expect(res.status).toBe(409);
+    expect(await errorCode(res)).toBe('invalid_transition');
+    expect(calls(slow, 'cancel')).toHaveLength(1);
+    expect((await state(db)).payments).toEqual([]);
+  });
+
   it('FR-40 answers 404 for another site’s order or an unknown one', async () => {
     const ctx = await withOrder();
     const works = await registerSite(

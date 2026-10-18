@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { createMiddleware } from 'hono/factory';
 import { secureHeaders } from 'hono/secure-headers';
 import { sql } from 'drizzle-orm';
 import { createAuth } from './auth';
@@ -17,6 +18,7 @@ import { orderRoutes } from './routes/orders';
 import { paymentRoutes } from './routes/payments';
 import { productRoutes } from './routes/products';
 import { sessionRoutes } from './routes/sessions';
+import { webhookRoutes } from './routes/webhooks';
 
 export type { Deps } from './deps';
 
@@ -50,10 +52,16 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
 
   app.on(['GET', 'POST'], '/auth/*', async (c) => (await getDeps(c.env)).auth.handler(c.req.raw));
 
-  app.use('/v1/*', async (c, next) => {
+  const withDeps = createMiddleware<AppEnv>(async (c, next) => {
     c.set('deps', await getDeps(c.env));
     await next();
   });
+
+  // FR-67: payment providers call these without a session; each adapter verifies its own (FR-70).
+  app.use('/webhooks/*', withDeps);
+  app.route('/webhooks', webhookRoutes);
+
+  app.use('/v1/*', withDeps);
   // Every /v1 route has a caller first (SDD §8); each group then says which kind it takes.
   app.use('/v1/*', authenticate);
   app.route('/v1/connections', connectionRoutes);

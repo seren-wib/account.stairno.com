@@ -36,10 +36,15 @@ export interface BillingKey {
 
 // A webhook the adapter has verified (signature or a lookup at the provider, FR-70).
 export interface WebhookEvent {
+  // Stable across the provider's retries, so a repeated delivery is recognised (FR-68)
   eventId: string;
   eventType: string;
   providerPaymentKey: string;
   status: PaymentResult['status'];
+  // Our order id as the provider knows it (Toss orderId, PayPal custom_id); null when absent
+  orderRef: string | null;
+  // The payment as the provider reports it now, not as the webhook body claims
+  payment: PaymentResult | null;
   raw: unknown;
 }
 

@@ -8,10 +8,10 @@ import {
   failPendingOrder,
   findPayment,
   readSiteOrder,
-  settleOrder,
   type PaymentRow,
 } from '../payments/order-store';
 import { ProviderError, type PaymentResult } from '../payments/provider';
+import { applyProviderResult } from '../payments/settle';
 import { orderJson } from './orders';
 
 // FR-43, FR-44, FR-37, FR-38, FR-39 (SDD §6.3). The site sends what Toss's success redirect gave
@@ -90,63 +90,20 @@ export const paymentRoutes = new Hono<AppEnv>()
       return apiError(c, 502, 'provider_error', 'Toss did not answer. Please try again.');
     }
 
-    if (
-      result.status === 'done' &&
-      (result.amount !== order.amount || result.currency !== order.currency)
-    ) {
-      // FR-37: Toss approved something other than the order. Give the money back and fail it.
-      let canceled: PaymentResult;
-      try {
-        canceled = await providers.toss.cancel({
-          providerPaymentKey: paymentKey,
-          reason: 'Amount differs from the order.',
-        });
-      } catch (error) {
-        // The money stays at Toss until the operator refunds it; the payment row says so.
-        await settleOrder(db, {
-          orderId: order.id,
-          to: 'failed',
-          provider: 'toss',
-          payment: result,
-        });
-        console.error('toss payment held after an amount mismatch; refund it by hand', {
-          orderId: order.id,
-          paymentKey,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        return apiError(c, 502, 'provider_error', 'The payment could not be canceled.');
-      }
-      await settleOrder(db, {
-        orderId: order.id,
-        to: 'failed',
-        provider: 'toss',
-        payment: canceled,
-      });
-      console.warn('toss approved another amount; canceled', { orderId: order.id, paymentKey });
-      return apiError(c, 422, 'amount_mismatch', 'The approved amount is not the order amount.');
-    }
-
-    const to = result.status === 'done' ? 'fulfilled' : 'failed';
-    const settled = await settleOrder(db, {
-      orderId: order.id,
-      to,
-      provider: 'toss',
-      payment: result,
+    // FR-37, FR-39: the amount is checked again on what Toss approved, then the order settles.
+    const outcome = await applyProviderResult(db, providers.toss, {
+      providerId: 'toss',
+      order,
+      result,
     });
-    if (!settled && result.status === 'done' && !(await findPayment(db, paymentKey))) {
-      // The order left pending while Toss was approving (it expired or failed meanwhile), and no
-      // other request recorded this payment: the money must not stay taken.
-      await providers.toss
-        .cancel({ providerPaymentKey: paymentKey, reason: 'The order was closed meanwhile.' })
-        .catch((error: unknown) =>
-          console.error('toss payment held for a closed order; refund it by hand', {
-            orderId: order.id,
-            paymentKey,
-            error: error instanceof Error ? error.message : String(error),
-          }),
-        );
-      return apiError(c, 409, 'invalid_transition', 'The order closed while it was being paid.');
+    switch (outcome.kind) {
+      case 'mismatch':
+        return apiError(c, 422, 'amount_mismatch', 'The approved amount is not the order amount.');
+      case 'held':
+        return apiError(c, 502, 'provider_error', 'The payment could not be canceled.');
+      case 'closed':
+        return apiError(c, 409, 'invalid_transition', 'The order closed while it was being paid.');
+      case 'settled':
+        return answer(c, order.id, paymentKey);
     }
-    console.info('toss confirm', { orderId: order.id, paymentKey, status: result.status });
-    return answer(c, order.id, paymentKey);
   });

@@ -175,18 +175,22 @@ export async function settleOrder(
   return (result?.moved ?? 0) > 0;
 }
 
-// FR-36, FR-40: the site's own order, expired first if it is pending past its 30 minutes. The
-// update and the read are one statement, so the answer is the order as it now is.
-export async function readSiteOrder(
+// FR-36, FR-40: an order, expired first if it is pending past its 30 minutes. The update and the
+// read are one statement, so the answer is the order as it now is. With `clientId` only that
+// site's order is found; without it (a provider's webhook) any order is.
+export async function readOrder(
   db: Db,
-  input: { id: string; clientId: string },
+  input: { id: string; clientId?: string },
 ): Promise<OrderRow | undefined> {
+  const anySite = input.clientId === undefined;
+  const ofSite = anySite ? sql`true` : sql`client_id = ${input.clientId}`;
+  const orderOfSite = anySite ? sql`true` : sql`o.client_id = ${input.clientId}`;
   const [order] = await rows<OrderRow>(
     db,
     sql`
       with expired as (
         update "order" set status = 'expired'
-        where id = ${input.id} and client_id = ${input.clientId}
+        where id = ${input.id} and ${ofSite}
           and status in (${statusIn(allowedFrom('expire'))}) and expires_at <= now()
         returning id
       )
@@ -196,7 +200,38 @@ export async function readSiteOrder(
       from "order" o
       join product p on p.id = o.product_id
       left join expired e on e.id = o.id
-      where o.id = ${input.id} and o.client_id = ${input.clientId}`,
+      where o.id = ${input.id} and ${orderOfSite}`,
   );
   return order;
+}
+
+export const readSiteOrder = (db: Db, input: { id: string; clientId: string }) =>
+  readOrder(db, input);
+
+// FR-48, FR-61: the provider says the payment was canceled (a refund made at its dashboard, or
+// our own cancel). A paid or fulfilled order becomes refunded and its entitlement is revoked; the
+// payment row turns canceled whatever the order's state. false when the order did not move.
+export async function refundOrder(
+  db: Db,
+  input: { orderId: string; providerPaymentKey: string; raw: unknown },
+): Promise<boolean> {
+  const [result] = await rows<{ moved: number }>(
+    db,
+    sql`
+      with moved as (
+        update "order" set status = 'refunded', refunded_at = now()
+        where id = ${input.orderId} and status in (${statusIn(allowedFrom('refund'))})
+        returning id
+      ), canceled as (
+        update payment set status = 'canceled', raw = ${JSON.stringify(input.raw ?? null)}::jsonb,
+                           updated_at = now()
+        where provider_payment_key = ${input.providerPaymentKey} and order_id = ${input.orderId}
+          and status <> 'canceled'
+      ), revoked as (
+        update entitlement set status = 'revoked', updated_at = now()
+        where source_order_id in (select id from moved)
+      )
+      select count(*)::int as moved from moved`,
+  );
+  return (result?.moved ?? 0) > 0;
 }

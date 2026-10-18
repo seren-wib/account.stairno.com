@@ -155,6 +155,26 @@ export function createTossProvider({
       }
     },
 
+    // FR-46: a subscription's payment, first or renewal, on the saved key. One idempotency key per
+    // order, so a retried request never charges twice; each renewal is a new order. A decline has
+    // no paymentKey, so the result carries one made from the order.
+    async chargeBillingKey({ billingKey, customerKey, order, orderName }) {
+      const answer = await call(`/v1/billing/${encodeURIComponent(billingKey)}`, {
+        method: 'POST',
+        body: { customerKey, amount: order.amount, orderId: order.id, orderName },
+        idempotencyKey: `billing-charge-${order.id}`,
+      });
+      if (answer.ok) return toResult(answer.payment);
+      return {
+        status: 'failed',
+        providerPaymentKey: `declined-${order.id}`,
+        amount: order.amount,
+        currency: order.currency,
+        failureReason: answer.error.code ?? `HTTP_${answer.status}`,
+        raw: answer.error,
+      };
+    },
+
     async confirm({ order, providerPaymentKey, amount, currency }) {
       const answer = await call('/v1/payments/confirm', {
         method: 'POST',

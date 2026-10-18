@@ -148,12 +148,22 @@ describe('fake payment provider', () => {
     });
 
     await expect(
-      fake.chargeBillingKey!({ billingKey: key.billingKey, customerKey: 'cust_1', order }),
+      fake.chargeBillingKey!({
+        billingKey: key.billingKey,
+        customerKey: 'cust_1',
+        order,
+        orderName: 'Plan',
+      }),
     ).resolves.toMatchObject({ status: 'done', amount: 12000 });
 
     await fake.deleteBillingKey!(key.billingKey);
     await expect(
-      fake.chargeBillingKey!({ billingKey: key.billingKey, customerKey: 'cust_1', order }),
+      fake.chargeBillingKey!({
+        billingKey: key.billingKey,
+        customerKey: 'cust_1',
+        order,
+        orderName: 'Plan',
+      }),
     ).resolves.toMatchObject({ status: 'failed' });
   });
 

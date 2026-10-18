@@ -97,8 +97,10 @@ const dict = t(locale).deleteAccount;
         // The account is gone: only the goodbye stays, the rest of the page and the menu go.
         const done = document.querySelector<HTMLElement>('[data-deleted]');
         const zone = form.closest<HTMLElement>('.account-section');
-        for (const section of document.querySelectorAll<HTMLElement>('.account-section')) {
-          if (section !== zone) section.hidden = true;
+        for (const part of document.querySelectorAll<HTMLElement>(
+          '.account-category, .account-section',
+        )) {
+          if (part !== zone && !part.contains(zone)) part.hidden = true;
         }
         document.querySelector<HTMLElement>('[data-delete-zone]')?.setAttribute('hidden', '');
         document.querySelector<HTMLElement>('.account-menu')?.setAttribute('hidden', '');

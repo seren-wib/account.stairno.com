@@ -25,19 +25,12 @@ export const en: Dictionary = {
   footer: { heading: 'Stairno', hub: 'stairno.com', source: 'Source code' },
   account: {
     menuLabel: 'Account menu',
-    menu: {
-      home: 'Home',
-      security: 'Security',
-      billing: 'Billing',
-      library: 'Library',
-      account: 'Account',
-    },
-    descriptions: {
-      security: 'Password, signed-in devices and connected sites',
-      billing: 'Payment methods, subscriptions and orders',
-      library: 'Downloads of what you bought',
-      account: 'Profile, email, language and deleting the account',
-    },
+    menu: { account: 'Account', billing: 'Billing', library: 'Library', security: 'Security' },
+    signIn: 'Sign-in details',
+    password: 'Password',
+    changeEmail: 'Change your email?',
+    changePassword: 'Change your password?',
+    back: 'Back to your account',
   },
   overview: {
     heading: 'Account',
@@ -48,7 +41,6 @@ export const en: Dictionary = {
     resent: 'We sent the verification mail again.',
     tooMany: 'The verification mail can be sent once a minute.',
     unavailable: 'This is not possible right now. Please try again shortly.',
-    shortcuts: 'Shortcuts',
   },
   signIn: {
     heading: 'Sign in',
@@ -68,7 +60,7 @@ export const en: Dictionary = {
     name: 'Name',
     email: 'Email',
     password: 'Password',
-    passwordHint: '8 to 128 characters',
+    passwordHint: 'At least 8 characters',
     terms: 'Terms of Service',
     privacy: 'Privacy Policy',
     accept: 'I am 14 or older and agree to the {terms} and the {privacy} (version {version})',
@@ -83,7 +75,7 @@ export const en: Dictionary = {
     errors: {
       name: 'Please enter your name.',
       email: 'Please check the email address.',
-      passwordLength: 'Choose a password of 8 to 128 characters.',
+      passwordLength: 'Choose a password of at least 8 characters.',
       passwordBreached: 'This password has appeared in a data breach. Please choose another.',
       emailTaken: 'This email already has an account. Please sign in.',
       terms:
@@ -108,7 +100,7 @@ export const en: Dictionary = {
   resetPassword: {
     heading: 'New password',
     password: 'New password',
-    passwordHint: '8 to 128 characters',
+    passwordHint: 'At least 8 characters',
     submit: 'Change password',
     done: 'Password changed',
     doneBody:
@@ -118,7 +110,7 @@ export const en: Dictionary = {
     noscript: 'Turn on JavaScript to change the password.',
     errors: {
       expired: 'This link has expired or was already used. Please get a new one.',
-      passwordLength: 'Choose a password of 8 to 128 characters.',
+      passwordLength: 'Choose a password of at least 8 characters.',
       passwordBreached: 'This password has appeared in a data breach. Please choose another.',
       tooMany: 'Too many tries. Please try again in a minute.',
       unavailable: 'This is not possible right now. Please try again shortly.',
@@ -149,13 +141,13 @@ export const en: Dictionary = {
     heading: 'Password',
     current: 'Current password',
     new: 'New password',
-    hint: '8 to 128 characters. Changing it signs you out on every other device.',
+    hint: 'At least 8 characters. Changing it signs you out on every other device.',
     submit: 'Change password',
     done: 'Your password is changed. Every other device was signed out.',
     errors: {
       currentMissing: 'Please enter your current password.',
       current: 'The current password is not right.',
-      passwordLength: 'Choose a password of 8 to 128 characters.',
+      passwordLength: 'Choose a password of at least 8 characters.',
       passwordBreached: 'This password has appeared in a data breach. Please choose another.',
       tooMany: 'Too many tries. Please try again in a minute.',
       unavailable: 'The password could not be changed right now. Please try again shortly.',

@@ -21,7 +21,7 @@ const status = order
   : '';
 ---
 
-<Account locale={locale} page="billing" path={`orders/${id}`} heading={dict.detailHeading}>
+<Account locale={locale} current="billing" path={`orders/${id}`} heading={dict.detailHeading}>
   <div class="page-stack">
     {order === null ? (
       <p class="form-error">{dict.notFound}</p>

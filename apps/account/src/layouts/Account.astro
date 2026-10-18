@@ -1,65 +1,78 @@
 ---
-// The frame of every signed-in page (SDD §7.1): five categories beside the content. The menu stays
-// put while the page's sections scroll, and lists those sections under the current category. The
-// header's account menu (FR-82) comes from Base, which reads the user the session guard put in
-// locals.
+// The frame of every signed-in page (SDD §7.1): the account page's four categories and their
+// sections beside the content. Every link points at the account page, so on it a click scrolls to
+// the place and elsewhere it goes there. The menu stays below the header while the page scrolls
+// and marks the category in view. The header's account menu (FR-82) comes from Base.
 import Base from './Base.astro';
 import { localePath, t, type Locale } from '../i18n';
 
-export type AccountPage = 'home' | 'security' | 'billing' | 'library' | 'account';
-
-export interface SectionLink {
-  id: string;
-  label: string;
-}
+export type AccountCategory = 'account' | 'billing' | 'library' | 'security';
 
 interface Props {
   locale: Locale;
-  page: AccountPage;
   heading: string;
-  /** The page's sections, in order, for the links under the current category. */
-  sections?: SectionLink[];
+  /** On a sub-page, the category it belongs to. The account page marks the one in view. */
+  current?: AccountCategory;
+  /** Path below the locale prefix, for the locale switch. */
+  path?: string;
   /** Passed to Base: hosts this page's browser code calls besides the API (NFR-7). */
   connect?: string[];
-  /** Path below the locale prefix, for the locale switch. Defaults to the category's own. */
-  path?: string;
 }
 
-const { locale, page, heading, sections = [], connect } = Astro.props;
-const dict = t(locale).account;
+const { locale, heading, current, path = '', connect } = Astro.props;
+const all = t(locale);
+const dict = all.account;
+const home = localePath(locale, '');
 
-const items: { page: AccountPage; path: string }[] = [
-  { page: 'home', path: '' },
-  { page: 'security', path: 'security' },
-  { page: 'billing', path: 'billing' },
-  { page: 'library', path: 'library' },
-  { page: 'account', path: 'account' },
+// SRS 3.5: the page order, top to bottom.
+const categories: { id: AccountCategory; sections: { id: string; label: string }[] }[] = [
+  {
+    id: 'account',
+    sections: [
+      { id: 'profile', label: all.profile.heading },
+      { id: 'sign-in', label: dict.signIn },
+    ],
+  },
+  {
+    id: 'billing',
+    sections: [
+      { id: 'payment-methods', label: all.paymentMethods.heading },
+      { id: 'subscriptions', label: all.subscriptions.heading },
+      { id: 'orders', label: all.orders.recent },
+    ],
+  },
+  { id: 'library', sections: [{ id: 'downloads', label: all.downloads.heading }] },
+  {
+    id: 'security',
+    sections: [
+      { id: 'devices', label: all.devices.heading },
+      { id: 'connections', label: all.connections.heading },
+      { id: 'delete-account', label: all.deleteAccount.heading },
+    ],
+  },
 ];
-const current = items.find((item) => item.page === page);
-const path = Astro.props.path ?? current?.path ?? '';
 ---
 
 <Base locale={locale} path={path} heading={heading} connect={connect}>
   <div class="account-grid">
     <nav class="account-menu" aria-label={dict.menuLabel}>
       <ul>
-        {items.map((item) => (
+        {categories.map((category) => (
           <li>
             <a
-              href={localePath(locale, item.path)}
-              aria-current={item.page === page ? 'page' : undefined}
+              href={`${home}#${category.id}`}
+              data-category-link={category.id}
+              aria-current={category.id === current ? 'location' : undefined}
             >
-              {dict.menu[item.page]}
+              {dict.menu[category.id]}
             </a>
-            {item.page === page && sections.length > 0 && (
-              <ul class="account-submenu">
-                {sections.map((section) => (
-                  <li>
-                    <a href={`#${section.id}`}>{section.label}</a>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ul class="account-submenu">
+              {category.sections.map((section) => (
+                <li>
+                  <a href={`${home}#${section.id}`}>{section.label}</a>
+                </li>
+              ))}
+            </ul>
           </li>
         ))}
       </ul>
@@ -69,3 +82,27 @@ const path = Astro.props.path ?? current?.path ?? '';
     </div>
   </div>
 </Base>
+
+<script>
+  // On the account page, mark the category in view. Without this script the links still work.
+  const links = document.querySelectorAll<HTMLAnchorElement>('[data-category-link]');
+  const categories = document.querySelectorAll<HTMLElement>('.account-category');
+  if (categories.length > 0) {
+    const mark = (id: string) => {
+      for (const link of links) {
+        if (link.dataset.categoryLink === id) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      }
+    };
+    // A band across the upper part of the screen: the category crossing it is the one in view.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) mark(entry.target.id);
+        }
+      },
+      { rootMargin: '-30% 0px -60% 0px' },
+    );
+    for (const category of categories) observer.observe(category);
+  }
+</script>

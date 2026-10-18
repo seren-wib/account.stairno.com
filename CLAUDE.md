@@ -14,7 +14,7 @@ Stairno 계정 센터(account.stairno.com)와 공용 API(api.stairno.com). Stair
 | 테스트와 배포         | `docs/specs/test-deploy.md` | [Google Docs](https://docs.google.com/document/d/1izJ7KAlia6LIA5oOHP8XjUKz_uZWJFR5q9Utyfg_1ZY/edit) |
 
 - `docs/specs/`는 git에서 제외된다. 로컬에 없으면 Google Docs를 읽는다. Drive 폴더는 `Stairno/account.stairno.com`
-- 문서를 고치면 마크다운 원본을 고치고 Google Docs에 다시 올린다. Google Docs만 고치지 않는다
+- 문서를 고치면 마크다운 원본을 고친다. PR마다 바뀌는 건 원본뿐이다. Google Docs는 로드맵 단계가 끝날 때나 남에게 보여주기 전에 한 번 맞춘다. 같은 문서를 고쳐 링크를 지킨다. Google Docs만 고치지 않는다(2026-10-18)
 - 요구사항 ID(`FR-n`, `NFR-n`, `DR-n`)는 SRS에 있다. 테스트 이름과 PR 본문에서 이 ID를 인용한다
 - 공개 문서(README.md, CONTRIBUTING.md)는 영어로 쓴다. 계획서, SRS, SDD, 테스트와 배포 문서, CLAUDE.md는 한국어
 - 범위를 늘리는 변경(소셜 로그인, 관리자 화면, 3차 항목)은 계획서의 범위와 결정 기록을 먼저 고친 뒤에만 한다
@@ -24,6 +24,7 @@ Stairno 계정 센터(account.stairno.com)와 공용 API(api.stairno.com). Stair
 - 개발 방식은 TDD. 실패하는 테스트를 먼저 쓰고, 통과시키고, 정리한다. 테스트 없는 구현 커밋은 올리지 않는다. 테스트 이름에 SRS ID를 넣는다(`FR-3 returns the same body for an unknown email and a wrong password`)
 - 브랜치, 커밋, PR, 머지, 마이그레이션 규칙은 `CONTRIBUTING.md`
 - `main`에 직접 커밋하지 않는다. 모든 변경은 PR이고 CI가 통과해야 머지한다. 열린 PR은 하나만
+- 푸시 전 로컬에서는 바꾼 테스트 파일과 `format:check`, `check`, `db:check`만 돌린다. 전체 테스트는 CI가 한다. CI와 배포를 기다리는 동안 다음 이슈, 브랜치, 실패하는 테스트를 미리 준비한다. 다음 PR은 앞 PR이 배포된 뒤에 연다(2026-10-18)
 - 이슈와 PR은 기능 하나에 하나다. 문서, DB 연결, 인증, 화면, 테스트, CI를 한 PR에 묶지 않는다
 - DB는 `apps/api`만 만진다(DR-1). `apps/account`는 Better Auth나 Drizzle을 import하지 않고 API를 HTTP로 부른다. 서버 렌더링 때는 들어온 `Cookie` 헤더를 그대로 전달한다
 - 결제사는 `apps/api/src/payments/provider.ts`의 `PaymentProvider` 어댑터 뒤에만 있다. 주문 상태 기계와 라우트는 토스페이먼츠, PayPal을 직접 부르지 않는다. 테스트는 가짜 어댑터로 돈다(NFR-13, NFR-16)

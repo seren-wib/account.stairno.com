@@ -127,11 +127,19 @@ export async function removePaymentMethod(db: Db, input: { userId: string; id: s
 }
 
 // FR-53: this card becomes the one default. Unset first, then set, for the same reason as above.
+// FR-54: live subscriptions follow it, so they are always charged on the default and the card
+// they leave can be removed.
 export async function makeDefaultPaymentMethod(db: Db, input: { userId: string; id: string }) {
   await db.execute(sql`
     update payment_method set is_default = false
     where user_id = ${input.userId} and is_default and deleted_at is null and id <> ${input.id}`);
   await db.execute(sql`
-    update payment_method set is_default = true
-    where id = ${input.id} and user_id = ${input.userId} and deleted_at is null`);
+    with made as (
+      update payment_method set is_default = true
+      where id = ${input.id} and user_id = ${input.userId} and deleted_at is null
+      returning id
+    )
+    update subscription set payment_method_id = made.id
+    from made
+    where subscription.user_id = ${input.userId} and subscription.status in ('active', 'past_due')`);
 }

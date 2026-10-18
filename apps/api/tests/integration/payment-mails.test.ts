@@ -197,7 +197,7 @@ describe('payment mails', () => {
 
     const [, notice] = paymentMails(ctx);
     expect(notice!.subject).toContain('갱신 결제를 하지 못했습니다');
-    expect(notice!.text).toContain(`${ACCOUNT_URL}/ko/payment-methods`);
+    expect(notice!.text).toContain(`${ACCOUNT_URL}/ko/billing#payment-methods`);
   });
 
   it('FR-65 tells the buyer the outcome of a refund, once', async () => {

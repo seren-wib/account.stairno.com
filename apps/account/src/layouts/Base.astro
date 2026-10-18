@@ -7,6 +7,7 @@ import ThemeInit from '@stairno/ui/components/ThemeInit.astro';
 import '@stairno/ui/base.css';
 import '../styles/account.css';
 import { localePath, t, type Locale } from '../i18n';
+import { HUB_ORIGIN } from '../lib/redirect';
 import { connectSrc } from '../lib/security-headers';
 
 interface Props {
@@ -29,6 +30,8 @@ const title = heading === dict.meta.title ? heading : `${heading} · ${dict.meta
 const user = Astro.locals.user
   ? { name: Astro.locals.user.name, email: Astro.locals.user.email }
   : null;
+// DR-7: the brand's home is the hub; the overview is under the account menu and the side menu.
+const hubHome = `${HUB_ORIGIN}/${locale}/`;
 ---
 
 <!doctype html>
@@ -48,6 +51,7 @@ const user = Astro.locals.user
       locale={locale}
       path={path}
       brand="Stairno"
+      brandHref={hubHome}
       switchLabel={dict.nav.switchLocale}
       themeLabels={dict.nav.theme}
     >
@@ -88,7 +92,7 @@ const user = Astro.locals.user
       links={{
         heading: dict.footer.heading,
         // DR-7: the account center links back to the hub and nowhere else of Stairno.
-        items: [{ href: `https://stairno.com/${locale}/`, label: dict.footer.hub }],
+        items: [{ href: hubHome, label: dict.footer.hub }],
       }}
       source={{
         href: 'https://github.com/seren-wib/account.stairno.com',

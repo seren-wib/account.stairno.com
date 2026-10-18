@@ -1,8 +1,9 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import PaymentMethods from '../../src/pages/[locale]/payment-methods.astro';
+import Billing from '../../src/pages/[locale]/billing.astro';
 import { en } from '../../src/i18n/en';
 import { ko } from '../../src/i18n/ko';
+import { callTo, stubApi as stub } from './api-stub';
 
 // FR-32, FR-45, FR-53, UC-5: the card list, and the button that opens Toss's card window.
 // Card numbers are typed into Toss's window only; this page never has a field for them (DR-4).
@@ -44,16 +45,14 @@ afterEach(() => {
 });
 
 function stubApi(status = 200, body: unknown = cards) {
-  const api = vi.fn(async (_url: string, _init?: RequestInit) => Response.json(body, { status }));
-  vi.stubGlobal('fetch', api);
-  return api;
+  return stub({ '/v1/payment-methods': [status, body] });
 }
 
 async function render(locale = 'en', locals = localsFor()) {
   const container = await AstroContainer.create();
-  return container.renderToString(PaymentMethods, {
+  return container.renderToString(Billing, {
     params: { locale },
-    request: new Request(`https://account.stairno.com/${locale}/payment-methods`, {
+    request: new Request(`https://account.stairno.com/${locale}/billing`, {
       headers: { cookie: COOKIE },
     }),
     locals,
@@ -64,7 +63,7 @@ describe('payment methods page', () => {
   it('DR-1 reads the cards from the API with the visitor cookie', async () => {
     const api = stubApi();
     await render();
-    const [url, init] = api.mock.calls[0] ?? [];
+    const [url, init] = callTo(api, '/v1/payment-methods') ?? [];
     expect(url).toBe('https://api.stairno.com/v1/payment-methods');
     expect(new Headers(init?.headers).get('cookie')).toBe(COOKIE);
   });

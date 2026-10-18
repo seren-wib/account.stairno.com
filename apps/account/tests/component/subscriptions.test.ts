@@ -1,8 +1,9 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Subscriptions from '../../src/pages/[locale]/subscriptions.astro';
+import Billing from '../../src/pages/[locale]/billing.astro';
 import { en } from '../../src/i18n/en';
 import { ko } from '../../src/i18n/ko';
+import { callTo, stubApi as stub } from './api-stub';
 
 // FR-32, FR-56, UC-8: the user's subscriptions, with cancel at the period end and resume.
 
@@ -34,16 +35,14 @@ afterEach(() => {
 });
 
 function stubApi(status = 200, body: unknown = { items: [item()], nextCursor: null }) {
-  const api = vi.fn(async (_url: string, _init?: RequestInit) => Response.json(body, { status }));
-  vi.stubGlobal('fetch', api);
-  return api;
+  return stub({ '/v1/subscriptions': [status, body] });
 }
 
 async function render(locale = 'en') {
   const container = await AstroContainer.create();
-  return container.renderToString(Subscriptions, {
+  return container.renderToString(Billing, {
     params: { locale },
-    request: new Request(`https://account.stairno.com/${locale}/subscriptions`, {
+    request: new Request(`https://account.stairno.com/${locale}/billing`, {
       headers: { cookie: COOKIE },
     }),
     locals,
@@ -54,7 +53,7 @@ describe('subscriptions page', () => {
   it('DR-1 reads the subscriptions from the API with the visitor cookie', async () => {
     const api = stubApi();
     await render();
-    const [url, init] = api.mock.calls[0] ?? [];
+    const [url, init] = callTo(api, '/v1/subscriptions') ?? [];
     expect(url).toBe('https://api.stairno.com/v1/subscriptions');
     expect(new Headers(init?.headers).get('cookie')).toBe(COOKIE);
   });
@@ -96,7 +95,7 @@ describe('subscriptions page', () => {
     const html = await render();
     expect(html).toContain(en.subscriptions.statuses.past_due);
     expect(html).toContain(en.subscriptions.overdue);
-    expect(html).toContain('href="/en/payment-methods/"');
+    expect(html).toContain('href="/en/billing/#payment-methods"');
     expect(html).toContain('data-cancel-subscription="sub-1"');
   });
 

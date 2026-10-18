@@ -70,3 +70,17 @@ export function describeEntitlement(row: EntitlementRow) {
     downloadable: status === 'active' && Boolean(row.downloadable),
   };
 }
+
+// FR-62: the desktop products the user may download now, oldest entitlement first.
+export function listDownloads(db: Db, userId: string) {
+  return rows<{ sku: string; name_ko: string; name_en: string; expires_at: string | Date | null }>(
+    db,
+    sql`
+      select p.sku, p.name_ko, p.name_en, e.expires_at
+      from entitlement e join product p on p.id = e.product_id
+      where e.user_id = ${userId} and e.status = 'active' and e.downloadable
+        and p.download_key is not null
+        and (e.expires_at is null or e.expires_at > now())
+      order by e.created_at, p.sku`,
+  );
+}

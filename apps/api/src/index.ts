@@ -18,6 +18,7 @@ import { parsePaymentsMode } from './payments/mode';
 import { createPayPalProvider } from './payments/paypal';
 import { createTossProvider } from './payments/toss';
 import { meRoutes } from './routes/me';
+import { myDownloadRoutes } from './routes/my-downloads';
 import { myOrderRoutes } from './routes/my-orders';
 import { orderRoutes } from './routes/orders';
 import { paymentMethodRoutes } from './routes/payment-methods';
@@ -79,6 +80,7 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   app.route('/v1/connections', connectionRoutes);
   app.route('/v1/downloads', downloadRoutes);
   app.route('/v1/entitlements', entitlementRoutes);
+  app.route('/v1/me/downloads', myDownloadRoutes);
   app.route('/v1/me/orders', myOrderRoutes);
   app.route('/v1/me', meRoutes);
   app.route('/v1/orders', orderRoutes);

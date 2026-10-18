@@ -1,0 +1,58 @@
+---
+import { localePath, t, type Locale } from '../../i18n';
+import { formatDate } from '../../lib/api';
+import { formatMoney } from '../../lib/money';
+import type { Order } from '../../lib/orders';
+
+interface Props {
+  locale: Locale;
+  /** null when the list could not be read. */
+  orders: Order[] | null;
+  /** The next page of the full history, or a link to it from a shorter list. */
+  more?: string | null;
+}
+
+const { locale, orders, more = null } = Astro.props;
+const dict = t(locale).orders;
+---
+
+<div class="page-stack">
+  <p class="form-note">{dict.intro}</p>
+  {orders === null ? (
+    <p class="form-error">{dict.unavailable}</p>
+  ) : orders.length === 0 ? (
+    <p class="status">{dict.empty}</p>
+  ) : (
+    <ul class="item-list">
+      {orders.map((order) => (
+        <li class="item">
+          <div>
+            <p class="item-title">
+              {order.name[locale]}
+              <span class="badge">
+                {dict.statuses[order.status as keyof typeof dict.statuses] ?? order.status}
+              </span>
+              {order.refundRequest && (
+                <span class="badge">
+                  {dict.refund[order.refundRequest.status as keyof typeof dict.refund]}
+                </span>
+              )}
+            </p>
+            <p class="item-meta">
+              {formatDate(order.createdAt, locale)} ·{' '}
+              {formatMoney(order.amount, order.currency, locale)}
+            </p>
+          </div>
+          <a class="item-action" href={localePath(locale, `orders/${order.id}`)}>
+            {dict.open}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+  {more && (
+    <a class="button form-submit" href={more}>
+      {dict.more}
+    </a>
+  )}
+</div>

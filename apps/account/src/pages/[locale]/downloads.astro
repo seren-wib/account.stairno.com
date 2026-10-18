@@ -1,88 +1,18 @@
 ---
+import Downloads from '../../components/sections/Downloads.astro';
 import Account from '../../layouts/Account.astro';
 import { isLocale, t } from '../../i18n';
-import { apiGet, formatDate } from '../../lib/api';
+import { apiGet } from '../../lib/api';
+import type { Download } from '../../lib/account-data';
 
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
 const dict = t(locale).downloads;
 
-interface Download {
-  sku: string;
-  name: { ko: string; en: string };
-  expiresAt: string | null;
-}
-
 // FR-62: what the user may download now. The link itself is made on the click, so it is fresh.
 const list = await apiGet<{ items: Download[] }>(Astro.locals, Astro.request, '/v1/me/downloads');
-const downloads = list?.items ?? null;
 ---
 
 <Account locale={locale} page="downloads" heading={dict.heading}>
-  <div class="page-stack">
-    <p class="form-note">{dict.intro}</p>
-    <p
-      class="form-error"
-      role="alert"
-      data-downloads-error
-      data-api={Astro.locals.apiUrl}
-      data-failed={dict.failed}
-      hidden
-    ></p>
-    {downloads === null ? (
-      <p class="form-error">{dict.unavailable}</p>
-    ) : downloads.length === 0 ? (
-      <p class="status">{dict.empty}</p>
-    ) : (
-      <ul class="item-list">
-        {downloads.map((item) => (
-          <li class="item">
-            <div>
-              <p class="item-title">{item.name[locale]}</p>
-              {item.expiresAt && (
-                <p class="item-meta">
-                  {dict.until} {formatDate(item.expiresAt, locale)}
-                </p>
-              )}
-            </div>
-            <button class="item-action" type="button" data-download-sku={item.sku}>
-              {dict.download}
-            </button>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
+  <Downloads locale={locale} downloads={list?.items ?? null} />
 </Account>
-
-<script>
-  const error = document.querySelector<HTMLElement>('[data-downloads-error]');
-
-  // FR-62: a ten-minute link from the API; following it starts the download.
-  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-download-sku]')) {
-    button.addEventListener('click', async () => {
-      button.disabled = true;
-      try {
-        const res = await fetch(`${error?.dataset.api}/v1/downloads`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ sku: button.dataset.downloadSku }),
-        });
-        if (res.ok) {
-          const { url } = (await res.json()) as { url: string };
-          window.location.assign(url);
-        } else if (error) {
-          error.textContent = error.dataset.failed ?? '';
-          error.hidden = false;
-        }
-      } catch {
-        if (error) {
-          error.textContent = error.dataset.failed ?? '';
-          error.hidden = false;
-        }
-      }
-      button.disabled = false;
-    });
-  }
-</script>

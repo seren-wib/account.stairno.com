@@ -26,19 +26,11 @@ async function render(emailVerified: boolean, locale = 'en') {
 }
 
 describe('overview', () => {
-  it('FR-29 shows the name, the email and shortcuts to the account pages', async () => {
+  it('FR-29 shows the name, the email and shortcuts to the other categories', async () => {
     const html = await render(true);
     expect(html).toContain('Yu Seong');
     expect(html).toContain('yu@example.com');
-    for (const page of [
-      'profile',
-      'devices',
-      'connections',
-      'payment-methods',
-      'orders',
-      'subscriptions',
-      'downloads',
-    ]) {
+    for (const page of ['security', 'billing', 'library', 'account']) {
       expect(html).toContain(`href="/en/${page}/"`);
     }
   });
@@ -57,21 +49,11 @@ describe('overview', () => {
 });
 
 describe('signed-in frame', () => {
-  it('FR-29 NFR-18 lists the account pages and marks the current one', async () => {
+  it('FR-29 NFR-18 lists the five categories and marks the current one', async () => {
     const html = await render(true);
     const start = html.indexOf('class="account-menu"');
     const menu = html.slice(start, html.indexOf('</nav>', start));
-    for (const page of [
-      '',
-      'profile/',
-      'devices/',
-      'connections/',
-      'payment-methods/',
-      'orders/',
-      'subscriptions/',
-      'downloads/',
-      'delete/',
-    ]) {
+    for (const page of ['', 'security/', 'billing/', 'library/', 'account/']) {
       expect(menu).toContain(`href="/en/${page}"`);
     }
     expect(menu).toMatch(/href="\/en\/"[^>]*aria-current="page"/);

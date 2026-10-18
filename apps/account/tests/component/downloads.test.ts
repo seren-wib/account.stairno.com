@@ -1,7 +1,8 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import Downloads from '../../src/pages/[locale]/downloads.astro';
+import Library from '../../src/pages/[locale]/library.astro';
 import { en } from '../../src/i18n/en';
+import { stubApi as stub } from './api-stub';
 
 // FR-62, FR-29: the desktop products the user may download, each with a button that asks the
 // API for a ten-minute link and follows it.
@@ -26,16 +27,14 @@ afterEach(() => {
 });
 
 function stubApi(status = 200, body: unknown = { items, nextCursor: null }) {
-  const api = vi.fn(async (_url: string, _init?: RequestInit) => Response.json(body, { status }));
-  vi.stubGlobal('fetch', api);
-  return api;
+  return stub({ '/v1/me/downloads': [status, body] });
 }
 
 async function render(locale = 'en') {
   const container = await AstroContainer.create();
-  return container.renderToString(Downloads, {
+  return container.renderToString(Library, {
     params: { locale },
-    request: new Request(`https://account.stairno.com/${locale}/downloads`, {
+    request: new Request(`https://account.stairno.com/${locale}/library`, {
       headers: { cookie: COOKIE },
     }),
     locals,

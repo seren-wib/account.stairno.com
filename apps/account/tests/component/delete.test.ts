@@ -1,6 +1,6 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { describe, expect, it } from 'vitest';
-import Delete from '../../src/pages/[locale]/delete.astro';
+import AccountPage from '../../src/pages/[locale]/account.astro';
 import { deleteError } from '../../src/lib/delete-form';
 import { en } from '../../src/i18n/en';
 
@@ -11,9 +11,9 @@ const locals = {
 
 async function render() {
   const container = await AstroContainer.create();
-  return container.renderToString(Delete, {
+  return container.renderToString(AccountPage, {
     params: { locale: 'en' },
-    request: new Request('https://account.stairno.com/en/delete'),
+    request: new Request('https://account.stairno.com/en/account'),
     locals,
   });
 }

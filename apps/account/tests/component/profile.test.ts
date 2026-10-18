@@ -1,6 +1,6 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { describe, expect, it } from 'vitest';
-import Profile from '../../src/pages/[locale]/profile.astro';
+import AccountPage from '../../src/pages/[locale]/account.astro';
 import { ko } from '../../src/i18n/ko';
 
 const locals = {
@@ -10,9 +10,9 @@ const locals = {
 
 async function render(locale = 'ko') {
   const container = await AstroContainer.create();
-  return container.renderToString(Profile, {
+  return container.renderToString(AccountPage, {
     params: { locale },
-    request: new Request(`https://account.stairno.com/${locale}/profile`),
+    request: new Request(`https://account.stairno.com/${locale}/account`),
     locals,
   });
 }

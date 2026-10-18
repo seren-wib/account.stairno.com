@@ -14,6 +14,7 @@ This is a one-person project that runs like a team: issue → branch → failing
 - One task, one issue, one branch, one pull request. Example: `feature/1-account-specs`
 - A task is one feature or concern. Documentation, workspace tooling, database wiring, auth wiring, screen skeletons, unit tests, end-to-end tests and CI each get their own issue and pull request. Do not bundle them
 - Merge one pull request (and see it deployed) before opening the next. There is never more than one open pull request
+- While a pull request waits for CI and its deployment, the next issue, branch and failing tests may be prepared locally
 
 ## Issues
 
@@ -62,6 +63,7 @@ refactor(api): extract transition table
 - Payment providers are replaced by a fake adapter in tests. Real test-key calls happen only in deployment rehearsals (NFR-16)
 - Integration tests run on PGlite, an in-memory PostgreSQL, so CI needs no secrets
 - `npm test` runs every workspace; `npm run test:e2e` needs the containers in `e2e/compose.yml`
+- Before pushing, run the test files you changed together with `npm run format:check`, `npm run check` and `npm run db:check`. The full suite runs in CI (`verify`)
 
 ## Database
 
@@ -78,7 +80,8 @@ refactor(api): extract transition table
 
 Updating documents is part of the work. When code changes, the related document changes in the same pull request.
 
-- Design changes go into `docs/specs/sdd.md`, then the Google Doc is updated
+- Design changes go into `docs/specs/sdd.md`
+- The markdown files in `docs/specs/` are the sources and change with each pull request. The shared Google Docs copies are brought up to date once per roadmap step, or before they are shown to anyone, by editing the same documents so their links stay
 - Requirement changes go into `docs/specs/srs.md`; scope changes into the scope and decision log of `docs/specs/plan.md`
 - After upgrading Better Auth, run `experiments/cross-domain-login` again and check all 13 steps pass
 - Public documents (README.md, CONTRIBUTING.md) are written in English. The specifications and CLAUDE.md are in Korean

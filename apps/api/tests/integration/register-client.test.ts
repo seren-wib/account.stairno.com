@@ -50,6 +50,16 @@ describe('registerClient', () => {
     );
   });
 
+  it('FR-35 lets the site ask for its own token for the commerce routes', async () => {
+    const { db, client } = await setup();
+
+    const rows = await db.execute(
+      sql`select client_credentials_scopes from oauth_client where client_id = ${client.clientId}`,
+    );
+
+    expect(rows.rows[0]).toEqual({ client_credentials_scopes: ['commerce'] });
+  });
+
   it("FR-15 keeps the site when the operator's account is deleted", async () => {
     const { app, db, operator, client } = await setup();
 

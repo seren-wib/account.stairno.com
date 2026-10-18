@@ -1,274 +1,32 @@
 ---
+import PaymentMethods from '../../components/sections/PaymentMethods.astro';
 import Account from '../../layouts/Account.astro';
 import { isLocale, t } from '../../i18n';
-import { apiGet, formatDate } from '../../lib/api';
-import { cardLabel } from '../../lib/cards';
+import { apiGet } from '../../lib/api';
+import { canAddCard, type CardList } from '../../lib/account-data';
 import { TOSS_CONNECT_SRC, TOSS_SDK_URL } from '../../lib/toss';
 
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
 const dict = t(locale).paymentMethods;
 
-interface Card {
-  id: string;
-  provider: string;
-  cardCompany: string | null;
-  cardLast4: string | null;
-  isDefault: boolean;
-  createdAt: string;
-}
-
-// FR-45, FR-53. The API keeps the billing keys; this page only ever sees what is safe to show.
-const list = await apiGet<{ items: Card[]; customerKey: string; clientKey: string | null }>(
-  Astro.locals,
-  Astro.request,
-  '/v1/payment-methods',
-);
-const cards = list?.items ?? null;
-// FR-2: the API refuses a card from an unverified address, so the button would only fail.
-const verified = Astro.locals.user?.emailVerified ?? false;
-const canAdd = Boolean(list?.clientKey) && verified;
+// FR-45, FR-53
+const list = await apiGet<CardList>(Astro.locals, Astro.request, '/v1/payment-methods');
 // NFR-7: Toss's SDK, and Toss in the CSP, only where the card window can actually open.
 // The first inserted resource replaces Astro's default 'self' instead of joining it, so 'self'
 // goes back in by hand (checked in the built page, 2026-10-18).
+const canAdd = canAddCard(list, Astro.locals.user?.emailVerified ?? false);
 if (canAdd) {
   Astro.csp?.insertScriptResource("'self'");
   Astro.csp?.insertScriptResource(new URL(TOSS_SDK_URL).origin);
 }
-const connect = canAdd ? TOSS_CONNECT_SRC : [];
-
-const messages = JSON.stringify({
-  registering: dict.registering,
-  registered: dict.registered,
-  canceled: dict.canceled,
-  failed: dict.failed,
-  refused: dict.refused,
-  verifyFirst: dict.verifyFirst,
-  inUse: dict.inUse,
-  providerDown: dict.providerDown,
-  unavailable: dict.unavailable,
-});
 ---
 
-<Account locale={locale} page="paymentMethods" heading={dict.heading} connect={connect}>
-  <div class="page-stack">
-    <p class="form-note">{dict.intro}</p>
-    <p
-      class="status"
-      role="status"
-      data-cards-status
-      data-api={Astro.locals.apiUrl}
-      data-messages={messages}
-      hidden
-    ></p>
-    <p class="form-error" role="alert" data-cards-error hidden></p>
-    {cards === null ? (
-      <p class="form-error">{dict.unavailable}</p>
-    ) : (
-      <>
-        {cards.length === 0 ? (
-          <p class="status">{dict.empty}</p>
-        ) : (
-          <ul class="item-list">
-            {cards.map((card) => (
-              <li class="item">
-                <div>
-                  <p class="item-title">
-                    {cardLabel(dict, card)}
-                    {card.isDefault && <span class="badge">{dict.default}</span>}
-                  </p>
-                  <p class="item-meta">
-                    {dict.added} {formatDate(card.createdAt, locale)}
-                  </p>
-                </div>
-                <div class="button-row">
-                  {!card.isDefault && (
-                    <button class="item-action" type="button" data-make-default={card.id}>
-                      {dict.makeDefault}
-                    </button>
-                  )}
-                  <button class="item-action" type="button" data-remove-card={card.id}>
-                    {dict.remove}
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-        {!verified ? (
-          <p class="notice">{dict.verifyFirst}</p>
-        ) : canAdd ? (
-          <button
-            class="button form-submit"
-            type="button"
-            data-add-card
-            data-client-key={list?.clientKey}
-            data-customer-key={list?.customerKey}
-            data-sdk={TOSS_SDK_URL}
-          >
-            {dict.add}
-          </button>
-        ) : (
-          <p class="notice">{dict.addUnavailable}</p>
-        )}
-      </>
-    )}
-  </div>
+<Account
+  locale={locale}
+  page="paymentMethods"
+  heading={dict.heading}
+  connect={canAdd ? TOSS_CONNECT_SRC : []}
+>
+  <PaymentMethods locale={locale} list={list} />
 </Account>
-
-<script>
-  import { cardWindowResult } from '../../lib/toss';
-
-  type Messages = Record<
-    | 'registering'
-    | 'registered'
-    | 'canceled'
-    | 'failed'
-    | 'refused'
-    | 'verifyFirst'
-    | 'inUse'
-    | 'providerDown'
-    | 'unavailable',
-    string
-  >;
-
-  // The SDK's global, as https://js.tosspayments.com/v2/standard defines it (Toss SDK v2 docs).
-  type TossPayments = (clientKey: string) => {
-    payment(options: { customerKey: string }): {
-      requestBillingAuth(request: {
-        method: 'CARD';
-        successUrl: string;
-        failUrl: string;
-        windowTarget?: 'self' | 'iframe';
-      }): Promise<void>;
-    };
-  };
-
-  const statusEl = document.querySelector<HTMLElement>('[data-cards-status]');
-  const errorEl = document.querySelector<HTMLElement>('[data-cards-error]');
-  const messages = JSON.parse(statusEl?.dataset.messages ?? '{}') as Messages;
-  const api = statusEl?.dataset.api;
-
-  function show(el: HTMLElement | null, text: string) {
-    if (!el) return;
-    el.textContent = text;
-    el.hidden = false;
-  }
-
-  // The API's answer to a change, as the words the visitor reads (SDD §8 error codes).
-  async function problem(res: Response): Promise<string> {
-    const body = (await res.json().catch(() => null)) as {
-      error?: { code?: string; issues?: { path?: string[] }[] };
-    } | null;
-    const code = body?.error?.code;
-    if (res.status === 409) return messages.inUse;
-    if (res.status === 502) return messages.providerDown;
-    if (code === 'email_not_verified') return messages.verifyFirst;
-    if (res.status === 422 && body?.error?.issues?.[0]?.path?.[0] === 'authKey') {
-      return messages.refused;
-    }
-    return messages.unavailable;
-  }
-
-  async function change(button: HTMLButtonElement, request: () => Promise<Response>) {
-    button.disabled = true;
-    try {
-      const res = await request();
-      if (res.ok) {
-        window.location.reload();
-        return;
-      }
-      show(errorEl, await problem(res));
-    } catch {
-      show(errorEl, messages.unavailable);
-    }
-    button.disabled = false;
-  }
-
-  // FR-53: make another card the default, or remove one (at Toss first, then here).
-  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-make-default]')) {
-    button.addEventListener('click', () =>
-      change(button, () =>
-        fetch(`${api}/v1/payment-methods/${button.dataset.makeDefault}/default`, {
-          method: 'PATCH',
-          credentials: 'include',
-        }),
-      ),
-    );
-  }
-  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-remove-card]')) {
-    button.addEventListener('click', () =>
-      change(button, () =>
-        fetch(`${api}/v1/payment-methods/${button.dataset.removeCard}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        }),
-      ),
-    );
-  }
-
-  function loadSdk(src: string): Promise<TossPayments> {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = src;
-      script.onload = () => {
-        const sdk = (window as unknown as { TossPayments?: TossPayments }).TossPayments;
-        if (sdk) resolve(sdk);
-        else reject(new Error('TossPayments missing'));
-      };
-      script.onerror = () => reject(new Error('TossPayments did not load'));
-      document.head.append(script);
-    });
-  }
-
-  // FR-45 UC-5: Toss's own window takes the card; it sends the visitor back here with an authKey.
-  const add = document.querySelector<HTMLButtonElement>('[data-add-card]');
-  add?.addEventListener('click', async () => {
-    const { sdk = '', clientKey = '', customerKey = '' } = add.dataset;
-    add.disabled = true;
-    errorEl?.setAttribute('hidden', '');
-    try {
-      const tossPayments = (await loadSdk(sdk))(clientKey);
-      const back = `${window.location.origin}${window.location.pathname}`;
-      // The whole page goes to Toss and back, so the CSP never has to allow Toss in a frame.
-      await tossPayments.payment({ customerKey }).requestBillingAuth({
-        method: 'CARD',
-        successUrl: back,
-        failUrl: back,
-        windowTarget: 'self',
-      });
-    } catch {
-      show(errorEl, messages.failed);
-      add.disabled = false;
-    }
-  });
-
-  // Back from Toss: register the card, then show the page without the one-time key in the URL.
-  async function finishCardWindow() {
-    const result = cardWindowResult(new URLSearchParams(window.location.search));
-    if (!result) return;
-    window.history.replaceState(null, '', window.location.pathname);
-    if (result.kind === 'canceled') return show(statusEl, messages.canceled);
-    if (result.kind === 'failed') return show(errorEl, messages.failed);
-
-    show(statusEl, messages.registering);
-    try {
-      const res = await fetch(`${api}/v1/payment-methods/toss`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ authKey: result.authKey, customerKey: result.customerKey }),
-      });
-      if (res.ok) {
-        window.location.reload();
-        return;
-      }
-      statusEl?.setAttribute('hidden', '');
-      show(errorEl, await problem(res));
-    } catch {
-      statusEl?.setAttribute('hidden', '');
-      show(errorEl, messages.unavailable);
-    }
-  }
-  void finishCardWindow();
-</script>

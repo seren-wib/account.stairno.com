@@ -1,0 +1,12 @@
+{
+  "name": "payment-rehearsal",
+  "version": "1.0.0",
+  "description": "A throwaway Stairno site that drives the 2차 payment rehearsal against the production API.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "deploy": "wrangler deploy",
+    "wrangler": "wrangler"
+  }
+}

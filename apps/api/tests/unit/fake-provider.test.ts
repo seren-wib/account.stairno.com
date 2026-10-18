@@ -129,6 +129,8 @@ describe('fake payment provider', () => {
       eventType: 'PAYMENT.CAPTURE.COMPLETED',
       providerPaymentKey: 'fake_pay_1',
       status: 'done' as const,
+      orderRef: order.id,
+      payment: null,
     };
 
     await expect(fake.verifyWebhook(fake.webhookRequest(event))).resolves.toMatchObject(event);

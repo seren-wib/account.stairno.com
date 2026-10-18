@@ -20,6 +20,7 @@ const NOT_A_DECLINE = new Set([
 
 interface TossPayment {
   paymentKey: string;
+  orderId?: string;
   status: string;
   totalAmount: number;
   currency: string;
@@ -142,10 +143,33 @@ export function createTossProvider({
       return toResult(answer.payment);
     },
 
-    // FR-48, FR-70: the webhook route arrives in its own pull request and will read the payment
-    // back from Toss instead of trusting the body. Until then no webhook is trusted.
-    async verifyWebhook() {
-      return null;
+    // FR-48, FR-70: PAYMENT_STATUS_CHANGED is `{ eventType, createdAt, data: Payment }` and is not
+    // signed, so the payment is read back from Toss and that answer is what counts. A payment Toss
+    // does not know is not trusted; a lookup that cannot be made throws, so Toss sends it again.
+    async verifyWebhook(req) {
+      const body = (await req.json().catch(() => null)) as {
+        eventType?: unknown;
+        createdAt?: unknown;
+        data?: { paymentKey?: unknown; status?: unknown } | null;
+      } | null;
+      if (body?.eventType !== 'PAYMENT_STATUS_CHANGED') return null;
+      const paymentKey = body.data?.paymentKey;
+      if (typeof paymentKey !== 'string' || paymentKey === '') return null;
+
+      const answer = await call(`/v1/payments/${encodeURIComponent(paymentKey)}`, {
+        method: 'GET',
+      });
+      if (!answer.ok) return null;
+      const payment = toResult(answer.payment);
+      return {
+        eventId: `${paymentKey}:${String(body.data?.status ?? '')}:${String(body.createdAt ?? '')}`,
+        eventType: body.eventType,
+        providerPaymentKey: paymentKey,
+        status: payment.status,
+        orderRef: answer.payment.orderId ?? null,
+        payment,
+        raw: { body, payment: answer.payment },
+      };
     },
   };
 }

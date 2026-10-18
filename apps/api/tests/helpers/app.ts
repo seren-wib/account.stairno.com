@@ -1,7 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
-import { migrate } from 'drizzle-orm/pglite/migrator';
-import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
+import { inject } from 'vitest';
 import { createAuth, type AuthConfig } from '../../src/auth';
 import { createApp, type Deps } from '../../src/index';
 import * as schema from '../../src/db/schema';
@@ -11,13 +11,15 @@ import { createMemoryMailbox } from './mailbox';
 export const API_URL = 'https://api.stairno.com';
 export const ACCOUNT_URL = 'https://account.stairno.com';
 
-const migrationsFolder = fileURLToPath(new URL('../../src/db/migrations', import.meta.url));
+// The migrated snapshot from tests/global-setup.ts, read once per test file.
+let snapshot: Promise<Blob> | undefined;
 
-// A fresh in-memory PostgreSQL with the production migrations applied.
+// A fresh in-memory PostgreSQL with the production migrations applied, its own copy per call.
+// Loading the snapshot replaces starting and migrating a new PGlite for every test.
 export async function createTestDb() {
-  const db = drizzle(new PGlite(), { schema });
-  await migrate(db, { migrationsFolder });
-  return db;
+  snapshot ??= readFile(inject('migratedDataDir')).then((bytes) => new Blob([bytes]));
+  const client = new PGlite({ loadDataDir: await snapshot });
+  return drizzle(client, { schema });
 }
 
 type UrlConfig = Pick<AuthConfig, 'apiUrl' | 'accountUrl' | 'cookieDomain'>;

@@ -1,3 +1,4 @@
+export { entitlementQuerySchema, type EntitlementQuery } from './entitlements';
 export { errorCodes, type ErrorBody, type ErrorCode } from './errors';
 export { localeSchema, locales, type Locale } from './locale';
 export { createOrderInputSchema, type CreateOrderInput } from './orders';

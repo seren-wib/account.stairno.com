@@ -44,6 +44,7 @@ export const authenticate = createMiddleware<AppEnv>(async (c, next) => {
   const { auth, db } = c.var.deps;
   const authorization = c.req.header('authorization');
   c.set('site', null);
+  c.set('tokenClient', null);
 
   if (authorization?.startsWith('Bearer ')) {
     const claims = await verifyAccessToken(auth, authorization.slice('Bearer '.length));
@@ -63,6 +64,7 @@ export const authenticate = createMiddleware<AppEnv>(async (c, next) => {
     if (!user) return apiError(c, 401, 'unauthorized', 'The access token is not valid.');
     c.set('user', user);
     c.set('session', null);
+    c.set('tokenClient', claims.azp);
     return next();
   }
 

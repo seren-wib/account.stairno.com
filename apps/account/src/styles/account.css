@@ -285,26 +285,6 @@
   }
 }
 
-.account-email {
-  font-size: 0.875rem;
-  color: var(--on-night-muted);
-}
-
-.account-sign-out {
-  border: 1px solid var(--on-night-faint);
-  border-radius: 999px;
-  padding: 0.35rem 0.9rem;
-  background: transparent;
-  color: var(--on-night);
-  cursor: pointer;
-}
-
-@media (max-width: 720px) {
-  .account-email {
-    display: none;
-  }
-}
-
 .detail-list {
   display: grid;
   gap: 0.75rem;

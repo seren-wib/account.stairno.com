@@ -1,11 +1,12 @@
 ---
+import AccountMenu from '@stairno/ui/components/AccountMenu.astro';
 import Fonts from '@stairno/ui/components/Fonts.astro';
 import Footer from '@stairno/ui/components/Footer.astro';
 import Header from '@stairno/ui/components/Header.astro';
 import ThemeInit from '@stairno/ui/components/ThemeInit.astro';
 import '@stairno/ui/base.css';
 import '../styles/account.css';
-import { t, type Locale } from '../i18n';
+import { localePath, t, type Locale } from '../i18n';
 import { connectSrc } from '../lib/security-headers';
 
 interface Props {
@@ -23,6 +24,11 @@ const dict = t(locale);
 // NFR-7: browser code on these pages calls the API and nothing else.
 Astro.csp?.insertDirective(connectSrc(Astro.locals.apiUrl));
 const title = heading === dict.meta.title ? heading : `${heading} · ${dict.meta.title}`;
+// FR-82: the session guard puts the user in locals on signed-in pages; elsewhere the menu is
+// signed out (auth and legal pages never call the API for it).
+const user = Astro.locals.user
+  ? { name: Astro.locals.user.name, email: Astro.locals.user.email }
+  : null;
 ---
 
 <!doctype html>
@@ -46,7 +52,15 @@ const title = heading === dict.meta.title ? heading : `${heading} · ${dict.meta
       themeLabels={dict.nav.theme}
     >
       <Fragment slot="actions">
-        <slot name="actions" />
+        <AccountMenu
+          locale={locale}
+          labels={dict.nav.accountMenu}
+          accountUrl={localePath(locale, '')}
+          signInUrl={localePath(locale, 'sign-in')}
+          signUpUrl={localePath(locale, 'sign-up')}
+          signOutUrl={`${Astro.locals.apiUrl}/auth/sign-out`}
+          user={user}
+        />
       </Fragment>
     </Header>
     <main>

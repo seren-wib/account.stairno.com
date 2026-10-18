@@ -6,6 +6,15 @@ export type Dictionary = {
     overview: string;
     switchLocale: string;
     theme: { light: string; dark: string; toggle: string };
+    // @stairno/ui AccountMenu (FR-79, FR-82).
+    accountMenu: {
+      signedIn: string;
+      signedOut: string;
+      manage: string;
+      signOut: string;
+      signIn: string;
+      signUp: string;
+    };
   };
   footer: { heading: string; hub: string; source: string };
   account: {
@@ -17,7 +26,6 @@ export type Dictionary = {
       connections: string;
       delete: string;
     };
-    signOut: string;
   };
   overview: {
     heading: string;

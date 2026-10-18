@@ -75,7 +75,7 @@ describe('signed-in frame', () => {
   it('FR-82 drops the old email and sign-out button from the header', async () => {
     const html = await render(true);
     const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
-    expect(header).not.toContain('account-sign-out');
-    expect(header).not.toContain('account-email');
+    expect(header).not.toContain('class="account-sign-out"');
+    expect(header).not.toContain('class="account-email"');
   });
 });

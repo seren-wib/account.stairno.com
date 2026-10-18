@@ -210,7 +210,12 @@ export function createAuth(config: AuthConfig) {
         // Site clients belong to Stairno, not to the operator who registered them, so deleting
         // that operator's account (FR-8) leaves the sites alone.
         clientReference: () => 'stairno',
-        scopes: ['openid', 'profile', 'email', 'offline_access'],
+        // Client changes reach the provider only from the admin command: the HTTP routes for them
+        // are in disabledPaths and dynamic registration is off. The provider still asks for this
+        // hook before it lets a client have client-credentials scopes (FR-35).
+        clientPrivileges: () => true,
+        // `commerce` is for sites' own client-credentials tokens (FR-35), never for a user.
+        scopes: ['openid', 'profile', 'email', 'offline_access', 'commerce'],
         resources: [config.apiUrl],
         enforcePerClientResources: false,
         // FR-19: one hour, stated here rather than left to the library default.

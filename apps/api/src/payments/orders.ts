@@ -23,6 +23,13 @@ const moves: Partial<Record<OrderStatus, Partial<Record<OrderEvent, OrderStatus>
   fulfilled: { refund: 'refunded' },
 };
 
+// The statuses an event may move an order out of. Payment writes run on neon-http as single
+// statements guarded by `status in (...)` with this list (SDD §6.2), so the database applies
+// exactly the moves transition() allows; zero rows means another request moved the order first.
+export function allowedFrom(event: OrderEvent): OrderStatus[] {
+  return orderStatuses.filter((status) => moves[status]?.[event] !== undefined);
+}
+
 export interface OrderChange {
   status: OrderStatus;
   paidAt?: Date;

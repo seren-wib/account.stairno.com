@@ -8,10 +8,11 @@ import type { AppEnv, Deps } from './deps';
 import type { Env } from './env';
 import { apiError } from './http/errors';
 import { createCors } from './middleware/cors';
-import { requireUser } from './middleware/session';
+import { authenticate } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
 import { parsePaymentsMode } from './payments/mode';
 import { meRoutes } from './routes/me';
+import { orderRoutes } from './routes/orders';
 import { productRoutes } from './routes/products';
 import { sessionRoutes } from './routes/sessions';
 
@@ -51,9 +52,11 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
     c.set('deps', await getDeps(c.env));
     await next();
   });
-  app.use('/v1/*', requireUser);
+  // Every /v1 route has a caller first (SDD §8); each group then says which kind it takes.
+  app.use('/v1/*', authenticate);
   app.route('/v1/connections', connectionRoutes);
   app.route('/v1/me', meRoutes);
+  app.route('/v1/orders', orderRoutes);
   app.route('/v1/products', productRoutes);
   app.route('/v1/sessions', sessionRoutes);
 

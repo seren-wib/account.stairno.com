@@ -20,6 +20,8 @@ export async function registerClient(auth: Auth, input: ClientInput, headers: He
       application_type: 'web',
       token_endpoint_auth_method: 'client_secret_post',
       grant_types: ['authorization_code', 'refresh_token', 'client_credentials'],
+      // Without a scope here the provider refuses the client-credentials grant.
+      client_credentials_scopes: ['commerce'],
       response_types: ['code'],
       skip_consent: true,
       require_pkce: true,

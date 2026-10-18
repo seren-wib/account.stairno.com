@@ -259,7 +259,7 @@ describe('POST /v1/orders', () => {
 
   it.each([
     ['a currency the product has no price in', { sku: 'krw-only', currency: 'USD' }],
-    ['a subscription', { sku: 'monthly' }],
+    ['a subscription in USD', { sku: 'monthly', currency: 'USD' }],
     ['a free product', { sku: 'free-desktop' }],
     ['a return address on another site', { returnUrl: 'https://evil.example/done' }],
     ['a plain http return address', { returnUrl: 'http://stairnolabs.com/checkout/done' }],

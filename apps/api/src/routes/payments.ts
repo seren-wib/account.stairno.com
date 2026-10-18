@@ -12,6 +12,7 @@ import {
   setProviderOrderId,
   type OrderRow,
 } from '../payments/order-store';
+import { sendOrderMail } from '../payments/order-mail';
 import { ProviderError, type Checkout, type PaymentResult } from '../payments/provider';
 import { applyProviderResult, type Outcome } from '../payments/settle';
 import { orderJson, paymentJson } from './orders';
@@ -28,6 +29,10 @@ async function answer(c: Context<AppEnv>, orderId: string, paymentKey: string) {
   const payment = await findPayment(db, paymentKey);
   if (!order || !payment) {
     return apiError(c, 409, 'conflict', 'The order changed while it was being confirmed.');
+  }
+  // FR-72: the receipt goes out once, whichever confirm got here first.
+  if (order.status === 'fulfilled') {
+    await sendOrderMail(c.var.deps, { orderId: order.id, template: 'receipt' });
   }
   return c.json({ order: orderJson(order), payment: paymentJson(payment) });
 }

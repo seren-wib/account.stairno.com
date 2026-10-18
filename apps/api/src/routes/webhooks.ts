@@ -2,6 +2,7 @@ import { Hono, type Context } from 'hono';
 import type { AppEnv, Deps } from '../deps';
 import { apiError } from '../http/errors';
 import { findPayment, readOrder, refundOrder, settleOrder } from '../payments/order-store';
+import { sendOrderMail } from '../payments/order-mail';
 import { ProviderError, type WebhookEvent } from '../payments/provider';
 import { applyProviderResult, giveBack } from '../payments/settle';
 import { finishWebhookEvent, receiveWebhookEvent } from '../payments/webhook-store';
@@ -34,6 +35,9 @@ async function applyEvent(deps: Deps, providerId: ProviderName, event: WebhookEv
         // The confirm or capture reached the provider but its answer never reached us: catch it
         // up, with the same amount check (FR-48, FR-37, FR-39).
         await applyProviderResult(db, provider, { providerId, order, result: payment });
+        if ((await readOrder(db, { id: order.id }))?.status === 'fulfilled') {
+          await sendOrderMail(deps, { orderId: order.id, template: 'receipt' });
+        }
       } else if (!(await findPayment(db, paymentKey))) {
         // Approved for an order that closed without recording it: the money goes back.
         await giveBack(provider, { orderId: order.id, paymentKey });
@@ -41,11 +45,16 @@ async function applyEvent(deps: Deps, providerId: ProviderName, event: WebhookEv
       return;
     case 'canceled':
       // A refund at the provider, or our own cancel coming back (FR-51, FR-61).
-      await refundOrder(db, {
-        orderId: order.id,
-        providerPaymentKey: paymentKey,
-        raw: payment.raw,
-      });
+      // A refund made at the provider's dashboard gets the same mail as one made here (FR-65).
+      if (
+        await refundOrder(db, {
+          orderId: order.id,
+          providerPaymentKey: paymentKey,
+          raw: payment.raw,
+        })
+      ) {
+        await sendOrderMail(deps, { orderId: order.id, template: 'refunded' });
+      }
       return;
     case 'failed':
       if (order.status === 'pending') {

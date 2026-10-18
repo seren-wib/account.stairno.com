@@ -13,7 +13,7 @@ export interface Deps {
   // FR-42, read once from PAYMENTS_MODE.
   paymentsMode: PaymentsMode;
   // NFR-13: the only way routes reach a payment provider. Tests pass the fake (NFR-16).
-  providers: { toss: PaymentProvider };
+  providers: { toss: PaymentProvider; paypal: PaymentProvider };
 }
 
 export type AuthSession = Auth['$Infer']['Session'];

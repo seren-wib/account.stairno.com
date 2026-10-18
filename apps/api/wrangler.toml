@@ -6,6 +6,11 @@ compatibility_flags = ["nodejs_compat"]
 # Cloudflare creates the DNS record and certificate on deploy (test and deploy document §8.1).
 routes = [{ pattern = "api.stairno.com", custom_domain = true }]
 
+# Run next to Neon (AWS ap-southeast-1) instead of the colo that received the request, so each
+# query stays in-region (NFR-1). Smart mode needs steady traffic from several locations to decide.
+[placement]
+region = "aws:ap-southeast-1"
+
 [vars]
 API_URL = "https://api.stairno.com"
 ACCOUNT_URL = "https://account.stairno.com"

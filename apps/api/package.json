@@ -14,7 +14,8 @@
     "db:migrate": "drizzle-kit migrate",
     "auth:schema": "auth generate --config ./auth.schema.ts --output src/db/schema/auth.ts -y && prettier --write src/db/schema/auth.ts",
     "admin:register-client": "tsx scripts/register-client.ts",
-    "admin:add-product": "tsx scripts/add-product.ts"
+    "admin:add-product": "tsx scripts/add-product.ts",
+    "admin:refund": "tsx scripts/refund.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261016.1",

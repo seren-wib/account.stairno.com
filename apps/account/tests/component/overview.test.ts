@@ -59,10 +59,23 @@ describe('signed-in frame', () => {
     expect(menu).toMatch(/href="\/en\/"[^>]*aria-current="page"/);
   });
 
-  it('FR-4 shows the signed-in email and a sign-out control in the header', async () => {
+  it('FR-82 FR-79 puts the signed-in account menu in the header', async () => {
     const html = await render(true);
     const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
+    expect(header).toMatch(/data-account-menu[^>]*data-state="signed-in"/);
+    expect(header).toContain('data-sign-out-url="https://api.stairno.com/auth/sign-out"');
+    expect(header).toMatch(/data-account-initial[^>]*>\s*Y\s*</);
+    expect(header).toContain('Yu Seong');
     expect(header).toContain('yu@example.com');
-    expect(header).toMatch(/data-sign-out[^>]*data-api="https:\/\/api.stairno.com"/);
+    expect(header).toContain('href="/en/"');
+    expect(header).toContain(en.nav.accountMenu.manage);
+    expect(header).toContain(en.nav.accountMenu.signOut);
+  });
+
+  it('FR-82 drops the old email and sign-out button from the header', async () => {
+    const html = await render(true);
+    const header = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
+    expect(header).not.toContain('account-sign-out');
+    expect(header).not.toContain('account-email');
   });
 });

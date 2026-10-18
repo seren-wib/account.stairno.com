@@ -18,12 +18,14 @@ interface Props {
   heading: string;
   /** Frame the content in one card that overlaps the night band (auth pages, FR-27). */
   card?: boolean;
+  /** Hosts this page's browser code calls besides the API (NFR-7), such as Toss's SDK. */
+  connect?: string[];
 }
 
-const { locale, path = '', heading, card = false } = Astro.props;
+const { locale, path = '', heading, card = false, connect = [] } = Astro.props;
 const dict = t(locale);
-// NFR-7: browser code on these pages calls the API and nothing else.
-Astro.csp?.insertDirective(connectSrc(Astro.locals.apiUrl));
+// NFR-7: browser code on these pages calls the API, and a page's own hosts, and nothing else.
+Astro.csp?.insertDirective(connectSrc(Astro.locals.apiUrl, connect));
 const title = heading === dict.meta.title ? heading : `${heading} · ${dict.meta.title}`;
 // FR-82: the session guard puts the user in locals on signed-in pages; elsewhere the menu is
 // signed out (auth and legal pages never call the API for it).

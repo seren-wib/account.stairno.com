@@ -3,8 +3,12 @@ import type { APIContext, MiddlewareNext } from 'astro';
 // NFR-7 (SDD §9). Astro's security.csp hashes the scripts and styles it emits. The API host is a
 // runtime value, so the layout adds this directive while the page renders (Astro only accepts
 // directives once rendering has started, not in middleware).
-export function connectSrc(apiUrl: string | undefined): `connect-src ${string}` {
-  return `connect-src 'self'${apiUrl ? ` ${apiUrl}` : ''}`;
+// A page may add its own sources, as /payment-methods does for Toss's SDK.
+export function connectSrc(
+  apiUrl: string | undefined,
+  extra: string[] = [],
+): `connect-src ${string}` {
+  return `connect-src ${["'self'", ...(apiUrl ? [apiUrl] : []), ...extra].join(' ')}`;
 }
 
 // Headers a <meta> policy cannot carry, on every response.

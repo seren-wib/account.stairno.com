@@ -21,9 +21,11 @@ export interface OrderRow {
   paid_at: string | Date | null;
   fulfilled_at: string | Date | null;
   refunded_at: string | Date | null;
-  // Only from readOrder: where the provider sends the payer back, and its own order id
+  // Only from readOrder: where the provider sends the payer back, its own order id, and whether
+  // the product is one_time or subscription
   return_url?: string;
   provider_order_id?: string | null;
+  kind?: string;
 }
 
 export interface OrderTarget {
@@ -227,7 +229,7 @@ export async function readOrder(
       )
       select o.id, case when e.id is null then o.status else 'expired' end as status,
              p.sku, o.currency, o.amount, o.provider, o.created_at, o.expires_at, o.paid_at,
-             o.fulfilled_at, o.refunded_at, o.return_url, o.provider_order_id
+             o.fulfilled_at, o.refunded_at, o.return_url, o.provider_order_id, p.kind
       from "order" o
       join product p on p.id = o.product_id
       left join expired e on e.id = o.id

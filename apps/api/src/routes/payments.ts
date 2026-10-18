@@ -11,26 +11,14 @@ import {
   readSiteOrder,
   setProviderOrderId,
   type OrderRow,
-  type PaymentRow,
 } from '../payments/order-store';
 import { ProviderError, type Checkout, type PaymentResult } from '../payments/provider';
 import { applyProviderResult, type Outcome } from '../payments/settle';
-import { orderJson } from './orders';
+import { orderJson, paymentJson } from './orders';
 
 // FR-43, FR-44, FR-37, FR-38, FR-39 (SDD §6.3) for Toss, FR-49, FR-50 (SDD §6.5) for PayPal.
 // The provider is asked through its adapter, the amount is checked again on what it approved,
 // and the order settles through payments/settle.ts. Logs carry ids only (NFR-21).
-
-function paymentJson(row: PaymentRow) {
-  return {
-    provider: row.provider,
-    status: row.status,
-    paymentKey: row.provider_payment_key,
-    ...(row.method_summary ? { methodSummary: row.method_summary } : {}),
-    ...(row.receipt_url ? { receiptUrl: row.receipt_url } : {}),
-    ...(row.failure_reason ? { failureReason: row.failure_reason } : {}),
-  };
-}
 
 // Every answer about a payment is read back from the database, so a repeated or concurrent
 // confirm gets exactly the first one (FR-38).

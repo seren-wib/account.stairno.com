@@ -1,0 +1,3 @@
+# Copy to .dev.vars for `npm run dev --workspace apps/account`. .dev.vars is gitignored.
+# Points the account center at the local API Worker instead of https://api.stairno.com.
+PUBLIC_API_URL=http://localhost:8787

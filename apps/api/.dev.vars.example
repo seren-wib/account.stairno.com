@@ -1,5 +1,7 @@
 # Copy to .dev.vars for `npm run dev`. .dev.vars is gitignored; never commit real values.
-# Local database: `docker compose -f ../../e2e/compose.yml up -d`, then `npm run db:migrate`.
+# Local database: `docker compose -f e2e/compose.yml up -d` from the repository root, then the
+# migration with DATABASE_URL set (README, Quickstart). Generate BETTER_AUTH_SECRET with
+# `openssl rand -base64 32`.
 DATABASE_URL=postgres://postgres:postgres@db.localtest.me:5432/main
 BETTER_AUTH_SECRET=replace-with-openssl-rand-base64-32
 API_URL=http://localhost:8787

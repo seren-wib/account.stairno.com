@@ -25,14 +25,21 @@ function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
+// `{name}`, and for payment mails `{product}` and `{amount}`, are filled into the body; the url
+// is the button.
 export function renderMail(
   template: TemplateName,
   locale: string | null | undefined,
-  vars: { name: string; url: string },
+  vars: { name: string; url: string; product?: string; amount?: string },
 ): RenderedMail {
   const lang = resolveLocale(locale);
   const t = dictionaries[lang][template];
-  const body = (escape: (s: string) => string) => t.body.replaceAll('{name}', escape(vars.name));
+  const { url: _url, ...fills } = vars;
+  const body = (escape: (s: string) => string) =>
+    Object.entries(fills).reduce(
+      (text, [key, value]) => text.replaceAll(`{${key}}`, escape(value ?? '')),
+      t.body,
+    );
   const url = escapeHtml(vars.url);
 
   const html = `<!doctype html>

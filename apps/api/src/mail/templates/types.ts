@@ -5,15 +5,19 @@ export interface MailTemplate {
   heading: string;
   body: string;
   action: string;
-  // Shown under the button: what to do if the reader did not ask for this mail.
+  // Shown under the button: what to do if the reader did not ask for this mail, or a note on it.
   note: string;
 }
 
-// First-phase templates (FR-72). Receipts, renewal failures and refunds come with payments.
+// FR-72: the account mails of the first phase, and the payment mails of the second (FR-65).
 export interface MailDictionary {
   verifyEmail: MailTemplate;
   resetPassword: MailTemplate;
   changeEmail: MailTemplate;
+  receipt: MailTemplate;
+  renewalFailed: MailTemplate;
+  refunded: MailTemplate;
+  refundRejected: MailTemplate;
 }
 
 export type TemplateName = keyof MailDictionary;

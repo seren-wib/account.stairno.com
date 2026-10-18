@@ -1,8 +1,8 @@
 ---
 import Account from '../../layouts/Account.astro';
 import { isLocale, t } from '../../i18n';
-import { CARD_COMPANY_CODES, type CardCompanyCode } from '../../i18n/types';
 import { apiGet, formatDate } from '../../lib/api';
+import { cardLabel } from '../../lib/cards';
 import { TOSS_CONNECT_SRC, TOSS_SDK_URL } from '../../lib/toss';
 
 const { locale } = Astro.params;
@@ -36,11 +36,6 @@ if (canAdd) {
   Astro.csp?.insertScriptResource(new URL(TOSS_SDK_URL).origin);
 }
 const connect = canAdd ? TOSS_CONNECT_SRC : [];
-
-const isKnown = (code: string | null): code is CardCompanyCode =>
-  code !== null && (CARD_COMPANY_CODES as readonly string[]).includes(code);
-const cardName = (card: Card) =>
-  isKnown(card.cardCompany) ? dict.cards[card.cardCompany] : dict.unknownCard;
 
 const messages = JSON.stringify({
   registering: dict.registering,
@@ -79,7 +74,7 @@ const messages = JSON.stringify({
               <li class="item">
                 <div>
                   <p class="item-title">
-                    {cardName(card)} •••• {card.cardLast4 ?? '····'}
+                    {cardLabel(dict, card)}
                     {card.isDefault && <span class="badge">{dict.default}</span>}
                   </p>
                   <p class="item-meta">

@@ -1,0 +1,65 @@
+---
+import AccountSection from '../../components/AccountSection.astro';
+import Orders from '../../components/sections/Orders.astro';
+import PaymentMethods from '../../components/sections/PaymentMethods.astro';
+import Subscriptions from '../../components/sections/Subscriptions.astro';
+import Account from '../../layouts/Account.astro';
+import { isLocale, localePath, t } from '../../i18n';
+import { apiGet } from '../../lib/api';
+import { canAddCard, type CardList, type Subscription } from '../../lib/account-data';
+import type { Order } from '../../lib/orders';
+import { TOSS_CONNECT_SRC, TOSS_SDK_URL } from '../../lib/toss';
+
+const { locale } = Astro.params;
+if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
+const dict = t(locale);
+
+// FR-32, FR-45, FR-53, FR-56: the cards, the subscriptions and the latest orders, read together.
+const [cards, subscriptions, orders] = await Promise.all([
+  apiGet<CardList>(Astro.locals, Astro.request, '/v1/payment-methods'),
+  apiGet<{ items: Subscription[] }>(Astro.locals, Astro.request, '/v1/subscriptions'),
+  apiGet<{ items: Order[] }>(Astro.locals, Astro.request, '/v1/me/orders?limit=5'),
+]);
+
+// NFR-7: Toss's SDK, and Toss in the CSP, only where the card window can actually open.
+// The first inserted resource replaces Astro's default 'self' instead of joining it, so 'self'
+// goes back in by hand (checked in the built page, 2026-10-18).
+const canAdd = canAddCard(cards, Astro.locals.user?.emailVerified ?? false);
+if (canAdd) {
+  Astro.csp?.insertScriptResource("'self'");
+  Astro.csp?.insertScriptResource(new URL(TOSS_SDK_URL).origin);
+}
+
+const sections = [
+  { id: 'payment-methods', label: dict.paymentMethods.heading },
+  { id: 'subscriptions', label: dict.subscriptions.heading },
+  { id: 'orders', label: dict.orders.recent },
+];
+---
+
+<Account
+  locale={locale}
+  page="billing"
+  heading={dict.account.menu.billing}
+  sections={sections}
+  connect={canAdd ? TOSS_CONNECT_SRC : []}
+>
+  <AccountSection id="payment-methods" title={dict.paymentMethods.heading}>
+    <PaymentMethods locale={locale} list={cards} />
+  </AccountSection>
+  <AccountSection id="subscriptions" title={dict.subscriptions.heading}>
+    <Subscriptions
+      locale={locale}
+      subscriptions={subscriptions?.items ?? null}
+      cardsHref={`${localePath(locale, 'billing')}#payment-methods`}
+    />
+  </AccountSection>
+  <AccountSection id="orders" title={dict.orders.recent}>
+    <Orders
+      locale={locale}
+      orders={orders?.items ?? null}
+      more={localePath(locale, 'orders')}
+      moreLabel={dict.orders.all}
+    />
+  </AccountSection>
+</Account>

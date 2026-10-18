@@ -1,46 +1,45 @@
 ---
-// The frame of every signed-in page (SDD §7.1): the page menu beside the content. The header's
-// account menu (FR-82) comes from Base, which reads the user the session guard put in locals.
+// The frame of every signed-in page (SDD §7.1): five categories beside the content. The menu stays
+// put while the page's sections scroll, and lists those sections under the current category. The
+// header's account menu (FR-82) comes from Base, which reads the user the session guard put in
+// locals.
 import Base from './Base.astro';
 import { localePath, t, type Locale } from '../i18n';
 
-export type AccountPage =
-  | 'overview'
-  | 'profile'
-  | 'devices'
-  | 'connections'
-  | 'paymentMethods'
-  | 'orders'
-  | 'subscriptions'
-  | 'downloads'
-  | 'delete';
+export type AccountPage = 'home' | 'security' | 'billing' | 'library' | 'account';
+
+export interface SectionLink {
+  id: string;
+  label: string;
+}
 
 interface Props {
   locale: Locale;
   page: AccountPage;
   heading: string;
+  /** The page's sections, in order, for the links under the current category. */
+  sections?: SectionLink[];
   /** Passed to Base: hosts this page's browser code calls besides the API (NFR-7). */
   connect?: string[];
+  /** Path below the locale prefix, for the locale switch. Defaults to the category's own. */
+  path?: string;
 }
 
-const { locale, page, heading, connect } = Astro.props;
+const { locale, page, heading, sections = [], connect } = Astro.props;
 const dict = t(locale).account;
 
 const items: { page: AccountPage; path: string }[] = [
-  { page: 'overview', path: '' },
-  { page: 'profile', path: 'profile' },
-  { page: 'devices', path: 'devices' },
-  { page: 'connections', path: 'connections' },
-  { page: 'paymentMethods', path: 'payment-methods' },
-  { page: 'orders', path: 'orders' },
-  { page: 'subscriptions', path: 'subscriptions' },
-  { page: 'downloads', path: 'downloads' },
-  { page: 'delete', path: 'delete' },
+  { page: 'home', path: '' },
+  { page: 'security', path: 'security' },
+  { page: 'billing', path: 'billing' },
+  { page: 'library', path: 'library' },
+  { page: 'account', path: 'account' },
 ];
 const current = items.find((item) => item.page === page);
+const path = Astro.props.path ?? current?.path ?? '';
 ---
 
-<Base locale={locale} path={current?.path ?? ''} heading={heading} connect={connect}>
+<Base locale={locale} path={path} heading={heading} connect={connect}>
   <div class="account-grid">
     <nav class="account-menu" aria-label={dict.menuLabel}>
       <ul>
@@ -52,6 +51,15 @@ const current = items.find((item) => item.page === page);
             >
               {dict.menu[item.page]}
             </a>
+            {item.page === page && sections.length > 0 && (
+              <ul class="account-submenu">
+                {sections.map((section) => (
+                  <li>
+                    <a href={`#${section.id}`}>{section.label}</a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
         ))}
       </ul>

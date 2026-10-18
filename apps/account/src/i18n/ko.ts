@@ -6,7 +6,7 @@ export const ko: Dictionary = {
     description: 'Stairno 계정 하나로 모든 Stairno 프로젝트에 로그인합니다.',
   },
   nav: {
-    overview: '개요',
+    overview: '홈',
     switchLocale: 'English',
     theme: {
       light: '라이트 모드로 전환',
@@ -26,15 +26,17 @@ export const ko: Dictionary = {
   account: {
     menuLabel: '계정 메뉴',
     menu: {
-      overview: '개요',
-      profile: '프로필',
-      devices: '로그인 기기',
-      connections: '연결된 사이트',
-      paymentMethods: '결제 수단',
-      orders: '주문 내역',
-      subscriptions: '구독',
-      downloads: '다운로드',
-      delete: '계정 삭제',
+      home: '홈',
+      security: '보안',
+      billing: '결제',
+      library: '내 제품',
+      account: '계정 관리',
+    },
+    descriptions: {
+      security: '로그인 기기와 연결된 사이트',
+      billing: '결제 수단, 구독, 주문 내역',
+      library: '구매한 제품 다운로드',
+      account: '프로필, 이메일, 언어, 계정 삭제',
     },
   },
   overview: {
@@ -234,6 +236,8 @@ export const ko: Dictionary = {
     decidedOn: '처리일',
     back: '주문 내역으로',
     notFound: '주문을 찾을 수 없습니다.',
+    recent: '최근 주문',
+    all: '전체 주문 보기',
   },
   downloads: {
     heading: '다운로드',
@@ -275,6 +279,7 @@ export const ko: Dictionary = {
   },
   deleteAccount: {
     heading: '계정 삭제',
+    start: '계정 삭제하기',
     warning:
       '계정을 삭제하면 로그인 정보, 모든 기기의 로그인, 연결된 사이트가 바로 지워지고 되돌릴 수 없습니다. 같은 이메일로 다시 가입할 수는 있지만 새 계정이 됩니다.',
     password: '비밀번호',
@@ -310,9 +315,9 @@ export const ko: Dictionary = {
     done: '이메일을 확인했습니다',
     doneBody: '이제 이 주소로 Stairno 계정의 모든 기능을 쓸 수 있습니다.',
     expired: '링크가 만료됐거나 이미 쓰였습니다.',
-    expiredBody: '로그인한 뒤 계정 개요에서 인증 메일을 다시 받을 수 있습니다.',
-    overview: '계정 개요로',
+    expiredBody: '로그인한 뒤 계정 홈에서 인증 메일을 다시 받을 수 있습니다.',
+    overview: '계정 홈으로',
   },
   legal: { version: '버전' },
-  notFound: { heading: '페이지를 찾을 수 없습니다', home: '계정 개요로' },
+  notFound: { heading: '페이지를 찾을 수 없습니다', home: '계정 홈으로' },
 };

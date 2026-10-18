@@ -1,18 +1,9 @@
 ---
-import Connections from '../../components/sections/Connections.astro';
-import Account from '../../layouts/Account.astro';
-import { isLocale, t } from '../../i18n';
-import { apiGet } from '../../lib/api';
-import type { Connection } from '../../lib/account-data';
+import { isLocale } from '../../i18n';
+import { movedTo } from '../../lib/moved';
 
+// FR-30: this page is now a section of a category page (SRS 3.5, 2026-10-18).
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
-const dict = t(locale).connections;
-
-// FR-21
-const list = await apiGet<{ items: Connection[] }>(Astro.locals, Astro.request, '/v1/connections');
+return Astro.redirect(movedTo(locale, 'connections', Astro.url.search), 301);
 ---
-
-<Account locale={locale} page="connections" heading={dict.heading}>
-  <Connections locale={locale} connections={list?.items ?? null} />
-</Account>

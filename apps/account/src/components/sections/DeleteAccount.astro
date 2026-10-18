@@ -9,45 +9,49 @@ const { locale } = Astro.props;
 const dict = t(locale).deleteAccount;
 ---
 
-<form
-  class="form"
-  data-delete-account
-  data-api={Astro.locals.apiUrl}
-  data-errors={JSON.stringify(dict.errors)}
-  novalidate
->
-  <div class="notice">
-    <p>{dict.warning}</p>
-  </div>
-  <label class="field">
-    <span>{dict.password}</span>
-    <input
-      type="password"
-      name="password"
-      autocomplete="current-password"
-      required
-      aria-describedby="password-error"
-    />
-    <span class="field-error" id="password-error" data-error-for="password" hidden></span>
-  </label>
-  <div class="field field-check">
-    <label>
-      <input type="checkbox" name="confirm" required aria-describedby="confirm-error" />
-      <span>{dict.confirm}</span>
-    </label>
-    <span class="field-error" id="confirm-error" data-error-for="confirm" hidden></span>
-  </div>
-  <p class="form-error" role="alert" data-error-for="form" hidden></p>
-  <button class="button form-submit" type="submit">
-    {dict.submit}
-  </button>
-</form>
+<!-- UC-12: a red zone at the bottom of the Account page; the form opens behind its own button. -->
+<div class="danger-zone" data-delete-zone>
+  <p>{dict.warning}</p>
+  <details class="danger-details">
+    <summary class="button button-danger">{dict.start}</summary>
+    <form
+      class="form"
+      data-delete-account
+      data-api={Astro.locals.apiUrl}
+      data-errors={JSON.stringify(dict.errors)}
+      novalidate
+    >
+      <label class="field">
+        <span>{dict.password}</span>
+        <input
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          required
+          aria-describedby="password-error"
+        />
+        <span class="field-error" id="password-error" data-error-for="password" hidden></span>
+      </label>
+      <div class="field field-check">
+        <label>
+          <input type="checkbox" name="confirm" required aria-describedby="confirm-error" />
+          <span>{dict.confirm}</span>
+        </label>
+        <span class="field-error" id="confirm-error" data-error-for="confirm" hidden></span>
+      </div>
+      <p class="form-error" role="alert" data-error-for="form" hidden></p>
+      <button class="button form-submit button-danger" type="submit">
+        {dict.submit}
+      </button>
+    </form>
+  </details>
+</div>
 
-<section class="form-done" data-deleted hidden>
-  <h2 tabindex="-1">{dict.done}</h2>
+<div class="form-done" data-deleted hidden>
+  <h3 tabindex="-1">{dict.done}</h3>
   <p>{dict.doneBody}</p>
   <a href={`https://stairno.com/${locale}/`}>{dict.hub}</a>
-</section>
+</div>
 
 <script>
   import { deleteError } from '../../lib/delete-form';
@@ -90,11 +94,16 @@ const dict = t(locale).deleteAccount;
         body: JSON.stringify({ password }),
       });
       if (res.ok) {
+        // The account is gone: only the goodbye stays, the rest of the page and the menu go.
         const done = document.querySelector<HTMLElement>('[data-deleted]');
-        form.hidden = true;
+        const zone = form.closest<HTMLElement>('.account-section');
+        for (const section of document.querySelectorAll<HTMLElement>('.account-section')) {
+          if (section !== zone) section.hidden = true;
+        }
+        document.querySelector<HTMLElement>('[data-delete-zone]')?.setAttribute('hidden', '');
         document.querySelector<HTMLElement>('.account-menu')?.setAttribute('hidden', '');
         if (done) done.hidden = false;
-        done?.querySelector('h2')?.focus();
+        done?.querySelector('h3')?.focus();
         return;
       }
       const reply = (await res.json().catch(() => null)) as { code?: string } | null;

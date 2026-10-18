@@ -238,11 +238,18 @@
   max-width: 480px;
 }
 
-/* Signed-in frame: account menu beside the content, a tab row on narrow screens (NFR-18). */
+/* Signed-in frame: five categories beside the content, a tab row on narrow screens (NFR-18).
+   The menu stays below the fixed header while the sections scroll (SDD §7.1). */
 .account-grid {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 3rem;
+  align-items: start;
+}
+
+.account-menu {
+  position: sticky;
+  top: calc(var(--header-height) + 1.5rem);
 }
 
 .account-menu ul {
@@ -251,6 +258,19 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* The current page's sections, under its category. */
+.account-menu .account-submenu {
+  gap: 0;
+  margin: 0.25rem 0 0.5rem 0.9rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--border);
+}
+
+.account-menu .account-submenu a {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.9rem;
 }
 
 .account-menu a {
@@ -277,12 +297,89 @@
     gap: 1.5rem;
   }
 
+  .account-menu {
+    position: static;
+  }
+
   .account-menu ul {
     display: flex;
     gap: 0.25rem;
     overflow-x: auto;
     white-space: nowrap;
   }
+
+  .account-menu .account-submenu {
+    display: none;
+  }
+}
+
+/* One section of a category page. The anchor lands below the fixed header. */
+.account-section {
+  scroll-margin-top: calc(var(--header-height) + 1.5rem);
+}
+
+.account-section > .section-title:first-child {
+  margin-top: 0;
+}
+
+.account-section + .account-section {
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Danger: account deletion only, at the bottom of the Account page (UC-12). */
+:root,
+html[data-theme='light'] {
+  --danger: #c62828;
+  --on-danger: #ffffff;
+}
+
+html[data-theme='dark'] {
+  --danger: #ff6b6b;
+  --on-danger: #000000;
+}
+
+.account-section-danger > .section-title {
+  color: var(--danger);
+}
+
+.danger-zone {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+}
+
+.danger-zone p {
+  margin: 0;
+}
+
+.danger-details > summary {
+  justify-self: start;
+  width: fit-content;
+  list-style: none;
+  cursor: pointer;
+}
+
+.danger-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.danger-details[open] > summary {
+  display: none;
+}
+
+.button-danger,
+.form-submit.button-danger {
+  border: 0;
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+.button-danger:hover {
+  opacity: 0.88;
 }
 
 .detail-list {
@@ -326,10 +423,24 @@
 
 .shortcut-list {
   display: grid;
-  gap: 0.5rem;
+  gap: 1rem;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.shortcut-list li {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.shortcut-list a {
+  font-weight: 700;
+}
+
+.shortcut-note {
+  color: var(--fg-muted);
+  font-size: 0.9rem;
 }
 
 /* A page of short blocks one under another: notes, messages, a list, a button. */

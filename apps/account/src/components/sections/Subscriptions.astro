@@ -13,7 +13,11 @@ interface Props {
   cardsHref?: string;
 }
 
-const { locale, subscriptions, cardsHref = localePath(locale, 'payment-methods') } = Astro.props;
+const {
+  locale,
+  subscriptions,
+  cardsHref = `${localePath(locale, 'billing')}#payment-methods`,
+} = Astro.props;
 const all = t(locale);
 const dict = all.subscriptions;
 

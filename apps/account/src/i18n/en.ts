@@ -6,7 +6,7 @@ export const en: Dictionary = {
     description: 'One Stairno account for every Stairno project.',
   },
   nav: {
-    overview: 'Overview',
+    overview: 'Home',
     switchLocale: '한국어',
     theme: {
       light: 'Switch to light mode',
@@ -26,15 +26,17 @@ export const en: Dictionary = {
   account: {
     menuLabel: 'Account menu',
     menu: {
-      overview: 'Overview',
-      profile: 'Profile',
-      devices: 'Signed-in devices',
-      connections: 'Connected sites',
-      paymentMethods: 'Payment methods',
-      orders: 'Orders',
-      subscriptions: 'Subscriptions',
-      downloads: 'Downloads',
-      delete: 'Delete account',
+      home: 'Home',
+      security: 'Security',
+      billing: 'Billing',
+      library: 'Library',
+      account: 'Account',
+    },
+    descriptions: {
+      security: 'Signed-in devices and connected sites',
+      billing: 'Payment methods, subscriptions and orders',
+      library: 'Downloads of what you bought',
+      account: 'Profile, email, language and deleting the account',
     },
   },
   overview: {
@@ -233,6 +235,8 @@ export const en: Dictionary = {
     decidedOn: 'Decided',
     back: 'Back to orders',
     notFound: 'There is no such order.',
+    recent: 'Recent orders',
+    all: 'See all orders',
   },
   downloads: {
     heading: 'Downloads',
@@ -280,6 +284,7 @@ export const en: Dictionary = {
   },
   deleteAccount: {
     heading: 'Delete account',
+    start: 'Delete this account',
     warning:
       'Deleting the account removes your sign-in details, the sign-ins on every device and the connected sites at once. This cannot be undone. You can sign up again with the same email, but it will be a new account.',
     password: 'Password',
@@ -314,9 +319,9 @@ export const en: Dictionary = {
     done: 'Email confirmed',
     doneBody: 'Every part of your Stairno account now works with this address.',
     expired: 'This link has expired or was already used.',
-    expiredBody: 'Sign in and ask for a new verification mail on the account overview.',
-    overview: 'Go to the overview',
+    expiredBody: 'Sign in and ask for a new verification mail on your account home.',
+    overview: 'Go to your account',
   },
   legal: { version: 'Version' },
-  notFound: { heading: 'Page not found', home: 'Back to the overview' },
+  notFound: { heading: 'Page not found', home: 'Back to your account' },
 };

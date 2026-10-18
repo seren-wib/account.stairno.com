@@ -4,7 +4,13 @@ import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import { jwt } from 'better-auth/plugins/jwt';
 import { oauthProvider } from '@better-auth/oauth-provider';
-import { localeSchema, termsVersion, termsVersionSchema } from '@stairno-account/contract';
+import {
+  countrySchema,
+  localeSchema,
+  termsVersion,
+  termsVersionSchema,
+  timeZoneSchema,
+} from '@stairno-account/contract';
 import * as schema from './db/schema';
 import { mailLog } from './db/schema';
 import { renderMail, resolveLocale, type Mailer, type TemplateName } from './mail';
@@ -51,7 +57,17 @@ function idTokenClaims({
 }) {
   return {
     ...(scopes.includes('email') ? { email: user.email, email_verified: user.emailVerified } : {}),
-    ...(scopes.includes('profile') ? { name: user.name, locale: user.locale } : {}),
+    ...(scopes.includes('profile')
+      ? { name: user.name, locale: user.locale, ...region(user) }
+      : {}),
+  };
+}
+
+// FR-84: the country, and the time zone as the standard `zoneinfo` claim, only when set.
+function region(user: Record<string, unknown>) {
+  return {
+    ...(user.country ? { country: user.country } : {}),
+    ...(user.timezone ? { zoneinfo: user.timezone } : {}),
   };
 }
 
@@ -157,6 +173,17 @@ export function createAuth(config: AuthConfig) {
           validator: { input: termsVersionSchema },
         },
         termsAcceptedAt: { type: 'date', required: false, input: false },
+        // FR-84: optional; null clears them.
+        country: {
+          type: 'string',
+          required: false,
+          validator: { input: countrySchema.nullable() },
+        },
+        timezone: {
+          type: 'string',
+          required: false,
+          validator: { input: timeZoneSchema.nullable() },
+        },
       },
     },
     // NFR-4, FR-74: per client IP and path, in the database so every Worker isolate sees one count.
@@ -264,7 +291,7 @@ export function createAuth(config: AuthConfig) {
         refreshTokenExpiresIn: 60 * 60 * 24 * 90,
         customIdTokenClaims: idTokenClaims,
         customUserInfoClaims: ({ user, scopes }) =>
-          scopes.includes('profile') ? { locale: user.locale } : {},
+          scopes.includes('profile') ? { locale: user.locale, ...region(user) } : {},
       }),
     ],
   });

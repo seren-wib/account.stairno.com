@@ -18,6 +18,8 @@ import { parsePaymentsMode } from './payments/mode';
 import { createPayPalProvider } from './payments/paypal';
 import { createTossProvider } from './payments/toss';
 import { meRoutes } from './routes/me';
+import { myDownloadRoutes } from './routes/my-downloads';
+import { myOrderRoutes } from './routes/my-orders';
 import { orderRoutes } from './routes/orders';
 import { paymentMethodRoutes } from './routes/payment-methods';
 import { paymentRoutes } from './routes/payments';
@@ -78,6 +80,8 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   app.route('/v1/connections', connectionRoutes);
   app.route('/v1/downloads', downloadRoutes);
   app.route('/v1/entitlements', entitlementRoutes);
+  app.route('/v1/me/downloads', myDownloadRoutes);
+  app.route('/v1/me/orders', myOrderRoutes);
   app.route('/v1/me', meRoutes);
   app.route('/v1/orders', orderRoutes);
   app.route('/v1/payment-methods', paymentMethodRoutes);
@@ -111,6 +115,7 @@ function workerDeps(env: Env): Promise<Deps> {
   deps ??= (async () => {
     const db = createDb(env.DATABASE_URL);
     const paymentsMode = parsePaymentsMode(env.PAYMENTS_MODE);
+    const mailer = createMailer({ apiKey: env.RESEND_API_KEY });
     const payments = {
       db,
       billingKeySecret: env.BILLING_KEY_SECRET,
@@ -131,19 +136,21 @@ function workerDeps(env: Env): Promise<Deps> {
       hubUrl: env.HUB_URL,
       cookieDomain: env.COOKIE_DOMAIN,
       secret: env.BETTER_AUTH_SECRET,
-      mailer: createMailer({ apiKey: env.RESEND_API_KEY }),
+      mailer,
       beforeDeleteUser: (userId) => removeBillingKeysOf(payments, userId),
     });
     await auth.$context;
     return {
       ...payments,
       auth,
+      apiUrl: env.API_URL,
       origins: { account: env.ACCOUNT_URL, hub: env.HUB_URL },
       paymentsMode,
       tossClientKey: env.TOSS_CLIENT_KEY,
       downloads: env.DOWNLOADS,
       // Download links are signed under a key derived from this, never with it directly.
       downloadSecret: env.BETTER_AUTH_SECRET,
+      mailer,
     };
   })().catch((error: unknown) => {
     deps = undefined;

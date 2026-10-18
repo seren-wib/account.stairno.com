@@ -14,13 +14,19 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function render(page: typeof Home, path: string, locale = 'ko') {
-  stubApi({});
+async function render(
+  page: typeof Home,
+  path: string,
+  locale = 'ko',
+  as: App.Locals = locals,
+  routes: Parameters<typeof stubApi>[0] = {},
+) {
+  stubApi(routes);
   const container = await AstroContainer.create();
   return container.renderToString(page, {
     params: { locale },
     request: new Request(`https://account.stairno.com/${locale}/${path}`),
-    locals,
+    locals: as,
   });
 }
 
@@ -30,6 +36,57 @@ describe('profile', () => {
     expect(html).toMatch(/<input[^>]*name="name"[^>]*value="Yu Seong"/);
     expect(html).toMatch(/<option[^>]*value="en"[^>]*selected/);
     expect(html).toMatch(/data-profile[^>]*data-api="https:\/\/api.stairno.com"/);
+  });
+
+  it('FR-84 offers the country and the time zone, both optional, with the current ones chosen', async () => {
+    const html = await render(Home, '', 'ko', {
+      ...locals,
+      user: { ...locals.user, country: 'KR', timezone: 'Asia/Seoul' },
+    } as unknown as App.Locals);
+    expect(html).toMatch(/<select[^>]*name="country"/);
+    expect(html).toMatch(/<option[^>]*value="KR"[^>]*selected[^>]*>\s*대한민국/);
+    expect(html).toMatch(/<option[^>]*value="US"[^>]*>\s*미국/);
+    expect(html).toMatch(/<select[^>]*name="country"[^>]*>\s*<option value=""/);
+    expect(html).toMatch(/<select[^>]*name="timezone"/);
+    expect(html).toMatch(/<option[^>]*value="Asia\/Seoul"[^>]*selected/);
+    expect(html).toMatch(/<option[^>]*value="UTC"/);
+  });
+
+  it('FR-84 leaves both on "not set" for a user without them', async () => {
+    const html = await render(Home, '');
+    expect(html).not.toMatch(/<option[^>]*value="KR"[^>]*selected/);
+    expect(html).toMatch(/<option value=""[^>]*selected/);
+  });
+
+  it('FR-84 dates the lists in the user time zone', async () => {
+    const html = await render(
+      Home,
+      '',
+      'en',
+      {
+        ...locals,
+        user: { ...locals.user, timezone: 'Asia/Seoul' },
+      } as unknown as App.Locals,
+      {
+        '/v1/sessions': [
+          200,
+          {
+            items: [
+              {
+                id: 's1',
+                createdAt: '2026-10-18T16:30:00.000Z',
+                lastUsedAt: '2026-10-18T16:30:00.000Z',
+                browser: 'Chrome',
+                os: 'Windows',
+                current: true,
+              },
+            ],
+          },
+        ],
+      },
+    );
+    const devices = html.slice(html.indexOf('id="devices"'), html.indexOf('id="connections"'));
+    expect(devices).toContain('Oct 19, 2026');
   });
 
   it('FR-6 changes the email on its own page, which waits for the new address', async () => {

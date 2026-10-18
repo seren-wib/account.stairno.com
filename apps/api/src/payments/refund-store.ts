@@ -80,3 +80,28 @@ export function listRefundRequests(db: Db, userId: string) {
       order by r.requested_at desc`,
   );
 }
+
+// FR-64, FR-66: the operator's decision closes the open request for the order. false when there
+// was none.
+export async function resolveRefundRequest(
+  db: Db,
+  input: { orderId: string; status: 'refunded' | 'rejected' },
+): Promise<boolean> {
+  const resolved = await rows<{ id: string }>(
+    db,
+    sql`
+      update refund_request set status = ${input.status}, resolved_at = now()
+      where order_id = ${input.orderId} and status = 'requested'
+      returning id`,
+  );
+  return resolved.length > 0;
+}
+
+// FR-64: a refunded subscription order ends the subscription it paid for at once; its
+// entitlement is already revoked with the order.
+export async function endRefundedSubscription(db: Db, orderId: string) {
+  await db.execute(sql`
+    update subscription set status = 'canceled', cancel_at_period_end = false
+    where status in ('active', 'past_due')
+      and id in (select source_subscription_id from entitlement where source_order_id = ${orderId})`);
+}

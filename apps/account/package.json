@@ -18,7 +18,7 @@
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.0",
     "@stairno-account/contract": "^0.1.0",
-    "@stairno/ui": "github:seren-wib/stairno-ui#v0.2.1",
+    "@stairno/ui": "github:seren-wib/stairno-ui#v0.2.2",
     "astro": "^7.4.0"
   }
 }

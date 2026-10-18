@@ -58,7 +58,7 @@ export const en: Dictionary = {
     passwordHint: '8 to 128 characters',
     terms: 'Terms of Service',
     privacy: 'Privacy Policy',
-    accept: 'I agree to the {terms} and the {privacy} (version {version})',
+    accept: 'I am 14 or older and agree to the {terms} and the {privacy} (version {version})',
     submit: 'Sign up',
     hasAccount: 'Already have an account?',
     signIn: 'Sign in',
@@ -73,7 +73,8 @@ export const en: Dictionary = {
       passwordLength: 'Choose a password of 8 to 128 characters.',
       passwordBreached: 'This password has appeared in a data breach. Please choose another.',
       emailTaken: 'This email already has an account. Please sign in.',
-      terms: 'Accept the Terms of Service and the Privacy Policy to sign up.',
+      terms:
+        'You must be 14 or older and accept the Terms of Service and the Privacy Policy to sign up.',
       tooMany: 'Too many tries. Please try again in a minute.',
       unavailable: 'Signing up is not possible right now. Please try again shortly.',
     },

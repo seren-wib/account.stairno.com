@@ -87,6 +87,10 @@ const acceptParts = dict.accept
     <button class="button form-submit" type="submit">
       {dict.submit}
     </button>
+    <!-- Inside the form so it hides with it once the mail is sent. -->
+    <p class="form-links">
+      {dict.hasAccount} <a href={signInHref}>{dict.signIn}</a>
+    </p>
   </form>
 
   <section class="form-done" data-sent hidden>
@@ -96,10 +100,6 @@ const acceptParts = dict.accept
       {dict.continue}
     </a>
   </section>
-
-  <p class="form-links">
-    {dict.hasAccount} <a href={signInHref}>{dict.signIn}</a>
-  </p>
 </Base>
 
 <script>

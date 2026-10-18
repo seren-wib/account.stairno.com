@@ -108,6 +108,16 @@ export function exchangeCode(
   });
 }
 
+// The site's server asking for its own access token to the API (client credentials, FR-35).
+export async function siteToken(ctx: TestApp, site: Site) {
+  const res = await tokenRequest(ctx.app, site, {
+    grant_type: 'client_credentials',
+    resource: 'https://api.stairno.com',
+  });
+  if (res.status !== 200) throw new Error(`client credentials: ${res.status} ${await res.text()}`);
+  return ((await res.json()) as TokenResponse).access_token;
+}
+
 // Signed-in user → code → tokens, the whole first-party flow in one call.
 export async function signInToSite(
   ctx: TestApp,

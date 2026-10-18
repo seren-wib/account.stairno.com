@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createFakeProvider } from '../../src/payments/fake';
-import { ProviderError, type PaymentProvider } from '../../src/payments/provider';
+import { PaymentRefused, ProviderError, type PaymentProvider } from '../../src/payments/provider';
 
 // The fake stands in for Toss and PayPal in every payment test (NFR-16). These cases pin the
 // behaviours the later route tests will script: approve, decline, a different amount, a slow or
@@ -72,6 +72,18 @@ describe('fake payment provider', () => {
       providerOrderId: `fake_order_${order.id}`,
       approvalUrl: `https://fake.invalid/approve/fake_order_${order.id}`,
     });
+  });
+
+  it('FR-45 can refuse a card at registration', async () => {
+    const fake = createFakeProvider();
+    fake.willDecline('INVALID_CARD_NUMBER');
+
+    const error = await fake.issueBillingKey!({ customerKey: 'cus_1', authKey: 'auth_1' }).catch(
+      (e: unknown) => e,
+    );
+
+    expect(error).toBeInstanceOf(PaymentRefused);
+    expect(error).toMatchObject({ reason: 'INVALID_CARD_NUMBER' });
   });
 
   it('FR-49 can answer that the payer has not approved yet', async () => {

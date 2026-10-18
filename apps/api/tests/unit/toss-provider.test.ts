@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ProviderError } from '../../src/payments/provider';
+import { PaymentRefused, ProviderError } from '../../src/payments/provider';
 import { createTossProvider } from '../../src/payments/toss';
 
 // The Toss adapter against a stubbed fetch: the requests it sends and how it reads the answers.
@@ -176,6 +176,90 @@ describe('Toss adapter', () => {
 
     await expect(confirm(toss)).rejects.toBeInstanceOf(ProviderError);
     expect(sent).toEqual([]);
+  });
+});
+
+// Toss's billing reference: issue from the authKey of the card window, delete by billing key. The
+// card comes back as card.issuerCode and the masked card.number (cardCompany and cardNumber were
+// removed in API version 2024-06-01).
+describe('Toss billing keys', () => {
+  const billing = {
+    mId: 'tvivarepublica',
+    customerKey: 'cus_unit_1',
+    authenticatedAt: '2026-10-18T10:00:00+09:00',
+    method: '카드',
+    billingKey: 'Z_t5vOvQxrj4499PeiJcjen28-V2RyqgYTwN44Rdzk0=',
+    card: {
+      issuerCode: '61',
+      acquirerCode: '31',
+      number: '43301234****1234',
+      cardType: '신용',
+      ownerType: '개인',
+    },
+  };
+
+  it('FR-45 issues a billing key from the authKey and reads the masked card', async () => {
+    const { fetch, sent } = stub(json(200, billing));
+    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+
+    await expect(
+      toss.issueBillingKey!({ customerKey: 'cus_unit_1', authKey: 'bln_auth_1' }),
+    ).resolves.toEqual({
+      billingKey: billing.billingKey,
+      customerKey: 'cus_unit_1',
+      cardCompany: '61',
+      cardLast4: '1234',
+    });
+    expect(sent[0]).toMatchObject({
+      url: 'https://api.tosspayments.com/v1/billing/authorizations/issue',
+      method: 'POST',
+      headers: expect.objectContaining({ 'idempotency-key': 'billing-issue-bln_auth_1' }),
+      body: { authKey: 'bln_auth_1', customerKey: 'cus_unit_1' },
+    });
+  });
+
+  it('FR-45 tells a refused card apart from Toss failing', async () => {
+    const refused = stub(json(400, { code: 'INVALID_CARD_NUMBER', message: '카드번호 오류' }));
+    const down = stub(json(500, { code: 'FAILED_INTERNAL_SYSTEM_PROCESSING', message: '' }));
+
+    const refusal = await createTossProvider({
+      secretKey: SECRET,
+      mode: 'test',
+      fetch: refused.fetch,
+    }).issueBillingKey!({ customerKey: 'cus_unit_1', authKey: 'bln_auth_1' }).catch(
+      (e: unknown) => e,
+    );
+    const failure = await createTossProvider({ secretKey: SECRET, mode: 'test', fetch: down.fetch })
+      .issueBillingKey!({ customerKey: 'cus_unit_1', authKey: 'bln_auth_1' }).catch(
+      (e: unknown) => e,
+    );
+
+    expect(refusal).toBeInstanceOf(PaymentRefused);
+    expect(refusal).toMatchObject({ reason: 'INVALID_CARD_NUMBER' });
+    expect(failure).toBeInstanceOf(ProviderError);
+  });
+
+  it('FR-53 deletes a billing key at Toss, and a key Toss no longer has counts as deleted', async () => {
+    const { fetch, sent } = stub(
+      new Response(null, { status: 200 }),
+      json(404, { code: 'NOT_FOUND_BILLING', message: '없음' }),
+    );
+    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+
+    await toss.deleteBillingKey!(billing.billingKey);
+    await toss.deleteBillingKey!(billing.billingKey);
+
+    expect(sent[0]).toMatchObject({
+      url: `https://api.tosspayments.com/v1/billing/${encodeURIComponent(billing.billingKey)}`,
+      method: 'DELETE',
+    });
+  });
+
+  it('FR-53 fails like the provider when Toss cannot delete it', async () => {
+    const { fetch } = stub(json(500, { code: 'FAILED_INTERNAL_SYSTEM_PROCESSING', message: '' }));
+    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+
+    await expect(toss.deleteBillingKey!(billing.billingKey)).rejects.toBeInstanceOf(ProviderError);
   });
 });
 

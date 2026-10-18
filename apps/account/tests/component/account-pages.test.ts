@@ -106,17 +106,17 @@ describe('account menu', () => {
     for (const label of Object.values(ko.account.menu)) expect(menu).toContain(label);
   });
 
-  it('FR-30 FR-32 marks the category a sub-page belongs to', async () => {
+  it('FR-30 FR-32 marks only the one section a sub-page belongs to', async () => {
     stubApi({});
-    expect(menuOf(await render(Email, '/en/email'))).toMatch(
-      /href="\/en\/#account"[^>]*aria-current="location"/,
-    );
-    expect(menuOf(await render(Password, '/en/password'))).toMatch(
-      /href="\/en\/#account"[^>]*aria-current="location"/,
-    );
-    expect(menuOf(await render(Orders, '/en/orders'))).toMatch(
-      /href="\/en\/#billing"[^>]*aria-current="location"/,
-    );
+    for (const [page, path, section] of [
+      [Email, '/en/email', 'sign-in'],
+      [Password, '/en/password', 'sign-in'],
+      [Orders, '/en/orders', 'orders'],
+    ] as const) {
+      const menu = menuOf(await render(page, path));
+      const marked = [...menu.matchAll(/<a[^>]*href="([^"]+)"[^>]*aria-current="location"/g)];
+      expect(marked.map((m) => m[1])).toEqual([`/en/#${section}`]);
+    }
   });
 });
 

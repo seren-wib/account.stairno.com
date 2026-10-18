@@ -1,5 +1,10 @@
 import type { PaymentsMode } from './mode';
-import { ProviderError, type PaymentProvider, type PaymentResult } from './provider';
+import {
+  PaymentRefused,
+  ProviderError,
+  type PaymentProvider,
+  type PaymentResult,
+} from './provider';
 
 // FR-43, FR-47: Toss Payments behind PaymentProvider (NFR-13). Core API v1 with Basic auth on the
 // secret key (`base64(secretKey + ':')`). Every POST carries an Idempotency-Key, which Toss keeps
@@ -73,7 +78,7 @@ export function createTossProvider({
 
   async function call(
     path: string,
-    init: { method: 'GET' } | { method: 'POST'; body: unknown; idempotencyKey: string },
+    init: { method: 'GET' | 'DELETE' } | { method: 'POST'; body: unknown; idempotencyKey: string },
   ): Promise<{ ok: true; payment: TossPayment } | { ok: false; status: number; error: TossError }> {
     if (!usable) throw new ProviderError('toss', 'Toss is not configured for this payments mode.');
     let res: Response;
@@ -111,6 +116,44 @@ export function createTossProvider({
 
   return {
     id: 'toss',
+
+    // FR-45: the authKey from Toss's card window becomes a billing key. The card comes back as
+    // card.issuerCode and the masked card.number (cardCompany and cardNumber were removed in API
+    // version 2024-06-01). Only the code and the last four characters are kept (DR-4).
+    async issueBillingKey({ customerKey, authKey }) {
+      const answer = await call('/v1/billing/authorizations/issue', {
+        method: 'POST',
+        body: { authKey, customerKey },
+        idempotencyKey: `billing-issue-${authKey}`,
+      });
+      if (!answer.ok) {
+        throw new PaymentRefused('toss', answer.error.code ?? `HTTP_${answer.status}`);
+      }
+      const billing = answer.payment as unknown as {
+        billingKey: string;
+        customerKey: string;
+        card?: { issuerCode?: string; number?: string } | null;
+      };
+      return {
+        billingKey: billing.billingKey,
+        customerKey: billing.customerKey,
+        ...(billing.card?.issuerCode ? { cardCompany: billing.card.issuerCode } : {}),
+        ...(billing.card?.number ? { cardLast4: billing.card.number.slice(-4) } : {}),
+      };
+    },
+
+    // FR-53: an empty 200. A key Toss no longer has is already gone.
+    async deleteBillingKey(billingKey) {
+      const answer = await call(`/v1/billing/${encodeURIComponent(billingKey)}`, {
+        method: 'DELETE',
+      });
+      if (!answer.ok && answer.status !== 404) {
+        throw new ProviderError(
+          'toss',
+          `Toss did not delete the billing key: ${answer.error.code}`,
+        );
+      }
+    },
 
     async confirm({ order, providerPaymentKey, amount, currency }) {
       const answer = await call('/v1/payments/confirm', {

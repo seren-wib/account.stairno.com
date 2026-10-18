@@ -1,4 +1,5 @@
 import {
+  PaymentRefused,
   ProviderError,
   type BillingKey,
   type PaymentProvider,
@@ -115,7 +116,8 @@ export function createFakeProvider({ delayMs = 0 }: { delayMs?: number } = {}) {
     },
 
     async issueBillingKey(input) {
-      await answer('issueBillingKey', input);
+      const scripted = await answer('issueBillingKey', input);
+      if (scripted?.kind === 'decline') throw new PaymentRefused('fake', scripted.reason);
       issued += 1;
       const key: BillingKey = {
         billingKey: `fake_billing_${issued}`,

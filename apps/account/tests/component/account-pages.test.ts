@@ -89,6 +89,17 @@ describe('account menu', () => {
     for (const label of Object.values(en.account.menu)) expect(menu).toContain(label);
   });
 
+  it('FR-30 tags every link with what it marks, so the category and the section in view both light up', async () => {
+    stubApi({});
+    const menu = menuOf(await render(Home, '/en/'));
+    for (const id of ['account', 'billing', 'library', 'security']) {
+      expect(menu).toMatch(new RegExp(`href="/en/#${id}"[^>]*data-category-link="${id}"`));
+    }
+    for (const id of SECTIONS) {
+      expect(menu).toMatch(new RegExp(`href="/en/#${id}"[^>]*data-section-link="${id}"`));
+    }
+  });
+
   it('FR-76 names the categories in the page language', async () => {
     stubApi({});
     const menu = menuOf(await render(Home, '/ko/', 'ko'));

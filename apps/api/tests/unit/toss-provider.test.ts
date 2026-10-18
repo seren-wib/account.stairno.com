@@ -261,6 +261,66 @@ describe('Toss billing keys', () => {
 
     await expect(toss.deleteBillingKey!(billing.billingKey)).rejects.toBeInstanceOf(ProviderError);
   });
+
+  const charge = (toss: ReturnType<typeof createTossProvider>) =>
+    toss.chargeBillingKey!({
+      billingKey: billing.billingKey,
+      customerKey: 'cus_unit_1',
+      order,
+      orderName: 'Atlas Pro 월간',
+    });
+
+  it('FR-46 charges the billing key for the order, once per order', async () => {
+    const { fetch, sent } = stub(json(200, done));
+    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+
+    await expect(charge(toss)).resolves.toMatchObject({
+      status: 'done',
+      providerPaymentKey: done.paymentKey,
+      amount: 12000,
+      currency: 'KRW',
+      methodSummary: '카드 43301234****123*',
+    });
+    expect(sent[0]).toMatchObject({
+      url: `https://api.tosspayments.com/v1/billing/${encodeURIComponent(billing.billingKey)}`,
+      method: 'POST',
+      headers: expect.objectContaining({
+        authorization: `Basic ${btoa(`${SECRET}:`)}`,
+        'idempotency-key': `billing-charge-${order.id}`,
+      }),
+      body: {
+        customerKey: 'cus_unit_1',
+        amount: 12000,
+        orderId: order.id,
+        orderName: 'Atlas Pro 월간',
+      },
+    });
+  });
+
+  it('FR-46 FR-55 reads a declined charge as failed with the code, not as Toss failing', async () => {
+    const { fetch } = stub(json(403, { code: 'REJECT_CARD_PAYMENT', message: '한도초과' }));
+    const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+
+    await expect(charge(toss)).resolves.toMatchObject({
+      status: 'failed',
+      providerPaymentKey: `declined-${order.id}`,
+      amount: 12000,
+      currency: 'KRW',
+      failureReason: 'REJECT_CARD_PAYMENT',
+    });
+  });
+
+  it('FR-46 fails like the provider when Toss is down or the key is wrong', async () => {
+    for (const answer of [
+      json(500, { code: 'FAILED_INTERNAL_SYSTEM_PROCESSING', message: '' }),
+      json(401, { code: 'UNAUTHORIZED_KEY', message: '' }),
+      new Error('network down'),
+    ]) {
+      const { fetch } = stub(answer);
+      const toss = createTossProvider({ secretKey: SECRET, mode: 'test', fetch });
+      await expect(charge(toss)).rejects.toBeInstanceOf(ProviderError);
+    }
+  });
 });
 
 // Toss's PAYMENT_STATUS_CHANGED carries no signature (only payout and seller events are signed),

@@ -25,7 +25,7 @@ const token = Astro.url.searchParams.get('token');
 const verified = token ? await verify(token) : false;
 ---
 
-<Base locale={locale} path="verify-email" heading={dict.heading}>
+<Base locale={locale} path="verify-email" heading={dict.heading} card>
   <section class="form-done">
     {verified ? (
       <>

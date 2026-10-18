@@ -3,12 +3,12 @@ import { termsVersion } from '@stairno-account/contract';
 import Base from '../../layouts/Base.astro';
 import { isLocale, localePath, t } from '../../i18n';
 import { oauthQuery } from '../../lib/auth-form';
-import { safeRedirect } from '../../lib/redirect';
+import { HUB_ORIGIN, safeRedirect } from '../../lib/redirect';
 
 const { locale } = Astro.params;
 if (!locale || !isLocale(locale)) return Astro.rewrite('/404');
 const dict = t(locale).signUp;
-const next = safeRedirect(Astro.url.searchParams.get('redirect'), locale);
+const next = safeRedirect(Astro.url.searchParams.get('redirect'), locale, [HUB_ORIGIN]);
 const oauth = oauthQuery(Astro.url.search) ?? '';
 const signInHref = `${localePath(locale, 'sign-in')}${oauth ? `?${oauth}` : ''}`;
 

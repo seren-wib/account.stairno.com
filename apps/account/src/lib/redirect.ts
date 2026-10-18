@@ -1,5 +1,8 @@
 import { isLocale } from '@stairno/ui/i18n';
 
+// FR-81: the hub's account menu sends people here with a redirect back to the hub.
+export const HUB_ORIGIN = 'https://stairno.com';
+
 // FR-12: where to go after sign-in. Only an account center page of a known locale or a page on an
 // allowed site origin; everything else (other hosts, protocol-relative, scripts) goes to the
 // overview, so the sign-in page cannot be used as an open redirect.

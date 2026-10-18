@@ -38,7 +38,7 @@ export const downloadRoutes = new Hono<AppEnv>().use(requireUser).post('/', asyn
   console.info('download link issued', { sku: row.sku });
   return c.json(
     {
-      url: `${new URL(c.req.url).origin}/downloads/${token}`,
+      url: `${new URL(c.req.url).origin}/v1/downloads/${token}`,
       expiresAt: new Date(expiresAt).toISOString(),
     },
     201,

@@ -11,6 +11,7 @@ import { apiError } from './http/errors';
 import { createCors } from './middleware/cors';
 import { authenticate } from './middleware/session';
 import { connectionRoutes } from './routes/connections';
+import { entitlementRoutes } from './routes/entitlements';
 import { removeBillingKeysOf } from './payments/account-deletion';
 import { parsePaymentsMode } from './payments/mode';
 import { createPayPalProvider } from './payments/paypal';
@@ -70,6 +71,7 @@ export function createApp(getDeps: (env: Env) => Promise<Deps>) {
   // Every /v1 route has a caller first (SDD §8); each group then says which kind it takes.
   app.use('/v1/*', authenticate);
   app.route('/v1/connections', connectionRoutes);
+  app.route('/v1/entitlements', entitlementRoutes);
   app.route('/v1/me', meRoutes);
   app.route('/v1/orders', orderRoutes);
   app.route('/v1/payment-methods', paymentMethodRoutes);

@@ -40,5 +40,8 @@ export interface AppEnv {
     session: AuthSession['session'] | null;
     // Set for a site caller only; routes that need one mount requireSite.
     site: SitePrincipal | null;
+    // The site a user's access token was issued to (its azp); null for the account center's
+    // cookie session and for a site's own token (FR-60).
+    tokenClient: string | null;
   };
 }

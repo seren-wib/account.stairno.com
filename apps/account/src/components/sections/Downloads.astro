@@ -11,6 +11,8 @@ interface Props {
 
 const { locale, downloads } = Astro.props;
 const dict = t(locale).downloads;
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
 ---
 
 <div class="page-stack">
@@ -35,7 +37,7 @@ const dict = t(locale).downloads;
             <p class="item-title">{item.name[locale]}</p>
             {item.expiresAt && (
               <p class="item-meta">
-                {dict.until} {formatDate(item.expiresAt, locale)}
+                {dict.until} {formatDate(item.expiresAt, locale, tz)}
               </p>
             )}
           </div>

@@ -19,6 +19,8 @@ const order = await apiGet<Order>(
 const status = order
   ? (dict.statuses[order.status as keyof typeof dict.statuses] ?? order.status)
   : '';
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
 ---
 
 <Account locale={locale} current="orders" path={`orders/${id}`} heading={dict.detailHeading}>
@@ -46,18 +48,18 @@ const status = order
           </div>
           <div>
             <dt>{dict.orderedOn}</dt>
-            <dd>{formatDate(order.createdAt, locale)}</dd>
+            <dd>{formatDate(order.createdAt, locale, tz)}</dd>
           </div>
           {order.paidAt && (
             <div>
               <dt>{dict.paidOn}</dt>
-              <dd>{formatDate(order.paidAt, locale)}</dd>
+              <dd>{formatDate(order.paidAt, locale, tz)}</dd>
             </div>
           )}
           {order.refundedAt && (
             <div>
               <dt>{dict.refundedOn}</dt>
-              <dd>{formatDate(order.refundedAt, locale)}</dd>
+              <dd>{formatDate(order.refundedAt, locale, tz)}</dd>
             </div>
           )}
           {order.payment?.methodSummary && (
@@ -71,9 +73,9 @@ const status = order
               <dt>{dict.refundRequest}</dt>
               <dd>
                 {dict.refund[order.refundRequest.status as keyof typeof dict.refund]} ·{' '}
-                {dict.requestedOn} {formatDate(order.refundRequest.requestedAt, locale)}
+                {dict.requestedOn} {formatDate(order.refundRequest.requestedAt, locale, tz)}
                 {order.refundRequest.resolvedAt &&
-                  ` · ${dict.decidedOn} ${formatDate(order.refundRequest.resolvedAt, locale)}`}
+                  ` · ${dict.decidedOn} ${formatDate(order.refundRequest.resolvedAt, locale, tz)}`}
               </dd>
             </div>
           )}

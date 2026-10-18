@@ -151,6 +151,10 @@ export type Dictionary = {
     name: string;
     language: string;
     languages: { ko: string; en: string };
+    // FR-84
+    country: string;
+    timezone: string;
+    notSet: string;
     save: string;
     saved: string;
     emailHeading: string;

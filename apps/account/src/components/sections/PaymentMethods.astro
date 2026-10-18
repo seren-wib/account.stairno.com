@@ -30,6 +30,8 @@ const messages = JSON.stringify({
   providerDown: dict.providerDown,
   unavailable: dict.unavailable,
 });
+// FR-84: dates in the user's time zone, UTC when none is set.
+const tz = Astro.locals.user?.timezone;
 ---
 
 <div class="page-stack">
@@ -59,7 +61,7 @@ const messages = JSON.stringify({
                   {card.isDefault && <span class="badge">{dict.default}</span>}
                 </p>
                 <p class="item-meta">
-                  {dict.added} {formatDate(card.createdAt, locale)}
+                  {dict.added} {formatDate(card.createdAt, locale, tz)}
                 </p>
               </div>
               <div class="button-row">

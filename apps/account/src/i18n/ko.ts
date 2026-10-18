@@ -33,6 +33,7 @@ export const ko: Dictionary = {
       paymentMethods: '결제 수단',
       orders: '주문 내역',
       subscriptions: '구독',
+      downloads: '다운로드',
       delete: '계정 삭제',
     },
   },
@@ -233,6 +234,16 @@ export const ko: Dictionary = {
     decidedOn: '처리일',
     back: '주문 내역으로',
     notFound: '주문을 찾을 수 없습니다.',
+  },
+  downloads: {
+    heading: '다운로드',
+    intro:
+      '구매하거나 구독 중인 데스크톱 제품을 다시 내려받을 수 있습니다. 다운로드 링크는 10분 동안 유효합니다.',
+    download: '다운로드',
+    until: '이용 기간',
+    empty: '내려받을 수 있는 제품이 없습니다.',
+    unavailable: '다운로드 목록을 불러올 수 없습니다. 잠시 뒤에 다시 해 주세요.',
+    failed: '다운로드 링크를 만들 수 없습니다. 잠시 뒤에 다시 해 주세요.',
   },
   subscriptions: {
     heading: '구독',

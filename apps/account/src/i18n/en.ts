@@ -33,6 +33,7 @@ export const en: Dictionary = {
       paymentMethods: 'Payment methods',
       orders: 'Orders',
       subscriptions: 'Subscriptions',
+      downloads: 'Downloads',
       delete: 'Delete account',
     },
   },
@@ -232,6 +233,16 @@ export const en: Dictionary = {
     decidedOn: 'Decided',
     back: 'Back to orders',
     notFound: 'There is no such order.',
+  },
+  downloads: {
+    heading: 'Downloads',
+    intro:
+      'Download again the desktop products you bought or subscribe to. Each download link works for ten minutes.',
+    download: 'Download',
+    until: 'Available until',
+    empty: 'You have nothing to download.',
+    unavailable: 'Your downloads could not be loaded. Please try again shortly.',
+    failed: 'The download link could not be made. Please try again shortly.',
   },
   subscriptions: {
     heading: 'Subscriptions',

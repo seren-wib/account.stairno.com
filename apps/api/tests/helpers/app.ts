@@ -54,6 +54,7 @@ export async function createTestApp(
   const deps: Deps = {
     db,
     auth,
+    apiUrl: urls.apiUrl ?? API_URL,
     origins,
     paymentsMode: 'test',
     billingKeySecret: 'test-billing-key-secret-not-used-anywhere-else',

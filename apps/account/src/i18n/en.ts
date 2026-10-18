@@ -33,7 +33,7 @@ export const en: Dictionary = {
       account: 'Account',
     },
     descriptions: {
-      security: 'Signed-in devices and connected sites',
+      security: 'Password, signed-in devices and connected sites',
       billing: 'Payment methods, subscriptions and orders',
       library: 'Downloads of what you bought',
       account: 'Profile, email, language and deleting the account',
@@ -143,6 +143,22 @@ export const en: Dictionary = {
       email: 'Please check the email address.',
       unavailable: 'This could not be saved right now. Please try again shortly.',
       tooMany: 'Too many tries. Please try again in a minute.',
+    },
+  },
+  password: {
+    heading: 'Password',
+    current: 'Current password',
+    new: 'New password',
+    hint: '8 to 128 characters. Changing it signs you out on every other device.',
+    submit: 'Change password',
+    done: 'Your password is changed. Every other device was signed out.',
+    errors: {
+      currentMissing: 'Please enter your current password.',
+      current: 'The current password is not right.',
+      passwordLength: 'Choose a password of 8 to 128 characters.',
+      passwordBreached: 'This password has appeared in a data breach. Please choose another.',
+      tooMany: 'Too many tries. Please try again in a minute.',
+      unavailable: 'The password could not be changed right now. Please try again shortly.',
     },
   },
   devices: {

@@ -33,7 +33,7 @@ export const ko: Dictionary = {
       account: '계정 관리',
     },
     descriptions: {
-      security: '로그인 기기와 연결된 사이트',
+      security: '비밀번호, 로그인 기기, 연결된 사이트',
       billing: '결제 수단, 구독, 주문 내역',
       library: '구매한 제품 다운로드',
       account: '프로필, 이메일, 언어, 계정 삭제',
@@ -140,6 +140,22 @@ export const ko: Dictionary = {
       email: '이메일 주소를 확인해 주세요.',
       unavailable: '지금은 저장할 수 없습니다. 잠시 뒤에 다시 해 주세요.',
       tooMany: '시도가 너무 많습니다. 1분 뒤에 다시 해 주세요.',
+    },
+  },
+  password: {
+    heading: '비밀번호',
+    current: '지금 비밀번호',
+    new: '새 비밀번호',
+    hint: '8자 이상 128자 이하. 바꾸면 이 기기를 뺀 모든 기기에서 로그아웃됩니다.',
+    submit: '비밀번호 바꾸기',
+    done: '비밀번호를 바꿨습니다. 다른 기기는 모두 로그아웃했습니다.',
+    errors: {
+      currentMissing: '지금 비밀번호를 입력해 주세요.',
+      current: '지금 비밀번호가 맞지 않습니다.',
+      passwordLength: '비밀번호는 8자 이상 128자 이하로 정해 주세요.',
+      passwordBreached: '유출된 적이 있는 비밀번호입니다. 다른 비밀번호를 정해 주세요.',
+      tooMany: '시도가 너무 많습니다. 1분 뒤에 다시 해 주세요.',
+      unavailable: '지금은 바꿀 수 없습니다. 잠시 뒤에 다시 해 주세요.',
     },
   },
   devices: {

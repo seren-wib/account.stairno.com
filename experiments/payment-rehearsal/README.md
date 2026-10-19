@@ -18,10 +18,11 @@ One unstyled page on `*.workers.dev`, connected to `https://api.stairno.com` lik
 | Start the subscription | `POST /v1/orders` for `rehearsal-monthly` (charged at once on the default card) | 5 |
 | Look up the order | `GET /v1/orders/{id}` with the site token | all |
 | Entitlement for … | `GET /v1/entitlements?sku=` with the buyer's token | 1, 3, 5, 6, 7 |
+| Request a refund | `POST /v1/refund-requests` with the site token and the buyer's token (FR-63); an operator then decides it with `admin:refund` | 3, 7 |
 
 - Every commerce call carries the site token (`grant_type=client_credentials`, `scope=commerce`, `resource=https://api.stairno.com`, kept per isolate until a minute before it expires) and, for orders, the buyer's token in `X-User-Token`.
 - Cancel and resume: the API accepts them only from the account center's own session, so the page links there instead of calling them.
-- Cards, refund requests and receipts live in the account center too; the page links to it.
+- Cards and receipts live in the account center; the page links to it. The account center only shows a refund request's state: the site files it (FR-63).
 - No input takes card data (DR-4). Toss's window takes the test card; PayPal takes its sandbox login.
 - `TOSS_CLIENT_KEY` must be a `test_ck_` key: the shop's own API key whose pair is the API Worker's `TOSS_SECRET_KEY` (#159). The shared docs keys (`test_gck_docs…`) pay into another shop, so its webhooks never reach the API; the page refuses them.
 - The sign-in state and the buyer's token live in `HttpOnly`, `Secure`, `SameSite=Lax` cookies sealed with AES-GCM under a key derived from the client secret. Nothing is logged but error messages.

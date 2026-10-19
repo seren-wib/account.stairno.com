@@ -112,7 +112,10 @@ ${form('/orders', { sku: MONTHLY, currency: 'KRW' }, 'Start the subscription')}
 ${textForm('/lookup/order', 'orderId', lastOrder, 'Look up the order')}
 ${form('/lookup/entitlement', { sku: ONE_TIME }, `Entitlement for ${ONE_TIME}`)}
 ${form('/lookup/entitlement', { sku: MONTHLY }, `Entitlement for ${MONTHLY}`)}
-<p>Refund requests, orders and receipts: <a href="${escapeHtml(account)}/ko/">account center</a>.</p>`,
+<h2>Refund (steps 3 and 7)</h2>
+<p>The site files the request (FR-63); an operator decides it with <code>admin:refund</code>. The account center shows its state.</p>
+${textForm('/refund-request', 'orderId', lastOrder, 'Request a refund')}
+<p>Orders, receipts and refund states: <a href="${escapeHtml(account)}/ko/">account center</a>.</p>`,
     );
   }
 
@@ -312,7 +315,14 @@ ${form('/confirm/toss', { paymentKey, orderId, amount, tamper: '1' }, 'Confirm w
         return redirect('/', 303, [setCookie(COOKIE.session, '', 0), setCookie(COOKIE.order, '', 0)]);
     }
 
-    const actions = ['/orders', '/confirm/toss', '/capture/paypal', '/lookup/order', '/lookup/entitlement'];
+    const actions = [
+      '/orders',
+      '/confirm/toss',
+      '/capture/paypal',
+      '/refund-request',
+      '/lookup/order',
+      '/lookup/entitlement',
+    ];
     if (!actions.includes(url.pathname)) return page('Not found', '', 404);
     if (request.method !== 'POST') return page('Use the buttons', '', 405, { allow: 'POST' });
 
@@ -331,6 +341,16 @@ ${form('/confirm/toss', { paymentKey, orderId, amount, tamper: '1' }, 'Confirm w
           body: { orderId: fields.get('orderId') ?? '' },
         });
         return page('PayPal capture', answer('Capture', result));
+      }
+      case '/refund-request': {
+        // FR-63: the site files its buyer's request, the buyer named by the forwarded token.
+        const result = await asSite(env, {
+          method: 'POST',
+          path: '/v1/refund-requests',
+          userToken: buyer.accessToken,
+          body: { orderId: fields.get('orderId') ?? '', reason: 'Payment rehearsal (test-deploy §8.4)' },
+        });
+        return page('Refund request', answer('Refund request', result));
       }
       case '/lookup/order': {
         const result = await asSite(env, {

@@ -1,7 +1,7 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { describe, expect, it } from 'vitest';
 import SignIn from '../../src/pages/[locale]/sign-in.astro';
-import Forward from '../../src/pages/sign-in.astro';
+import Forward from '../../src/routes/sign-in.astro';
 
 const locals = { apiUrl: 'https://api.stairno.com' } as unknown as App.Locals;
 

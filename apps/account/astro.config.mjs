@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
+import { unprefixedRoutes } from './src/integrations/unprefixed-routes';
 
 export default defineConfig({
   site: 'https://account.stairno.com',
@@ -8,6 +9,7 @@ export default defineConfig({
   // Sessions live in the API (Better Auth). Astro sessions would add an unused KV binding.
   session: false,
   adapter: cloudflare({ imageService: 'passthrough' }),
+  integrations: [unprefixedRoutes()],
   trailingSlash: 'ignore',
   // NFR-7 (SDD §9): hashes for the scripts and styles Astro emits, the theme script included.
   // connect-src and img-src are added per request by the layout, since the API host is a runtime

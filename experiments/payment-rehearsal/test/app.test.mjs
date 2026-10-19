@@ -390,6 +390,29 @@ test('the entitlement lookup uses the buyer token, the order lookup the site tok
   assert.match(lookup.headers.get('authorization'), /^Bearer site-token-/);
 });
 
+test('FR-63 files a refund request with the site token and the buyer token', async () => {
+  const { fetch, calls } = fakeFetch({
+    'POST /v1/refund-requests': () => [201, { id: 'r-1', orderId: ORDER_ID, status: 'open' }],
+  });
+  const app = createApp({ fetch });
+  const cookie = await signIn(app);
+  const home = await (await app(request('/', { cookie }), ENV)).text();
+  assert.match(home, /action="\/refund-request"/);
+
+  const res = await app(
+    request('/refund-request', { method: 'POST', cookie, form: { orderId: ORDER_ID } }),
+    ENV,
+  );
+  assert.equal(res.status, 200);
+  assert.match(await res.text(), /HTTP 201/);
+  const filed = calls.find((c) => c.path === '/v1/refund-requests');
+  assert.equal(filed.method, 'POST');
+  assert.match(filed.headers.get('authorization'), /^Bearer site-token-/);
+  assert.equal(filed.headers.get('x-user-token').split('.').length, 3);
+  assert.equal(filed.json.orderId, ORDER_ID);
+  assert.ok(filed.json.reason.length > 0);
+});
+
 test('the order lookup keeps the id inside one path segment', async () => {
   const { fetch, calls } = fakeFetch();
   const app = createApp({ fetch });

@@ -16,7 +16,10 @@
 
 ## Updates
 
-- [2026/10/18] **Phase 1 (sign-in) implemented.** Sign-up with email verification, sign-in, password reset, profile and email change, signed-in devices, connected sites, account deletion, OIDC provider for Stairno sites, terms and privacy pages, rate limits, CSP. Deployment workflow and custom domains in place; first public deployment pending.
+- [2026/10/21] **Production payment rehearsal passed, all 10 scenarios.** A rehearsal-only site attached to the production API ran one-time payments, a tampered amount, refunds, card registration, a subscription with three failed renewals ending in `expired`, PayPal, webhook resends, the payments switch, and receipts, refunds and renewal-failure mail in Korean and English, all with test keys.
+- [2026/10/20] **v0.4.2 hotfix.** The sign-in page sites redirect to was a 404 in production, and the renewal-failure mail linked to a removed page. Both fixed.
+- [2026/10/18] **Phase 2 (payments, test mode) live as v0.4.0.** Toss Payments (KRW) and PayPal (USD) behind one provider adapter, cards saved once as billing keys, subscriptions renewed by a daily cron with retries, refunds decided by an operator command, signed download links, idempotent signature-checked webhooks, and receipt and refund mail. Phase 1 went live the same day.
+- [2026/10/18] **Phase 1 (sign-in) implemented.** Sign-up with email verification, sign-in, password reset, profile and email change, signed-in devices, connected sites, account deletion, OIDC provider for Stairno sites, terms and privacy pages, rate limits, CSP. Deployment workflow and custom domains in place.
 
 ## Star History
 
@@ -146,6 +149,7 @@ A few details:
 - **Only the API touches the database.** The account center never imports Better Auth or Drizzle; its server forwards the visitor's `Cookie` header to the API to check the session and read data.
 - **Sessions are shared within stairno.com.** The session cookie is `HttpOnly`, `Secure`, `SameSite=Lax` with `Domain=stairno.com`, so the account center and the API see the same session.
 - **Other domains use OIDC.** Sites are registered by an operator command (`npm run admin:register-client --workspace apps/api`), skip the consent screen as first-party clients, and get an ID token with `sub`, `email`, `email_verified`, `name`, `locale`. Access tokens are one-hour JWTs for `https://api.stairno.com`; refresh tokens rotate and last 90 days.
+- **Payments stay behind one adapter.** Order and subscription logic only talks to the `PaymentProvider` interface in `apps/api/src/payments/provider.ts`; Toss Payments and PayPal implement it, and tests run against a fake provider. The server re-checks every amount with the provider, and amounts are integer minor units paired with a currency. Card numbers never reach this code: the provider's window takes them.
 - **Deployment.** On every push to `main`, `.github/workflows/deploy.yml` tests, applies the Neon migrations, then deploys the API and the account center, in that order.
 
 The design documents are written in Korean and kept as Google Docs. Requirement IDs such as `FR-3` in test names and pull requests refer to the requirements document.

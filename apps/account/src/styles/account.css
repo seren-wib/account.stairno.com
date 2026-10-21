@@ -40,15 +40,16 @@
   min-height: 50vh;
 }
 
-/* Links inside the page read as links; base.css leaves them bare for the hub's menus. */
-.page-body a {
+/* Links inside the page read as links; base.css leaves them bare for the hub's menus. Links drawn
+   as buttons stay bare: this selector outranks their single class. */
+.page-body a:not(.form-submit, .item-action) {
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
   text-underline-offset: 0.2em;
   transition: text-decoration-color 150ms ease;
 }
 
-.page-body a:hover {
+.page-body a:not(.form-submit, .item-action):hover {
   text-decoration-color: currentColor;
 }
 
@@ -529,6 +530,14 @@ html[data-theme='dark'] {
 
 .item-action:hover {
   background: var(--surface);
+}
+
+/* A button centres its label on its own; a link with the same look has to be told. */
+a.item-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .badge {

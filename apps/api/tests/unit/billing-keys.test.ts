@@ -32,7 +32,8 @@ describe('billing key encryption', () => {
   it('DR-4 refuses a stored value that was changed or made with another secret', async () => {
     const stored = await encryptBillingKey(SECRET, BILLING_KEY);
     const [version, iv, data] = stored.split('.');
-    const flipped = `${version}.${iv}.${data!.slice(0, -2)}${data!.endsWith('A') ? 'B' : 'A'}${data!.slice(-1)}`;
+    // Change the second-to-last character, which always carries ciphertext bits.
+    const flipped = `${version}.${iv}.${data!.slice(0, -2)}${data!.at(-2) === 'A' ? 'B' : 'A'}${data!.slice(-1)}`;
 
     await expect(decryptBillingKey(SECRET, flipped)).rejects.toThrow();
     await expect(decryptBillingKey(`${SECRET}-other`, stored)).rejects.toThrow();

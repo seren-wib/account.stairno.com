@@ -1,6 +1,6 @@
 {
   "name": "@stairno-account/api",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -31,7 +31,7 @@
   "dependencies": {
     "@better-auth/oauth-provider": "1.7.10",
     "@neondatabase/serverless": "^1.2.0",
-    "@stairno-account/contract": "^0.4.2",
+    "@stairno-account/contract": "^0.4.3",
     "better-auth": "1.7.10",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.13",

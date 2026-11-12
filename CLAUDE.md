@@ -15,6 +15,8 @@ Stairno 계정 센터(account.stairno.com)와 공용 API(api.stairno.com). Stair
 
 - `docs/specs/`는 git에서 제외된다. 로컬에 없으면 Google Docs를 읽는다. Drive 폴더는 `Stairno/account.stairno.com`
 - 문서를 고치면 마크다운 원본을 고친다. PR마다 바뀌는 건 원본뿐이다. Google Docs는 로드맵 단계가 끝날 때나 남에게 보여주기 전에 한 번 맞춘다. 같은 문서를 고쳐 링크를 지킨다. Google Docs만 고치지 않는다(2026-10-18)
+- 어디에 적나: 구현 결정은 SDD §4 메모와 §12, register-client CLI와 마이그레이션은 test-deploy §8.1, 열린 일은 계획서 §8. test-deploy §6.1은 PR별 단위 테스트 표라 2차 PR마다 행을 추가한다(원본과 Google Docs 둘 다)
+- `docs/specs/`는 `node -e`나 heredoc으로 고치지 않는다. 백틱이 먹혀서 손으로 고친 적이 있다
 - 요구사항 ID(`FR-n`, `NFR-n`, `DR-n`)는 SRS에 있다. 테스트 이름과 PR 본문에서 이 ID를 인용한다
 - 공개 문서(README.md, CONTRIBUTING.md)는 영어로 쓴다. 계획서, SRS, SDD, 테스트와 배포 문서, CLAUDE.md는 한국어
 - 범위를 늘리는 변경(소셜 로그인, 관리자 화면, 3차 항목)은 계획서의 범위와 결정 기록을 먼저 고친 뒤에만 한다
